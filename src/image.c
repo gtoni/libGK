@@ -23,6 +23,10 @@
 #include "gk.h"
 #include "gk_internal.h"
 
+#ifdef _WIN32
+#define _UNICODE
+#endif
+
 #include "IL/il.h"
 #include "GLee.h"
 
@@ -45,7 +49,7 @@ gkImage* gkLoadImage(wchar_t* filename){
 	ILuint imageId = ilGenImage();
 	GLint oldTexId;
 
-#ifdef _UNICODE
+#if defined(_UNICODE)
 	ilBindImage(imageId);
 	if(ilLoadImage(filename)){
 #else
@@ -55,7 +59,7 @@ gkImage* gkLoadImage(wchar_t* filename){
 
     ilBindImage(imageId);
     if(ilLoadImage(filenameMbs)){
-#endif // _UNICODE
+#endif
 
 		glGenTextures(1, &image->id);
 		ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
@@ -86,7 +90,7 @@ GK_BOOL gkSaveImage(gkImage* image, wchar_t* filename){
 	GK_BOOL result;
 	uint8_t* buff = (uint8_t*)calloc(image->width*image->height*4, sizeof(uint8_t));
 
-#ifdef _UNICODE
+#if defined(_UNICODE)
     wchar_t* saveName = filename;
 #else
     char saveName[1024];

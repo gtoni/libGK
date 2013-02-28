@@ -218,7 +218,7 @@ void gkSetMousePosition(float x, float y);
 #define GK_ON_KEY_UP		GK_KEYBOARD_EVENT_BASE + 3
 #define GK_ON_CHARACTER		GK_KEYBOARD_EVENT_BASE + 4
 
-#ifdef WIN32
+#ifdef _WIN32
 
 /*
 	Key codes and modifiers begin
@@ -736,9 +736,7 @@ GK_EVENT_END()
 
 typedef gkListenerList gkTween;
 
-#if defined(_WIN32)
-#define CDECL cdecl
-#else
+#if !defined(_WIN32)
 #define CDECL
 #endif
 

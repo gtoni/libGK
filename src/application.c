@@ -569,7 +569,7 @@ uint16_t gkShift = 0;
 
 void prepareKey(gkKey* key, uint16_t keyCode, uint16_t scanCode, GK_BOOL keyDown)
 {
-#ifdef WIN32
+#ifdef _WIN32
     if(keyCode == VK_MENU)
     {
         GK_BOOL gkLeftAltNew = (GetKeyState(VK_LMENU)&0x80) != 0;

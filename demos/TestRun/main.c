@@ -1,7 +1,9 @@
-#include <string.h>
+﻿#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#if !defined(WIN32) && !defined(_WIN32)
 #include <unistd.h>
+#endif
 #include <gk.h>
 
 #include <GL/gl.h>
@@ -88,6 +90,7 @@ void myDrawFunc(gkPanel* p){
 		gkDrawImage(img2, mx, my);
 	}
 	if(pdata->id == 0){
+		wchar_t* str = L"Изображение0382\nWA and a new line\nmfor\nfor\nVictory!!\nmore\nand\nmore";
 		gkTextFormat tf = gkDefaultTextFormat;
 		tf.textColor = GK_COLOR(1,1,1,1);
 		tf.strokeColor = GK_COLOR(0,0,0,1.0f);
@@ -98,7 +101,7 @@ void myDrawFunc(gkPanel* p){
 		tf.align = GK_TEXT_ALIGN_CENTER;
 		tf.valign = GK_TEXT_VALIGN_MIDDLE;
 		tf.underline = GK_TRUE;
-		gkDrawText(font, L"Изображение0382\nWA and a new line\nmfor\nfor\nVictory!!\nmore\nand\nmore", 0, 0, &tf);
+		gkDrawText(font, str, 0, 0, &tf);
 	}
 }
 

@@ -281,7 +281,7 @@ void gkProcessDrawPanel(gkPanelEx* panel){
 		glPushMatrix();
 		glPushAttrib(GL_ALL_ATTRIB_BITS);
 		glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);
-		glViewport(topLeft.x, gkGetScreenSize().height - topLeft.y - h, FABS(bottomRight.x - topLeft.x), h);
+		glViewport((GLint)topLeft.x, (GLint)gkGetScreenSize().height - topLeft.y - h, FABS(bottomRight.x - topLeft.x), h);
 		if(panel->drawFunc){
 			panel->drawFunc((gkPanel*)panel);
 		}

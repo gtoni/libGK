@@ -43,6 +43,7 @@ LRESULT WndProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam);
 #else
 
 #include <X11/Xlib.h>
+#include <X11/keysymdef.h>
 #include <X11/extensions/xf86vmode.h>
 #include <unistd.h>
 #include <libgen.h>
@@ -181,7 +182,7 @@ void gkSetScreenSize(gkSize size)
             }
 #else
             XResizeWindow(display, gkWindow, size.width, size.height);
-            XSync(display, False);
+            XSync(display, True);
 #endif
             if(gkMainPanel && gkMainPanel->resizeFunc)
             {
@@ -1019,6 +1020,25 @@ static void processEvent(XEvent* event)
     else if(event->type == MotionNotify)
     {
         onWindowMouseMove(event->xmotion.x, event->xmotion.y);
+    }else if(event->type == ConfigureNotify)
+    {
+        gkSize newSize = GK_SIZE(event->xconfigure.width, event->xconfigure.height);
+        if(gkScreenSize.width != newSize.width || gkScreenSize.height != newSize.height)
+            onWindowSizeChanged(newSize);
+    }else if(event->type == KeyPress)
+    {
+        onWindowKeyDown(event->xkey.keycode, event->xkey.state);
+        KeySym ch = XLookupKeysym(&event->xkey, event->xkey.state);
+        printf("key down %d %d \n", event->xkey.keycode, event->xkey.state);
+        if(ch != NoSymbol){
+            printf("%s\n", XKeysymToString(ch));
+        }
+    }else if(event->type == KeyRelease)
+    {
+        onWindowKeyUp(event->xkey.keycode, event->xkey.state);
+    }else
+    {
+        printf("%d\n", event->type);
     }
 }
 #endif

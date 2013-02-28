@@ -1,0 +1,18 @@
+# depslib dependency file v1.0
+1362007945 source:/home/khaos/C-projects/libgk/demos/TestRun/main.c
+	<string.h>
+	<stdio.h>
+	<stdlib.h>
+	<unistd.h>
+	<gk.h>
+	<GL/gl.h>
+	<math.h>
+	<GL/gl.h>
+	<math.h>
+
+1362002494 /home/khaos/C-projects/libgk/include/gk.h
+	<memory.h>
+	<wchar.h>
+	<stdint.h>
+	<windows.h>
+

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_workspace_file>
+	<Workspace title="Workspace">
+		<Project filename="libgk.cbp" />
+		<Project filename="TestRun/TestRun.cbp" />
+	</Workspace>
+</CodeBlocks_workspace_file>

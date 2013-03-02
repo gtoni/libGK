@@ -25,10 +25,14 @@
 			</Target>
 		</Build>
 		<Unit filename="../include/gk.h" />
+		<Unit filename="../include/gkkeydefs.h" />
 		<Unit filename="../src/GLee.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../src/GLee.h" />
+		<Unit filename="../src/X11/imKStoUCS.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="../src/application.c">
 			<Option compilerVar="CC" />
 		</Unit>

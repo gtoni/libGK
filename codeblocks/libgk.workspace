@@ -2,6 +2,8 @@
 <CodeBlocks_workspace_file>
 	<Workspace title="Workspace">
 		<Project filename="libgk.cbp" />
-		<Project filename="TestRun/TestRun.cbp" />
+		<Project filename="TestRun/TestRun.cbp">
+			<Depends filename="libgk.cbp" />
+		</Project>
 	</Workspace>
 </CodeBlocks_workspace_file>

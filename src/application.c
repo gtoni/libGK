@@ -43,7 +43,6 @@ LRESULT WndProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam);
 #else
 
 #include <X11/Xlib.h>
-#include <X11/keysymdef.h>
 #include <X11/extensions/xf86vmode.h>
 #include <unistd.h>
 #include <libgen.h>
@@ -62,6 +61,8 @@ Atom wmDeleteMessage;
 XVisualInfo *vi;
 GLXContext glCtx;
 XF86VidModeModeInfo defaultVideoMode;
+
+unsigned int X11_KeySymToUcs4(KeySym keysym);
 
 #endif
 
@@ -1028,10 +1029,10 @@ static void processEvent(XEvent* event)
     }else if(event->type == KeyPress)
     {
         onWindowKeyDown(event->xkey.keycode, event->xkey.state);
-        KeySym ch = XLookupKeysym(&event->xkey, event->xkey.state);
-        printf("key down %d %d \n", event->xkey.keycode, event->xkey.state);
-        if(ch != NoSymbol){
-            printf("%s\n", XKeysymToString(ch));
+        KeySym ksym = XLookupKeysym(&event->xkey, event->xkey.state);
+        if(ksym != NoSymbol)
+        {
+            onWindowCharacter(X11_KeySymToUcs4(ksym));
         }
     }else if(event->type == KeyRelease)
     {

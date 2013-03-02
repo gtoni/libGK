@@ -302,12 +302,12 @@ GK_BOOL onMouseLeave(gkMouseEvent* evt, void* p){
 }
 
 void onKUp(gkKeyboardEvent* evt, void* p){
-	wchar_t buf[2550], c[2];
+	wchar_t msgBuff[2550], c[2];
 	c[1] =0;
-	wcscpy(buf, gkGetWindowTitle());
+	wcscpy(msgBuff, gkGetWindowTitle());
 	c[0] = evt->character;
-	wcscat(buf, c);
-	gkSetWindowTitle(buf);
+	wcscat(msgBuff, c);
+	gkSetWindowTitle(msgBuff);
 }
 
 GK_BOOL onFocusIn(gkEvent* evt, void* p){
@@ -431,7 +431,7 @@ void main(){
 		gkSetWindowTitle(L"Simple panel");
 		gkSetWindowResizable(GK_TRUE);
 		gkSetScreenSize(GK_SIZE(1280,720));
-//		gkSetTargetFps(GK_VSYNC);
+		gkSetTargetFps(GK_VSYNC);
 		gkSetMousePosition(1280/2, 720/2);
 		{
 			img = gkCreateImage(200,200);

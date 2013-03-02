@@ -152,10 +152,6 @@
 
 #else
 
-#include <X11/keysym.h>
-
-
-
 #define GK_KEY_UNKNOWN		0
 #define GK_KEY_BACKSPACE	22
 #define GK_KEY_TAB			23
@@ -188,98 +184,84 @@
 #define GK_KEY_A			38
 #define GK_KEY_B			56
 #define GK_KEY_C			54
-//
-#define GK_KEY_D			68
-#define GK_KEY_E			69
-#define GK_KEY_F			70
-#define GK_KEY_G			71
-#define GK_KEY_H			72
-#define GK_KEY_I			73
-#define GK_KEY_J			74
-#define GK_KEY_K			75
-#define GK_KEY_L			76
-#define GK_KEY_M			77
-#define GK_KEY_N			78
-#define GK_KEY_O			79
-#define GK_KEY_P			80
-#define GK_KEY_Q			81
+#define GK_KEY_D			40
+#define GK_KEY_E			26
+#define GK_KEY_F			41
+#define GK_KEY_G			42
+#define GK_KEY_H			43
+#define GK_KEY_I			31
+#define GK_KEY_J			44
+#define GK_KEY_K			45
+#define GK_KEY_L			46
+#define GK_KEY_M			58
+#define GK_KEY_N			57
+#define GK_KEY_O			32
+#define GK_KEY_P			33
+#define GK_KEY_Q			24
 #define GK_KEY_R			27
-#define GK_KEY_S			83
-#define GK_KEY_T			84
-#define GK_KEY_U			85
-#define GK_KEY_V			86
-#define GK_KEY_W			87
-#define GK_KEY_X			88
-#define GK_KEY_Y			89
-#define GK_KEY_Z			90
-#define GK_KEY_DEL			GK_KEY_UNKNOWN
-#define GK_KEY_KP0			96
-#define GK_KEY_KP1			97
-#define GK_KEY_KP2			98
-#define GK_KEY_KP3			99
-#define GK_KEY_KP4			100
-#define GK_KEY_KP5			101
-#define GK_KEY_KP6			102
-#define GK_KEY_KP7			103
-#define GK_KEY_KP8			104
-#define GK_KEY_KP9			105
-#define GK_KEY_KP_PERIOD	110
-#define GK_KEY_KP_DIVIDE	111
-#define GK_KEY_KP_MULTIPLY	106
-#define GK_KEY_KP_MINUS		109
-#define GK_KEY_KP_PLUS		107
-#define GK_KEY_UP			38
-#define GK_KEY_DOWN			40
-#define GK_KEY_RIGHT		39
-#define GK_KEY_LEFT			37
-#define GK_KEY_INSERT		45
-#define GK_KEY_HOME			36
-#define GK_KEY_END			35
-#define GK_KEY_PAGEUP		33
-#define GK_KEY_PAGEDOWN		34
-#define GK_KEY_F1			GK_KEY_UNKNOWN
-#define GK_KEY_F2			GK_KEY_UNKNOWN
-#define GK_KEY_F3			GK_KEY_UNKNOWN
-#define GK_KEY_F4			GK_KEY_UNKNOWN
-#define GK_KEY_F5			GK_KEY_UNKNOWN
-#define GK_KEY_F6			GK_KEY_UNKNOWN
-#define GK_KEY_F7			GK_KEY_UNKNOWN
-#define GK_KEY_F8			GK_KEY_UNKNOWN
-#define GK_KEY_F9			GK_KEY_UNKNOWN
-#define GK_KEY_F10			GK_KEY_UNKNOWN
+#define GK_KEY_S			39
+#define GK_KEY_T			28
+#define GK_KEY_U			30
+#define GK_KEY_V			55
+#define GK_KEY_W			25
+#define GK_KEY_X			53
+#define GK_KEY_Y			29
+#define GK_KEY_Z			52
+#define GK_KEY_DEL			119
+#define GK_KEY_KP0			90
+#define GK_KEY_KP1			87
+#define GK_KEY_KP2			88
+#define GK_KEY_KP3			89
+#define GK_KEY_KP4			83
+#define GK_KEY_KP5			84
+#define GK_KEY_KP6			85
+#define GK_KEY_KP7			79
+#define GK_KEY_KP8			80
+#define GK_KEY_KP9			81
+#define GK_KEY_KP_PERIOD	91
+#define GK_KEY_KP_DIVIDE	106
+#define GK_KEY_KP_MULTIPLY	63
+#define GK_KEY_KP_MINUS		82
+#define GK_KEY_KP_PLUS		86
+#define GK_KEY_UP			111
+#define GK_KEY_DOWN			116
+//
+#define GK_KEY_RIGHT		114
+#define GK_KEY_LEFT			113
+#define GK_KEY_INSERT		118
+#define GK_KEY_HOME			110
+#define GK_KEY_END			115
+#define GK_KEY_PAGEUP		112
+#define GK_KEY_PAGEDOWN		117
+#define GK_KEY_F1			67
+#define GK_KEY_F2			68
+#define GK_KEY_F3			69
+#define GK_KEY_F4			70
+#define GK_KEY_F5			71
+#define GK_KEY_F6			72
+#define GK_KEY_F7			73
+#define GK_KEY_F8			74
+#define GK_KEY_F9			75
+#define GK_KEY_F10			76
+
 #define GK_KEY_F11			GK_KEY_UNKNOWN
-#define GK_KEY_F12			GK_KEY_UNKNOWN
+#define GK_KEY_F12			96
+
 #define GK_KEY_F13			GK_KEY_UNKNOWN
 #define GK_KEY_F14			GK_KEY_UNKNOWN
 #define GK_KEY_F15			GK_KEY_UNKNOWN
-#define GK_KEY_NUMLOCK		GK_KEY_UNKNOWN
-#define GK_KEY_CAPSLOCK		GK_KEY_UNKNOWN
+
+#define GK_KEY_NUMLOCK		77
+#define GK_KEY_CAPSLOCK		66
 #define GK_KEY_SCROLLOCK	GK_KEY_UNKNOWN
-#define GK_KEY_RSHIFT		GK_KEY_UNKNOWN
-#define GK_KEY_LSHIFT		GK_KEY_UNKNOWN
-#define GK_KEY_RCTRL		GK_KEY_UNKNOWN
-#define GK_KEY_LCTRL		GK_KEY_UNKNOWN
-#define GK_KEY_RALT			GK_KEY_UNKNOWN
-#define GK_KEY_LALT			GK_KEY_UNKNOWN
-#define GK_KEY_BREAK		GK_KEY_UNKNOWN
+#define GK_KEY_RSHIFT		62
+#define GK_KEY_LSHIFT		50
+#define GK_KEY_RCTRL		105
+#define GK_KEY_LCTRL		37
+#define GK_KEY_RALT			108
+#define GK_KEY_LALT			64
+#define GK_KEY_BREAK		127
 
-
-///
-/*
-#define GK_KEY_SPACE        XK_Space
-#define GK_KEY_ESCAPE       XK_Escape
-
-#define GK_KEY_NUMLOCK		XK_Num_Lock
-#define GK_KEY_CAPSLOCK		XK_Caps_Lock
-#define GK_KEY_SCROLLOCK	XK_Scroll_Lock
-#define GK_KEY_RSHIFT		XK_Shift_R
-#define GK_KEY_LSHIFT		XK_Shift_L
-#define GK_KEY_RCTRL		XK_Control_R
-#define GK_KEY_LCTRL		XK_Control_L
-#define GK_KEY_RALT		XK_Alt_R
-#define GK_KEY_LALT		XK_Alt_L
-#define GK_KEY_BREAK		XK_Break
-*/
 
 #define GK_KEY_MOD_NONE		0x0000
 #define GK_KEY_MOD_LSHIFT	0x0001

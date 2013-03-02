@@ -345,7 +345,7 @@ void printResource(gkFontResource* rc){
 	}
 }
 
-void main(){
+int main(){
 	if(gkInit(GK_AUTO)){
 		gkTimer* timer1, *timer2;
 		gkPanel* panel = gkCreatePanel();
@@ -429,9 +429,10 @@ void main(){
 		gkAddListener(panel, GK_ON_PANEL_RESIZED, 0, onPanelResize, 0);
 		gkSetMainPanel(panel);
 		gkSetWindowTitle(L"Simple panel");
-		gkSetWindowResizable(GK_TRUE);
-		gkSetScreenSize(GK_SIZE(1280,720));
+//		gkSetWindowResizable(GK_FALSE);
+//		gkSetScreenSize(GK_SIZE(1280,720));
 		gkSetTargetFps(GK_VSYNC);
+//		gkSetFullscreen(GK_TRUE);
 		gkSetMousePosition(1280/2, 720/2);
 		{
 			img = gkCreateImage(200,200);
@@ -470,6 +471,7 @@ void main(){
 		gkDestroyPanel(p2);
 		gkDestroyPanel(vp);
 	}
+	return 0;
 }
 
 /*

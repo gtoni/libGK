@@ -73,7 +73,7 @@ unsigned int X11_KeySymToUcs4(KeySym keysym);
 
 GK_BOOL gkActive;
 GK_BOOL gkFullscreen;
-GK_BOOL gkWindowResizable;
+GK_BOOL gkWindowResizable = GK_FALSE;
 GK_BOOL gkInFrame;
 int gkFps = 0;
 int gkTargetFps = 60;
@@ -182,6 +182,16 @@ void gkSetScreenSize(gkSize size)
                 SetWindowPos(gkWindow, 0, 0, 0, sz.right - sz.left, sz.bottom - sz.top, SWP_NOMOVE|SWP_NOZORDER);
             }
 #else
+
+            XSizeHints sizeHints;
+            if(!gkWindowResizable)
+            {
+                sizeHints.flags = PMinSize|PMaxSize;
+                sizeHints.max_width = sizeHints.min_width = size.width;
+                sizeHints.max_height = sizeHints.min_height = size.height;
+                XSetWMNormalHints(display, gkWindow, &sizeHints);
+            }
+
             XResizeWindow(display, gkWindow, size.width, size.height);
             XSync(display, True);
 #endif
@@ -249,30 +259,35 @@ void gkSetFullscreen(GK_BOOL fullscreen)
             }
 #else
             int i, modeCount;
+            XSetWindowAttributes attribs;
+            XWindowChanges changes;
             XF86VidModeModeInfo** modes;
+
+            attribs.override_redirect = True;
+
+            changes.x = 0;
+            changes.y = 0;
+            changes.border_width = 0;
+
             XF86VidModeGetAllModeLines(display, screen, &modeCount, &modes);
-            if(oldVal == GK_FALSE)
-            {
-                defaultVideoMode = *modes[0];
-            }
+
             for(i = 0; i<modeCount; i++)
             {
                 if(modes[i]->hdisplay == gkScreenSize.width && modes[i]->vdisplay == gkScreenSize.height)
                 {
-                    XSetWindowAttributes attribs;
-                    XWindowChanges changes;
                     XF86VidModeSwitchToMode(display, screen, modes[i]);
                     XF86VidModeSetViewPort(display, screen, 0, 0);
-                    XFlush(display);
+
                     XUnmapWindow(display, gkWindow);
-                    attribs.override_redirect = True;
+                    XSync(display, False);
+
                     XChangeWindowAttributes(display, gkWindow, CWOverrideRedirect, &attribs);
                     XSync(display, False);
                     XMapRaised(display, gkWindow);
-                    changes.x = 0;
-                    changes.y = 0;
-                    changes.border_width = 0;
+
                     XConfigureWindow(display, gkWindow, CWX|CWY|CWBorderWidth, &changes);
+                    XGrabKeyboard(display, gkWindow, True, GrabModeAsync, GrabModeAsync, CurrentTime);
+                    XGrabPointer(display, gkWindow, True, 0 , GrabModeAsync, GrabModeAsync, gkWindow, None, CurrentTime);
                     XFlush(display);
                     break;
                 }
@@ -311,12 +326,20 @@ void gkSetFullscreen(GK_BOOL fullscreen)
         if(oldVal)
         {
             XSetWindowAttributes attribs;
+            attribs.override_redirect = GK_FALSE;
+
             XF86VidModeSwitchToMode(display, screen, &defaultVideoMode);
             XF86VidModeSetViewPort(display, screen, 0, 0);
+
             XUnmapWindow(display, gkWindow);
-            attribs.override_redirect = GK_FALSE;
+
             XChangeWindowAttributes(display, gkWindow, CWOverrideRedirect, &attribs);
+
             XMapWindow(display, gkWindow);
+
+            XUngrabKeyboard(display, CurrentTime);
+            XUngrabPointer(display, CurrentTime);
+
             XFlush(display);
         }
 #endif
@@ -699,6 +722,12 @@ void onWindowKeyUp(uint16_t keyCode, uint16_t scanCode)
 {
     gkKeyboardEvent evt;
     gkKey key;
+#if !defined(_WIN32)
+    char keys[32];
+    XQueryKeymap(display, keys);
+    if(((keys[keyCode/8]>>(keyCode%8))) & 0x1)
+        return; /* Key not really released */
+#endif
     prepareKey(&key, keyCode, scanCode, GK_FALSE);
     evt.type = GK_ON_KEY_UP;
     evt.currentTarget = evt.target = gkKeyboard;
@@ -777,10 +806,15 @@ void initGk()
     XSetWindowAttributes winAttribs;
     Colormap cmap;
     Window root;
+    XF86VidModeModeInfo** modes;
+
 
     display = XOpenDisplay(NULL);
     screen = DefaultScreen(display);
     root = RootWindow(display, screen);
+
+    XF86VidModeGetModeLine(display, screen, &defaultVideoMode.dotclock, (XF86VidModeModeLine*)&defaultVideoMode.hdisplay);
+
 
     vi = glXChooseVisual(display, screen, glAttribs);
     if(vi == 0)
@@ -794,9 +828,10 @@ void initGk()
 
     winAttribs.colormap = cmap;
     winAttribs.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | StructureNotifyMask | SubstructureNotifyMask | PointerMotionMask;
+    winAttribs.override_redirect = False;
 
     wmDeleteMessage = XInternAtom(display, "WM_DELETE_WINDOW", False);
-    gkWindow = XCreateWindow(display, root, 0, 0, (int)gkScreenSize.width, (int)gkScreenSize.height, 0, vi->depth, InputOutput, vi->visual, CWColormap|CWEventMask, &winAttribs);
+    gkWindow = XCreateWindow(display, root, 0, 0, (int)gkScreenSize.width, (int)gkScreenSize.height, 0, vi->depth, InputOutput, vi->visual, CWColormap|CWEventMask|CWOverrideRedirect, &winAttribs);
     XStoreName(display, gkWindow, "GKApp");
 
     glCtx = glXCreateContext(display, vi, NULL, GL_TRUE);
@@ -821,7 +856,7 @@ void initGk()
     gkSetTargetFps(0);
 
 #if defined(_WIN32)
-    /*Antialias multi-sample 4x*/
+    /*Antialias multi-sample 2x*/
     if(GLEE_WGL_ARB_pixel_format)
     {
         UINT numFormats, pixelFormat;
@@ -835,7 +870,7 @@ void initGk()
                               WGL_STENCIL_BITS_ARB,0,
                               WGL_DOUBLE_BUFFER_ARB,GL_TRUE,
                               WGL_SAMPLE_BUFFERS_ARB,GL_TRUE,
-                              WGL_SAMPLES_ARB, 4 ,						// Check For 4x Multisampling
+                              WGL_SAMPLES_ARB, 2 ,						// Check For 2x Multisampling
                               0,0
                             };
         if(wglChoosePixelFormatARB(hdc, iAttributes, fAttributes, 1, &pixelFormat, &numFormats))
@@ -866,7 +901,6 @@ void initGk()
             glEnable(GL_MULTISAMPLE);
         }
     }
-#else
 #endif
     gkGlobalMouseState.wheel = 0;
 	gkInitImages();
@@ -1034,6 +1068,18 @@ static void processEvent(XEvent* event)
         {
             onWindowCharacter(X11_KeySymToUcs4(ksym));
         }
+        if(event->xkey.keycode == GK_KEY_F4 && gkGlobalKeyboardState.keys[GK_KEY_LALT])
+        {
+            XLowerWindow(display, gkWindow);
+            XSync(display, True);
+            printf("Alt + F4 clicked");
+            gkExit();
+        }
+        else if(event->xkey.keycode == GK_KEY_TAB && gkGlobalKeyboardState.keys[GK_KEY_LALT])
+        {
+            XUngrabKeyboard(display, CurrentTime);
+            XLowerWindow(display, gkWindow);
+        }
     }else if(event->type == KeyRelease)
     {
         onWindowKeyUp(event->xkey.keycode, event->xkey.state);
@@ -1168,8 +1214,12 @@ void runGk()
 #if defined(_WIN32)
     ShowWindow(gkWindow, SW_SHOW);
 #else
-    XMapWindow(display, gkWindow);
     XSetWMProtocols(display, gkWindow, &wmDeleteMessage, 1);
+    if(!gkFullscreen)
+    {
+        XMoveWindow(display, gkWindow, (DisplayWidth(display, screen) - (int)gkScreenSize.width)>>1,
+                    (DisplayHeight(display, screen) - (int)gkScreenSize.height)>>1);
+    }
     XFlush(display);
 #endif
     while(gkActive)
@@ -1188,6 +1238,7 @@ void runGk()
     DestroyWindow(gkWindow);
     UnregisterClass(L"GKApp", hinstance);
 #else
+    XDestroyWindow(display, gkWindow);
     glXMakeCurrent(display, None, NULL);
     glXDestroyContext(display, glCtx);
     if(gkFullscreen)

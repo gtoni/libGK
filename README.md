@@ -13,7 +13,7 @@ The code below creates a resizeable OpenGL window, which is ready for action.
 
 	void main()
 	{
-		if(gkInit(GK_AUTO))
+		if(gkInit())
 		{
 			gkSetScreenSize(GK_SIZE(800,600));
 			gkSetWindowTitle(L"Hello World");

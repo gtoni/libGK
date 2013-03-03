@@ -20,6 +20,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-lX11 -lGL -lrt -lXxf86vm -lIL" />
+					<Add option="-lOpenAL" />
 					<Add directory="../libs" />
 				</Linker>
 			</Target>
@@ -34,6 +35,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../src/application.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/audio.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../src/event.c">

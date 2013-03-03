@@ -88,5 +88,7 @@ void gkCleanupDrawToImageBuffer();
 void gkInitJoystick();
 void gkCleanupJoystick();
 
+void gkInitAudio();
+void gkCleanupAudio();
 
 #endif

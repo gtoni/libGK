@@ -88,7 +88,7 @@ void runGk();
 
 void updateGLSize(gkSize sz);
 
-GK_BOOL gkInit(enum gkInitFlags flags)
+GK_BOOL gkInit()
 {
     gkActive = GK_TRUE;
     gkFullscreen = GK_FALSE;
@@ -897,6 +897,7 @@ void initGk()
     gkInitTimers();
     gkInitTweens();
     gkInitJoystick();
+    gkInitAudio();
 }
 
 #ifdef GK_WIN
@@ -1216,6 +1217,7 @@ void runGk()
     gkCleanupTimers();
     gkCleanupTweens();
     gkCleanupJoystick();
+    gkCleanupAudio();
 #ifdef GK_WIN
     ReleaseDC(gkWindow, hdc);
     wglMakeCurrent(0,0);

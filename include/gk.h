@@ -121,9 +121,7 @@ gkPoint gkTransformPoint(gkPoint point, gkMatrix* matrix);	//performs Point * Ma
 
 #define GK_VSYNC -1
 
-enum gkInitFlags{GK_OPEN_GL = 1, GK_OPEN_AL = 100, GK_AUTO = 101};
-
-GK_BOOL	gkInit(enum gkInitFlags);
+GK_BOOL	gkInit();
 void	gkRun();
 void	gkExit();
 

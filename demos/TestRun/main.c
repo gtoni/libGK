@@ -347,7 +347,7 @@ void printResource(gkFontResource* rc){
 }
 
 int main(){
-	if(gkInit(GK_AUTO)){
+	if(gkInit()){
 		gkTimer* timer1, *timer2;
 		gkPanel* panel = gkCreatePanel();
 		int i;

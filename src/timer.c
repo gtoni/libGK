@@ -23,7 +23,7 @@
 #include "gk.h"
 #include "gk_internal.h"
 
-#if defined(_WIN32)
+#ifdef GK_WIN
 #include <windows.h>
 #else
 #include <unistd.h>
@@ -34,7 +34,7 @@
 uint64_t gkAppStartTime = 0;
 
 uint64_t gkMilliseconds(){
-#if defined(_WIN32)
+#ifdef GK_WIN
 	LARGE_INTEGER count, freq;
 	if(!QueryPerformanceCounter(&count)){
 		return GetTickCount() - gkAppStartTime;

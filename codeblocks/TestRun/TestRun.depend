@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1362327797 source:/home/khaos/C-projects/libgk/demos/TestRun/main.c
+1362328678 source:/home/khaos/C-projects/libgk/demos/TestRun/main.c
 	<stdio.h>
 	<stdlib.h>
 	<unistd.h>
@@ -9,12 +9,12 @@
 	<GL/gl.h>
 	<math.h>
 
-1362092768 /home/khaos/C-projects/libgk/include/gk.h
+1362343438 /home/khaos/C-projects/libgk/include/gk.h
 	<memory.h>
 	<wchar.h>
 	<stdint.h>
 	<gkkeydefs.h>
 
-1362177360 /home/khaos/C-projects/libgk/include/gkkeydefs.h
+1362343447 /home/khaos/C-projects/libgk/include/gkkeydefs.h
 	<windows.h>
 

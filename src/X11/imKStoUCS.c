@@ -23,7 +23,7 @@ ings in this Software without prior written authorization from the XFree86
 Project.
 */
 
-#ifndef _WIN32
+#ifdef GK_LINUX
 
 #include <X11/X.h>
 

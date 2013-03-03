@@ -108,7 +108,7 @@ gkTween* CDECL gkAddTween(void* var, uint32_t transitionType, uint64_t transitio
 	tween->varType = varType;
 	va_start(arglist, varType);
 	switch(varType){
-#if defined(_WIN32)
+#ifdef GK_WIN
 		case GK_UNSIGNED_BYTE:
 			tween->value.ub.start = va_arg(arglist, uint8_t);
 			tween->value.ub.end = va_arg(arglist, uint8_t);

@@ -29,11 +29,11 @@
 #include FT_GLYPH_H
 #include FT_STROKER_H
 
-#ifdef _WIN32
+#ifdef GK_WIN
 #define stricmp _stricmp
 #else
 #define stricmp strcasecmp
-#endif // _WIN32
+#endif
 
 FT_Library ftlib;
 

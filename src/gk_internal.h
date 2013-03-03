@@ -22,7 +22,7 @@
 #ifndef _GK_INTERNAL_H_
 #define _GK_INTERNAL_H_
 
-#ifdef _WIN32
+#ifdef GK_WIN
 #include <windows.h>
 extern HWND gkWindow;
 #else

@@ -25,6 +25,12 @@
 #include <memory.h>
 #include <wchar.h>
 
+#ifdef _WIN32
+#define GK_WIN
+#else
+#define GK_LINUX
+#endif
+
 #ifdef _MSC_VER
 	#if (_MSC_VER<1300)
 		typedef unsigned char uint8_t;
@@ -571,7 +577,7 @@ GK_EVENT_END()
 
 typedef gkListenerList gkTween;
 
-#if !defined(_WIN32)
+#ifdef GK_LINUX
 #define CDECL
 #endif
 

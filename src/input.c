@@ -21,7 +21,7 @@
 
 #include "gk.h"
 #include "gk_internal.h"
-#ifdef WIN32
+#ifdef GK_WIN
 #define CINTERFACE
 #define INITGUID
 #include <windows.h>
@@ -40,7 +40,7 @@ void gkGetMouseState(gkMouseState* mouseState){
 
 
 void gkSetMousePosition(float x, float y){
-#ifdef WIN32
+#ifdef GK_WIN
 	RECT rect;
 	GetWindowRect(gkWindow, &rect);
 	SetCursorPos((int)(rect.left + x),(int)(rect.top + y));
@@ -61,7 +61,7 @@ void gkGetKeyboardState(gkKeyboardState* keyboardState){
 gkJoystick** gkJoysticks;
 uint32_t gkJoystickCount;
 
-#if defined(_WIN32)
+#ifdef GK_WIN
 struct gkJoystickExtStruct{
 	wchar_t* name;
 	uint8_t flags;

@@ -23,7 +23,7 @@
 #define _GKKEYDEFS_H_
 
 
-#ifdef _WIN32
+#ifdef GK_WIN
 
 /*
 	Key codes and modifiers begin

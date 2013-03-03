@@ -20,7 +20,7 @@
  */
 
 
-#if defined(_WIN32)
+#ifdef GK_WIN
 #include <windows.h>
 #endif
 

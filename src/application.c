@@ -22,7 +22,7 @@
 #include "gk.h"
 #include "gk_internal.h"
 
-#if defined(_WIN32)
+#ifdef GK_WIN
 #include <windows.h>
 
 #include "GLee.h"
@@ -61,7 +61,7 @@ XVisualInfo *vi;
 GLXContext glCtx;
 XF86VidModeModeInfo defaultVideoMode;
 
-unsigned int X11_KeySymToUcs4(KeySym keysym);
+#include "X11/imKStoUCS.c"
 
 #endif
 
@@ -118,7 +118,7 @@ wchar_t gkAppDirBuffer[GK_MAX_APP_DIR_BUFFER];
 wchar_t* gkGetAppDir()
 {
     wchar_t* p;
-#if defined(_WIN32)
+#ifdef GK_WIN
     GetModuleFileNameW(0, gkAppDirBuffer, GK_MAX_APP_DIR_BUFFER);
     if((p = strrchr(gkAppDirBuffer, L'\\')) != 0) *p = 0;
     wcsncat_s(gkAppDirBuffer, GK_MAX_APP_DIR_BUFFER, L"\\", 1);
@@ -138,7 +138,7 @@ void gkSetTargetFps(int targetFps)
 {
     int swapIntervalCtrl = targetFps == -1?1:0;
     gkTargetFps = targetFps;
-#if defined(_WIN32)
+#ifdef GK_WIN
     wglSwapIntervalEXT(swapIntervalCtrl);
 #else
     glXSwapIntervalSGI(swapIntervalCtrl);
@@ -170,7 +170,7 @@ void gkSetScreenSize(gkSize size)
         if(!gkInFrame)
         {
 
-#if defined(_WIN32)
+#ifdef GK_WIN
             RECT sz;
             GetClientRect(gkWindow, &sz);
             if((sz.right - sz.left) != size.width || (sz.bottom - sz.top) != size.height)
@@ -240,7 +240,7 @@ void gkSetFullscreen(GK_BOOL fullscreen)
         free(resolutions);
         if(resolutionSupported)
         {
-#if defined(_WIN32)
+#ifdef GK_WIN
             DEVMODE devmode;
             SetWindowLongPtr(gkWindow, GWL_STYLE, WS_POPUP);
             SetWindowPos(gkWindow, HWND_TOPMOST, 0, 0, gkScreenSize.width, gkScreenSize.height, SWP_FRAMECHANGED);
@@ -301,7 +301,7 @@ void gkSetFullscreen(GK_BOOL fullscreen)
     }
     if(!gkFullscreen)
     {
-#if defined(_WIN32)
+#ifdef GK_WIN
         UINT_PTR oldStyle, nstyle;
         if(oldVal)
         {
@@ -351,7 +351,7 @@ GK_BOOL gkIsFullscreen()
 
 size_t gkGetSupportedScreenSizes(gkSize* sizes)
 {
-#if defined(_WIN32)
+#ifdef GK_WIN
     int i,t;
     DEVMODE devmode;
     DWORD lastW = 0, lastH = 0;
@@ -405,7 +405,7 @@ size_t gkGetSupportedScreenSizes(gkSize* sizes)
 
 void gkSetWindowTitle(wchar_t* title)
 {
-#if defined(_WIN32)
+#ifdef GK_WIN
     SetWindowTextW(gkWindow, title);
 #else
     char titleBuffer[256];
@@ -420,7 +420,7 @@ void gkSetWindowTitle(wchar_t* title)
 wchar_t windowNameBuffer[256];
 wchar_t* gkGetWindowTitle()
 {
-#if defined(_WIN32)
+#ifdef GK_WIN
     if(gkActive)
         GetWindowTextW(gkWindow, windowNameBuffer, 256);
 #else
@@ -439,7 +439,7 @@ wchar_t* gkGetWindowTitle()
 
 void gkSetWindowResizable(GK_BOOL resizable)
 {
-#if defined(_WIN32)
+#ifdef GK_WIN
     LONG_PTR style = GetWindowLongPtr(gkWindow, GWL_STYLE);
     LONG_PTR newStyle = 0;
     gkWindowResizable = resizable;
@@ -576,7 +576,7 @@ void onWindowSizeChanged(gkSize nsize)
 uint16_t gkLastKeyCode = 0;
 uint16_t gkLastScanCode = 0;
 
-#ifdef WIN32
+#ifdef GK_WIN
 GK_BOOL gkLeftAlt = 0;
 GK_BOOL gkRightAlt = 0;
 uint16_t gkAlt = 0;
@@ -592,7 +592,7 @@ uint16_t gkShift = 0;
 
 void prepareKey(gkKey* key, uint16_t keyCode, uint16_t scanCode, GK_BOOL keyDown)
 {
-#ifdef _WIN32
+#ifdef GK_WIN
     if(keyCode == VK_MENU)
     {
         GK_BOOL gkLeftAltNew = (GetKeyState(VK_LMENU)&0x80) != 0;
@@ -720,7 +720,7 @@ void onWindowKeyUp(uint16_t keyCode, uint16_t scanCode)
 {
     gkKeyboardEvent evt;
     gkKey key;
-#if !defined(_WIN32)
+#ifdef GK_LINUX
     char keys[32];
     XQueryKeymap(display, keys);
     if(((keys[keyCode/8]>>(keyCode%8))) & 0x1)
@@ -754,7 +754,7 @@ void loop();
 
 void initGk()
 {
-#if defined(_WIN32)
+#ifdef GK_WIN
     WNDCLASS wc;
     PIXELFORMATDESCRIPTOR pfd;
     int p;
@@ -899,7 +899,7 @@ void initGk()
     gkInitJoystick();
 }
 
-#if defined(_WIN32)
+#ifdef GK_WIN
 void TimerUpdate(HWND wnd, UINT msg, UINT_PTR id, DWORD elapsed)
 {
     if(msg == WM_TIMER)
@@ -1100,7 +1100,7 @@ void updateGLSize(gkSize sz)
 void processEvents()
 {
     int maxMsgPerFrame = 3;
-#if defined(_WIN32)
+#ifdef GK_WIN
     MSG msg;
     gkUpdateMouseTarget(gkMainPanel);
     gkCheckFocusedPanel();
@@ -1152,7 +1152,7 @@ void drawFrame()
     }
     gkInFrame = GK_FALSE;
 
-#if defined(_WIN32)
+#ifdef GK_WIN
     SwapBuffers(hdc);
 #else
     glXSwapBuffers(display, gkWindow);
@@ -1180,7 +1180,7 @@ void loop()
     elapsedTime = gkMilliseconds();
     if(rest>0 && gkFpsLimitEnabled)
     {
-#if defined(_WIN32)
+#ifdef GK_WIN
         if(rest<20)
         {
             while(gkMilliseconds() - elapsedTime<rest);
@@ -1200,7 +1200,7 @@ void loop()
 
 void runGk()
 {
-#if defined(_WIN32)
+#ifdef GK_WIN
     ShowWindow(gkWindow, SW_SHOW);
 #else
     XSetWMProtocols(display, gkWindow, &wmDeleteMessage, 1);
@@ -1216,7 +1216,7 @@ void runGk()
     gkCleanupTimers();
     gkCleanupTweens();
     gkCleanupJoystick();
-#if defined(_WIN32)
+#ifdef GK_WIN
     ReleaseDC(gkWindow, hdc);
     wglMakeCurrent(0,0);
     wglDeleteContext(hglrc);

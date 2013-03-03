@@ -23,7 +23,7 @@
 #include "gk.h"
 
 #include <stdlib.h>
-#ifdef _WIN32
+#ifdef GK_WIN
 	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
 

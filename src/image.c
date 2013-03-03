@@ -23,7 +23,7 @@
 #include "gk.h"
 #include "gk_internal.h"
 
-#ifdef _WIN32
+#ifdef GK_WIN
 #define _UNICODE
 #endif
 

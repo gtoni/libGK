@@ -190,6 +190,7 @@ void initPdata(PData* pdata, int index, gkPanel* panel){
 void updatePanel(gkPanel* panel){
 	int i = 0;
 	PData* pdata = (PData*)panel->data;
+
 	for(i = 0; i<STAR_COUNT; i++){
 		float vx = pdata->vel[i].x, vy = pdata->vel[i].y;
 		float len = sqrtf(vx*vx + vy*vy);

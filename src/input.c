@@ -252,6 +252,7 @@ struct gkJoystickExtStruct{
 	wchar_t* name;
 	uint8_t flags;
 	int fd;
+	gkJoystickState state;
 	struct gkJoystickExtStruct* next;
 };
 typedef struct gkJoystickExtStruct gkJoystickExt;
@@ -339,6 +340,39 @@ uint32_t gkEnumJoysticks()
     }
     gkJoystickCount = total;
     return total;
+}
+
+void gkGetJoystickState(gkJoystick* joystick, gkJoystickState* state)
+{
+    struct js_event e;
+    gkJoystickState* jstate = &((gkJoystickExt*)joystick)->state;
+    float *axises[] = {
+        &jstate->left.x,
+        &jstate->left.y,
+        &jstate->left.z,
+        &jstate->right.x,
+        &jstate->right.y,
+        &jstate->right.z
+    };
+    while(read(((gkJoystickExt*)joystick)->fd, &e, sizeof(struct js_event)) > 0)
+    {
+        e.type &= ~JS_EVENT_INIT;
+        if(e.type == JS_EVENT_AXIS)
+        {
+            if(e.number<6)
+            {
+                *axises[e.number] = ((float)e.value)/32767.0f;
+            }
+        }
+        else if(e.type == JS_EVENT_BUTTON)
+        {
+            if(e.number<32)
+            {
+                jstate->buttons[e.number] = e.value;
+            }
+        }
+    }
+    memcpy(state, jstate, sizeof(gkJoystickState));
 }
 
 void gkCleanupJoystick()

@@ -178,7 +178,7 @@ void gkRemoveTweens(void* memOffset, size_t size){
 	gkTweenRef* ref = gkTweens;
 	while(ref){
 		if(ref->tween){
-			if(ref->tween->var >= memOffset && ref->tween->var <= (void*)((uint8_t*)memOffset + size)){
+			if(ref->tween->var >= memOffset && ref->tween->var < (void*)((uint8_t*)memOffset + size)){
 				gkDestroyTween(ref);
 			}
 		}

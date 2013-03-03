@@ -240,11 +240,120 @@ void gkCleanupJoystick(){
 }
 
 #else
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/sysctl.h>
+#include <linux/joystick.h>
+
+struct gkJoystickExtStruct{
+	wchar_t* name;
+	uint8_t flags;
+	int fd;
+	struct gkJoystickExtStruct* next;
+};
+typedef struct gkJoystickExtStruct gkJoystickExt;
+
 void gkInitJoystick()
 {
+    gkJoysticks = 0;
+    gkJoystickCount = 0;
+}
+
+static void freeJoystick(gkJoystickExt* joystick)
+{
+    int fd = joystick->fd;
+    free(joystick->name);
+    if(fcntl(fd, F_GETFD) != -1) close(fd);
+    free(joystick);
+}
+
+uint32_t gkEnumJoysticks()
+{
+    int i, fd, total = 0;
+    char devPath[100], name[256];
+    gkJoystickExt* current = 0, *first, *p;
+
+    /*  if there are some joysticks in the list, check if they are still opened
+    *   and remove those that are no longer valid.
+    */
+    if(gkJoysticks)
+    {
+        total = gkJoystickCount;
+        current = p = first = gkJoysticks[0];
+        free(gkJoysticks);
+        while(current)
+        {
+            if(fcntl( current->fd, F_GETFD ) != -1)
+            {
+                p = current;
+                current = current->next;
+            }else
+            {
+                if(current == p)
+                {
+                    p = current->next;
+                }else
+                {
+                    p->next = current->next;
+                }
+                current = current->next;
+                freeJoystick(current);
+                total--;
+            }
+        }
+        current = p;    /* Add new joysticked to the end of the list */
+    }
+    for(i = total; i<8; i++)
+    {
+        sprintf(devPath, "/dev/input/js%d", i);
+        if((fd = open(devPath, O_NONBLOCK|O_RDONLY)) >= 0)
+        {
+            gkJoystickExt* joystick = (gkJoystickExt*)malloc(sizeof(gkJoystickExt));
+            joystick->fd = fd;
+
+            /* get joystick name */
+            ioctl(fd, JSIOCGNAME(256), &name);
+            joystick->name = (wchar_t*)calloc(256, sizeof(wchar_t));
+            mbstowcs(joystick->name, name, 256);
+
+            if(wcscmp(joystick->name, L"Logitech Chillstream Controller") == 0)
+            {
+                joystick->flags |= GK_JOYSTICK_XBOX360;
+            }
+
+            joystick->next = 0;
+            if(current) current->next = joystick;
+            else first = joystick;
+            current = joystick;
+            total++;
+        }
+    }
+    gkJoysticks = (gkJoystick**)calloc(total, sizeof(gkJoystickExt*));
+    for(i = 0; i<total; i++)
+    {
+        gkJoysticks[i] = first;
+        first = first->next;
+    }
+    gkJoystickCount = total;
+    return total;
 }
 
 void gkCleanupJoystick()
 {
+    gkJoystickExt* p, *t;
+    if(gkJoystickCount>0)
+    {
+        p = (gkJoystickExt*)gkJoysticks[0];
+        while(p)
+        {
+            t = p;
+            p = p->next;
+            freeJoystick(t);
+        }
+        free(gkJoysticks);
+    }
 }
 #endif

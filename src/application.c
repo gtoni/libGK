@@ -431,7 +431,6 @@ wchar_t* gkGetWindowTitle()
     if(gkActive)
     {
         XGetWMName(display, gkWindow, &nm);
-        setlocale(LC_CTYPE, "");
         len = mbstowcs(windowNameBuffer, nm.value, sizeof(windowNameBuffer));
         if(len == 256) windowNameBuffer[255] = 0;
     }
@@ -808,6 +807,7 @@ void initGk()
     Window root;
     XF86VidModeModeInfo** modes;
 
+    setlocale(LC_CTYPE, "");
 
     display = XOpenDisplay(NULL);
     screen = DefaultScreen(display);
@@ -846,6 +846,9 @@ void initGk()
     }
 
     XMapWindow(display, gkWindow);
+    XMoveWindow(display, gkWindow, (DisplayWidth(display, screen) - (int)gkScreenSize.width)>>1,
+                (DisplayHeight(display, screen) - (int)gkScreenSize.height)>>1);
+    XFlush(display);
 #endif
 
     updateGLSize(gkScreenSize);
@@ -1215,11 +1218,7 @@ void runGk()
     ShowWindow(gkWindow, SW_SHOW);
 #else
     XSetWMProtocols(display, gkWindow, &wmDeleteMessage, 1);
-    if(!gkFullscreen)
-    {
-        XMoveWindow(display, gkWindow, (DisplayWidth(display, screen) - (int)gkScreenSize.width)>>1,
-                    (DisplayHeight(display, screen) - (int)gkScreenSize.height)>>1);
-    }
+    XMapWindow(display, gkWindow);
     XFlush(display);
 #endif
     while(gkActive)

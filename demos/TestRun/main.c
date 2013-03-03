@@ -430,9 +430,15 @@ int main(){
 		gkSetMainPanel(panel);
 		gkSetWindowTitle(L"Simple panel");
 //		gkSetWindowResizable(GK_FALSE);
-//		gkSetScreenSize(GK_SIZE(1280,720));
+		gkSetScreenSize(GK_SIZE(1280,720));
 		gkSetTargetFps(GK_VSYNC);
 //		gkSetFullscreen(GK_TRUE);
+        if(gkEnumJoysticks()){
+            if((gkJoysticks[0]->flags & GK_JOYSTICK_XBOX360) > 0)
+            {
+                printf("\tXBox360 controlled found\n");
+            }
+        }
 		gkSetMousePosition(1280/2, 720/2);
 		{
 			img = gkCreateImage(200,200);
@@ -464,6 +470,7 @@ int main(){
 //		printResource(rc);
 //		gkRemoveFontResource(rc);
 		gkRun();
+		gkRemoveFontResource(rc);
 		gkDestroyImage(img2);
 		gkDestroyImage(img);
 		gkDestroyPanel(panel);

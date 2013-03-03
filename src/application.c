@@ -48,7 +48,6 @@ LRESULT WndProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam);
 #include <libgen.h>
 #include <locale.h>
 #include <limits.h>
-#include <stdio.h>
 
 #include "GLee.h"
 #include <GL/gl.h>
@@ -66,7 +65,7 @@ unsigned int X11_KeySymToUcs4(KeySym keysym);
 
 #endif
 
-
+#include <stdio.h>
 #include <stdlib.h>
 
 #define GK_MAX_APP_DIR_BUFFER 512
@@ -759,6 +758,7 @@ void initGk()
     WNDCLASS wc;
     PIXELFORMATDESCRIPTOR pfd;
     int p;
+	GK_BOOL multisampling = GK_FALSE;
 
     hinstance = GetModuleHandle(0);
     wc.cbClsExtra = 0;
@@ -774,23 +774,54 @@ void initGk()
     RegisterClass(&wc);
     gkWindow = CreateWindowEx(WS_EX_APPWINDOW, L"GKApp", L"GKApp", WS_OVERLAPPEDWINDOW, 0, 0, (int)gkScreenSize.width, (int)gkScreenSize.height, 0, 0, hinstance, 0);
 
-    pfd.nVersion = 1;
-    pfd.iPixelType = PFD_TYPE_RGBA;
-    pfd.iLayerType = PFD_MAIN_PLANE;
-    pfd.cColorBits = 32;
-    pfd.cDepthBits = 16;
-    pfd.dwFlags = PFD_SUPPORT_OPENGL|PFD_DOUBLEBUFFER|PFD_DRAW_TO_WINDOW;
-
     hdc = GetDC(gkWindow);
 
-    if(!(p = ChoosePixelFormat(hdc, &pfd)))
+    if(GLEE_WGL_ARB_pixel_format)
     {
-        printf("Count not Choose pixel format\n");
-    }
-    if(!SetPixelFormat(hdc, p, &pfd))
-    {
-        printf("Could not set pixel format\n");
-    }
+        UINT numFormats, pixelFormat;
+        float fAttributes[] = {0,0};
+        int iAttributes[] = { WGL_DRAW_TO_WINDOW_ARB,GL_TRUE,
+                              WGL_SUPPORT_OPENGL_ARB,GL_TRUE,
+                              WGL_ACCELERATION_ARB,WGL_FULL_ACCELERATION_ARB,
+                              WGL_COLOR_BITS_ARB,24,
+                              WGL_ALPHA_BITS_ARB,8,
+                              WGL_DEPTH_BITS_ARB,16,
+                              WGL_STENCIL_BITS_ARB,0,
+                              WGL_DOUBLE_BUFFER_ARB,GL_TRUE,
+                              WGL_SAMPLE_BUFFERS_ARB,GL_TRUE,
+                              WGL_SAMPLES_ARB, 2 ,						// Check For 2x Multisampling
+                              0,0
+                            };
+        if(wglChoosePixelFormatARB(hdc, iAttributes, fAttributes, 1, &pixelFormat, &numFormats))
+		{
+			multisampling = GK_TRUE;
+		}
+		else
+		{
+			printf("No multisampling!\n");
+		}
+	}else
+	{
+		printf("No WGL_ARB_pixel_format\n");
+	}
+	if(!multisampling)
+	{
+		pfd.nVersion = 1;
+		pfd.iPixelType = PFD_TYPE_RGBA;
+		pfd.iLayerType = PFD_MAIN_PLANE;
+		pfd.cColorBits = 32;
+		pfd.cDepthBits = 16;
+		pfd.dwFlags = PFD_SUPPORT_OPENGL|PFD_DOUBLEBUFFER|PFD_DRAW_TO_WINDOW;
+
+		if(!(p = ChoosePixelFormat(hdc, &pfd)))
+		{
+			printf("Count not Choose pixel format\n");
+		}
+		if(!SetPixelFormat(hdc, p, &pfd))
+		{
+			printf("Could not set pixel format\n");
+		}
+	}
 
     if(!(hglrc = wglCreateContext(hdc)))
     {
@@ -800,6 +831,8 @@ void initGk()
     {
         printf("Count not set current context\n");
     }
+	if(multisampling) glEnable(GL_MULTISAMPLE);
+
 #else
     int glAttribs[] = { GLX_RGBA, GLX_DEPTH_SIZE, 16, GLX_DOUBLEBUFFER, GLX_ALPHA_SIZE, 8, GLX_SAMPLE_BUFFERS, 1, GLX_SAMPLES, 2, None };
     XSetWindowAttributes winAttribs;
@@ -858,53 +891,6 @@ void initGk()
     gkAppStartTime = gkMilliseconds();
     gkSetTargetFps(0);
 
-#if defined(_WIN32)
-    /*Antialias multi-sample 2x*/
-    if(GLEE_WGL_ARB_pixel_format)
-    {
-        UINT numFormats, pixelFormat;
-        float fAttributes[] = {0,0};
-        int iAttributes[] = { WGL_DRAW_TO_WINDOW_ARB,GL_TRUE,
-                              WGL_SUPPORT_OPENGL_ARB,GL_TRUE,
-                              WGL_ACCELERATION_ARB,WGL_FULL_ACCELERATION_ARB,
-                              WGL_COLOR_BITS_ARB,24,
-                              WGL_ALPHA_BITS_ARB,8,
-                              WGL_DEPTH_BITS_ARB,16,
-                              WGL_STENCIL_BITS_ARB,0,
-                              WGL_DOUBLE_BUFFER_ARB,GL_TRUE,
-                              WGL_SAMPLE_BUFFERS_ARB,GL_TRUE,
-                              WGL_SAMPLES_ARB, 2 ,						// Check For 2x Multisampling
-                              0,0
-                            };
-        if(wglChoosePixelFormatARB(hdc, iAttributes, fAttributes, 1, &pixelFormat, &numFormats))
-        {
-            ReleaseDC(gkWindow, hdc);
-            DestroyWindow(gkWindow);
-            gkWindow = CreateWindowEx(WS_EX_APPWINDOW, L"GKApp", L"GKApp", WS_OVERLAPPEDWINDOW, 0, 0, (int)gkScreenSize.width, (int)gkScreenSize.height, 0, 0, hinstance, 0);
-            hdc = GetDC(gkWindow);
-
-            if(!SetPixelFormat(hdc, pixelFormat, &pfd))
-            {
-                printf("MS: Could not set pixel format\n");
-            }
-
-            if(!(hglrc = wglCreateContext(hdc)))
-            {
-                printf("MS: Count not create context\n");
-            }
-            if(!wglMakeCurrent(hdc, hglrc))
-            {
-                printf("MS: Count not set current context\n");
-            }
-
-            updateGLSize(gkScreenSize);
-
-            gkSetWindowResizable(GK_FALSE);
-            gkSetTargetFps(0);
-            glEnable(GL_MULTISAMPLE);
-        }
-    }
-#endif
     gkGlobalMouseState.wheel = 0;
 	gkInitImages();
    	gkInitFonts();

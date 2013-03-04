@@ -20,14 +20,14 @@
  */
 
 
+#include "gk.h"
+
 #ifdef GK_WIN
 #include <windows.h>
 #endif
 
 #include <stdlib.h>
 #include <GL/gl.h>
-
-#include "gk.h"
 
 #define FABS(x) x<0?-x:x
 

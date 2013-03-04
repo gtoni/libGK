@@ -758,7 +758,6 @@ void initGk()
     WNDCLASS wc;
     PIXELFORMATDESCRIPTOR pfd;
     int p;
-	GK_BOOL multisampling = GK_FALSE;
 
     hinstance = GetModuleHandle(0);
     wc.cbClsExtra = 0;
@@ -776,6 +775,31 @@ void initGk()
 
     hdc = GetDC(gkWindow);
 
+	pfd.nVersion = 1;
+	pfd.iPixelType = PFD_TYPE_RGBA;
+	pfd.iLayerType = PFD_MAIN_PLANE;
+	pfd.cColorBits = 32;
+	pfd.cDepthBits = 16;
+	pfd.dwFlags = PFD_SUPPORT_OPENGL|PFD_DOUBLEBUFFER|PFD_DRAW_TO_WINDOW;
+
+	if(!(p = ChoosePixelFormat(hdc, &pfd)))
+	{
+		printf("Count not Choose pixel format\n");
+	}
+	if(!SetPixelFormat(hdc, p, &pfd))
+	{
+		printf("Could not set pixel format\n");
+	}
+
+    if(!(hglrc = wglCreateContext(hdc)))
+    {
+        printf("Count not create context\n");
+    }
+    if(!wglMakeCurrent(hdc, hglrc))
+    {
+        printf("Count not set current context\n");
+    }
+
     if(GLEE_WGL_ARB_pixel_format)
     {
         UINT numFormats, pixelFormat;
@@ -789,12 +813,33 @@ void initGk()
                               WGL_STENCIL_BITS_ARB,0,
                               WGL_DOUBLE_BUFFER_ARB,GL_TRUE,
                               WGL_SAMPLE_BUFFERS_ARB,GL_TRUE,
-                              WGL_SAMPLES_ARB, 2 ,						// Check For 2x Multisampling
+                              WGL_SAMPLES_ARB, 4 ,						// Check For 2x Multisampling
                               0,0
                             };
         if(wglChoosePixelFormatARB(hdc, iAttributes, fAttributes, 1, &pixelFormat, &numFormats))
 		{
-			multisampling = GK_TRUE;
+			wglMakeCurrent(NULL, NULL);
+			wglDeleteContext(hglrc);
+			ReleaseDC(gkWindow, hdc);
+			DestroyWindow(gkWindow);
+			gkWindow = CreateWindowEx(WS_EX_APPWINDOW, L"GKApp", L"GKApp", WS_OVERLAPPEDWINDOW, 0, 0, (int)gkScreenSize.width, (int)gkScreenSize.height, 0, 0, hinstance, 0);
+			hdc = GetDC(gkWindow);
+
+			if(!SetPixelFormat(hdc, pixelFormat, &pfd))
+			{
+				printf("MS: Could not set pixel format\n");
+			}
+
+			if(!(hglrc = wglCreateContext(hdc)))
+			{
+				printf("MS: Count not create context\n");
+			}
+			if(!wglMakeCurrent(hdc, hglrc))
+			{
+				printf("MS: Count not set current context\n");
+			}
+			printf("Use multisampling\n");
+			glEnable(GL_MULTISAMPLE);
 		}
 		else
 		{
@@ -804,35 +849,6 @@ void initGk()
 	{
 		printf("No WGL_ARB_pixel_format\n");
 	}
-	if(!multisampling)
-	{
-		pfd.nVersion = 1;
-		pfd.iPixelType = PFD_TYPE_RGBA;
-		pfd.iLayerType = PFD_MAIN_PLANE;
-		pfd.cColorBits = 32;
-		pfd.cDepthBits = 16;
-		pfd.dwFlags = PFD_SUPPORT_OPENGL|PFD_DOUBLEBUFFER|PFD_DRAW_TO_WINDOW;
-
-		if(!(p = ChoosePixelFormat(hdc, &pfd)))
-		{
-			printf("Count not Choose pixel format\n");
-		}
-		if(!SetPixelFormat(hdc, p, &pfd))
-		{
-			printf("Could not set pixel format\n");
-		}
-	}
-
-    if(!(hglrc = wglCreateContext(hdc)))
-    {
-        printf("Count not create context\n");
-    }
-    if(!wglMakeCurrent(hdc, hglrc))
-    {
-        printf("Count not set current context\n");
-    }
-	if(multisampling) glEnable(GL_MULTISAMPLE);
-
 #else
     int glAttribs[] = { GLX_RGBA, GLX_DEPTH_SIZE, 16, GLX_DOUBLEBUFFER, GLX_ALPHA_SIZE, 8, GLX_SAMPLE_BUFFERS, 1, GLX_SAMPLES, 2, None };
     XSetWindowAttributes winAttribs;

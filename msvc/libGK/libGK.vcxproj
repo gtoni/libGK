@@ -97,6 +97,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\application.c" />
+    <ClCompile Include="..\..\src\audio.c" />
     <ClCompile Include="..\..\src\event.c" />
     <ClCompile Include="..\..\src\fonts.c" />
     <ClCompile Include="..\..\src\geom.c" />

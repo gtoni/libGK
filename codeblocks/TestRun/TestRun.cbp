@@ -17,13 +17,7 @@
 					<Add directory="../../include" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL" />
-					<Add option="-lXxf86vm" />
-					<Add option="-lIL" />
-					<Add option="-lrt" />
-					<Add option="-lfreetype" />
-					<Add library="../../bin/libgk.a" />
-					<Add library="../../../../../../usr/lib/libopenal.so" />
+					<Add option="-lGK" />
 					<Add directory="../../bin" />
 				</Linker>
 			</Target>
@@ -47,9 +41,6 @@
 			<Add option="-Wall" />
 		</Compiler>
 		<Unit filename="../../demos/TestRun/main.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../src/audio.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Extensions>

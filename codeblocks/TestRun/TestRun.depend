@@ -18,7 +18,7 @@
 1362343447 /home/khaos/C-projects/libgk/include/gkkeydefs.h
 	<windows.h>
 
-1362345136 source:/home/khaos/C-projects/libgk/src/audio.c
+1362347506 source:/home/khaos/C-projects/libgk/src/audio.c
 	"gk.h"
 	"gk_internal.h"
 	<AL/al.h>

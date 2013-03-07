@@ -283,8 +283,6 @@ GK_BOOL onPanelResize(gkEvent* evt, void *p){
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-#include <AL/al.h>
-
 void mresize1(gkPanel* p, float w, float h){
 	if(p->numChildren>0){
 		gkResizePanel(p, w,h);
@@ -473,9 +471,9 @@ int main(){
 //		}
 //		printResource(rc);
 //		gkRemoveFontResource(rc);
-        snd = gkLoadSound("/home/khaos/Downloads/bliz.wav", GK_SOUND_STREAM);
+        snd = gkLoadSound("../demos/TestRun/cat.wav", GK_SOUND_STATIC);
         gkPlaySound(snd);
-
+		
 		gkRun();
 		gkDestroySound(snd);
 		gkRemoveFontResource(rc);

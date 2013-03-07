@@ -60,7 +60,7 @@ static int fillBuffer(int buffer, FILE* input)
     size_t readBytes = fread(buf, sizeof(char), GK_STREAM_BUFFER_SIZE, input);
     if(readBytes>0)
     {
-        alBufferData(buffer, AL_FORMAT_STEREO16, buf, readBytes, 44100);
+        alBufferData(buffer, AL_FORMAT_MONO8, buf, readBytes, 11025);
     }
     return readBytes;
 }
@@ -96,7 +96,7 @@ gkSound* gkLoadSound(char* filename, int flags)
             sound->internal.flags = flags;
 
             alGenBuffers(1, sound->internal.alBuffers);
-            alBufferData(sound->internal.alBuffers[0], AL_FORMAT_STEREO16, buf, fileSize, 44100);
+            alBufferData(sound->internal.alBuffers[0], AL_FORMAT_MONO8, buf, fileSize, 11025);
 
             free(buf);
             fclose(file);
@@ -110,7 +110,7 @@ gkSound* gkLoadSound(char* filename, int flags)
 
         alGenBuffers(GK_NUM_STREAM_BUFFERS, sound->internal.alBuffers);
 
-        fillBuffers(sound, GK_NUM_STREAM_BUFFERS, file);
+        printf("buffers filled %d\n", fillBuffers(sound, GK_NUM_STREAM_BUFFERS, file));
     }
     return sound;
 }
@@ -133,6 +133,8 @@ gkSoundInstance* gkPlaySound(gkSound* sound)
 
     gkSoundInstance* soundInstance = (gkSoundInstance*)malloc(sizeof(gkSoundInstance));
 
+	alGetError();
+
     alGenSources(1, &soundInstance->alSource);
     alSourcei(soundInstance->alSource, AL_SOURCE_RELATIVE, 1);
     alSource3f(soundInstance->alSource, AL_POSITION, 0,0,0);
@@ -140,7 +142,11 @@ gkSoundInstance* gkPlaySound(gkSound* sound)
     if(sound->internal.flags & GK_SOUND_STREAM)
     {
         alSourcei(soundInstance->alSource, AL_SOURCE_TYPE, AL_STREAMING);
-        alSourceQueueBuffers(soundInstance->alSource, GK_NUM_STREAM_BUFFERS, sound->internal.alBuffers);
+		alSourceQueueBuffers(soundInstance->alSource, GK_NUM_STREAM_BUFFERS, sound->internal.alBuffers);
+
+		if(alGetError() == AL_INVALID_OPERATION)
+			printf("Invalid operation\n");
+
         alSourcePlay(soundInstance->alSource);
     }
     else
@@ -157,6 +163,7 @@ gkSoundInstance* gkPlaySound(gkSound* sound)
     if(lastSoundNode != 0)
         lastSoundNode->next = node;
     else soundNodes = lastSoundNode = node;
+
 
     return soundInstance;
 }

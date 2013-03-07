@@ -1228,12 +1228,12 @@ void runGk()
     {
         loop();
     }
+    gkCleanupAudio();
 	gkCleanupImages();
    	gkCleanupFonts();
     gkCleanupTimers();
     gkCleanupTweens();
     gkCleanupJoystick();
-    gkCleanupAudio();
 #ifdef GK_WIN
     ReleaseDC(gkWindow, hdc);
     wglMakeCurrent(0,0);

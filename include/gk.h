@@ -522,6 +522,33 @@ gkPoint gkDrawText(gkFont* font, wchar_t* text, float x, float y, gkTextFormat* 
 
 
 /************************************
+	Audio
+
+	Types and functions for audio and sounds.
+*/
+
+#define GK_SOUND_STATIC     0x01
+#define GK_SOUND_STREAM     0x02
+
+#include <gkaudio.h>
+
+struct gkSoundStruct{
+    uint32_t length;
+    struct gkSoundInternal internal;
+};
+typedef struct gkSoundStruct gkSound;
+
+struct gkSoundInstanceStruct{
+    int alSource;
+};
+typedef struct gkSoundInstanceStruct gkSoundInstance;
+
+gkSound* gkLoadSound(char* filename, int flags);
+gkSoundInstance* gkPlaySound(gkSound* sound);
+
+void gkDestroySound(gkSound* sound);
+
+/************************************
 	Timers
 
 	Types and functions for timers.

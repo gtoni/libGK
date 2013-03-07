@@ -5,5 +5,8 @@
 		<Project filename="TestRun/TestRun.cbp">
 			<Depends filename="libgk.cbp" />
 		</Project>
+		<Project filename="../../gkAudioTest/gkAudioTest.cbp">
+			<Depends filename="libgk.cbp" />
+		</Project>
 	</Workspace>
 </CodeBlocks_workspace_file>

@@ -16,7 +16,6 @@
 					<Add option="-g" />
 					<Add option="`pkg-config --libs --cflags freetype2`" />
 					<Add directory="../include" />
-					<Add directory="../libs" />
 				</Compiler>
 				<Linker>
 					<Add option="-lX11 -lGL -lrt -lXxf86vm -lIL" />

@@ -538,7 +538,15 @@ struct gkSoundStruct{
 };
 typedef struct gkSoundStruct gkSound;
 
+#define GK_SOUND_EVENT_BASE    150
+#define GK_ON_SOUND_STOPPED     (GK_SOUND_EVENT_BASE + 1)
+
+GK_EVENT(gkSoundEvent)
+    gkSound* sound;
+GK_EVENT_END()
+
 struct gkSoundInstanceStruct{
+    gkListenerList listeners;
     int alSource;
 };
 typedef struct gkSoundInstanceStruct gkSoundInstance;

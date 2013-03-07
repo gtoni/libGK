@@ -26,6 +26,7 @@
 			</Target>
 		</Build>
 		<Unit filename="../include/gk.h" />
+		<Unit filename="../include/gkaudio.h" />
 		<Unit filename="../include/gkkeydefs.h" />
 		<Unit filename="../src/GLee.c">
 			<Option compilerVar="CC" />

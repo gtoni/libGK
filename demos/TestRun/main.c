@@ -346,6 +346,14 @@ void printResource(gkFontResource* rc){
 	}
 }
 
+GK_BOOL onSndStopped(gkEvent* e)
+{
+    gkSoundEvent* evt = (gkSoundEvent*)e;
+    printf("Sound stopped %p %p Restarting\n", e->target, evt->sound);
+    gkAddListener( gkPlaySound(evt->sound), GK_ON_SOUND_STOPPED, 0, onSndStopped, 0);
+    return GK_TRUE;
+}
+
 int main(){
 	if(gkInit()){
 		gkTimer* timer1, *timer2;
@@ -472,8 +480,8 @@ int main(){
 //		printResource(rc);
 //		gkRemoveFontResource(rc);
         snd = gkLoadSound("../demos/TestRun/cat.wav", GK_SOUND_STATIC);
-        gkPlaySound(snd);
-		
+        gkAddListener( gkPlaySound(snd), GK_ON_SOUND_STOPPED, 0, onSndStopped, 0);
+
 		gkRun();
 		gkDestroySound(snd);
 		gkRemoveFontResource(rc);

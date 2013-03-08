@@ -479,13 +479,13 @@ int main(){
 //		}
 //		printResource(rc);
 //		gkRemoveFontResource(rc);
-        snd = gkLoadSound("../demos/TestRun/cat.wav", GK_SOUND_STATIC);
+        snd = gkLoadSound("../demos/TestRun/Heist.wav", GK_SOUND_STREAM);
         gkAddListener( gkPlaySound(snd), GK_ON_SOUND_STOPPED, 0, onSndStopped, 0);
-
+		
 		gkRun();
 		gkDestroySound(snd);
 		gkRemoveFontResource(rc);
-		gkDestroyImage(img2);
+		gkDestroyImage(img2); 
 		gkDestroyImage(img);
 		gkDestroyPanel(panel);
 		gkDestroyPanel(p1);

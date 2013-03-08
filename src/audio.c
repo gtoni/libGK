@@ -107,19 +107,25 @@ static int fillBuffer(int buffer, FILE* input)
     size_t readBytes = fread(buf, sizeof(char), GK_STREAM_BUFFER_SIZE, input);
     if(readBytes>0)
     {
-        alBufferData(buffer, AL_FORMAT_MONO8, buf, readBytes, 11025);
+        alBufferData(buffer, AL_FORMAT_STEREO16, buf, readBytes, 48000);
     }
     return readBytes;
 }
 
-static int fillBuffers(gkSound* sound, int numToFill, FILE* input)
+static int fillBuffers(int* buffers, int numToFill, FILE* input)
 {
     int i = 0;
 
-    while( (i<numToFill) && (fillBuffer(sound->internal.alBuffers[i], input)>0) )
+    while( (i<numToFill) && (fillBuffer(buffers[i], input)>0) )
         i++;
 
     return i;
+}
+
+static void fillQueue(int alSource, int numBuffers, int* buffers, FILE* input)
+{
+	int filled = fillBuffers(buffers, numBuffers, input);
+	alSourceQueueBuffers(alSource, filled, buffers);
 }
 
 gkSound* gkLoadSound(char* filename, int flags)
@@ -156,8 +162,6 @@ gkSound* gkLoadSound(char* filename, int flags)
         sound->internal.streamingFile = file;
 
         alGenBuffers(GK_NUM_STREAM_BUFFERS, sound->internal.alBuffers);
-
-        printf("buffers filled %d\n", fillBuffers(sound, GK_NUM_STREAM_BUFFERS, file));
     }
     return sound;
 }
@@ -176,7 +180,6 @@ void gkDestroySound(gkSound* sound)
 
 static gkSoundInstance* CreateSoundInstance()
 {
-    int err;
     gkSoundInstance* instance = (gkSoundInstance*)malloc(sizeof(gkSoundInstance));
 
     gkInitListenerList(&instance->listeners);
@@ -202,11 +205,8 @@ gkSoundInstance* gkPlaySound(gkSound* sound)
 
     if(sound->internal.flags & GK_SOUND_STREAM)
     {
-		alSourceQueueBuffers(soundInstance->alSource, GK_NUM_STREAM_BUFFERS, sound->internal.alBuffers);
-
-		if(alGetError() == AL_INVALID_OPERATION)
-			printf("Invalid operation\n");
-
+		fseek(sound->internal.streamingFile, 0, SEEK_SET);
+		fillQueue(soundInstance->alSource, GK_NUM_STREAM_BUFFERS, sound->internal.alBuffers, sound->internal.streamingFile);
         alSourcePlay(soundInstance->alSource);
     }
     else
@@ -230,16 +230,17 @@ static void updateStream(struct gkSoundNode* stream)
     alGetSourcei(instance->alSource, AL_BUFFERS_PROCESSED, &processed);
     alGetSourcei(instance->alSource, AL_BUFFERS_QUEUED, &queued);
 
+	if(queued<GK_NUM_STREAM_BUFFERS)
+		fillQueue(instance->alSource, (GK_NUM_STREAM_BUFFERS - queued), sound->internal.alBuffers, sound->internal.streamingFile);
+
     if(processed>0)
     {
-        int filled, i, u, *buffers = sound->internal.alBuffers;
+        int i, u, *buffers = sound->internal.alBuffers;
 
         alSourceUnqueueBuffers(instance->alSource, processed, buffers);
 
         /* refill */
-        filled = fillBuffers(sound, processed, sound->internal.streamingFile);
-
-        alSourceQueueBuffers(instance->alSource, filled, buffers);
+		fillQueue(instance->alSource, processed, buffers, sound->internal.streamingFile);
 
         /* rotate buffer */
         for(i = 0; i<processed; i++){

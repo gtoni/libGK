@@ -521,7 +521,8 @@ int main(){
 //		}
 //		printResource(rc);
 //		gkRemoveFontResource(rc);
-        snd = gkLoadSound("../demos/TestRun/Adrenaline.wav", GK_SOUND_STATIC);
+        snd = gkLoadSound("../demos/TestRun/Adrenaline.wav", GK_SOUND_STREAM);
+        printf("Sound is %2d:%2f long\n", (int)(snd->length/60), (float)((int)(snd->length*1000.0f)%60000)/1000.0f);
         sndInstance = gkCreateSoundSource();
 
         gkSetSoundGain(sndInstance, 0.5f);

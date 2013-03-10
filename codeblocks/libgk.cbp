@@ -21,12 +21,14 @@
 					<Add option="-lX11 -lGL -lrt -lXxf86vm -lIL" />
 					<Add option="-lopenal" />
 					<Add option="-lfreetype" />
+					<Add option="-lmpg123" />
 					<Add directory="../libs" />
 				</Linker>
 			</Target>
 		</Build>
 		<Unit filename="../include/gk.h" />
 		<Unit filename="../include/gkaudio.h" />
+		<Unit filename="../include/gkaudiostream.h" />
 		<Unit filename="../include/gkkeydefs.h" />
 		<Unit filename="../src/GLee.c">
 			<Option compilerVar="CC" />
@@ -39,6 +41,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../src/audio.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/audiostream.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../src/event.c">

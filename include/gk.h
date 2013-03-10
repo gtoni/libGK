@@ -530,6 +530,7 @@ gkPoint gkDrawText(gkFont* font, wchar_t* text, float x, float y, gkTextFormat* 
 #include <gkaudio.h>
 
 struct gkSoundStruct{
+    float length;
     struct gkSoundInternal internal;
 };
 typedef struct gkSoundStruct gkSound;

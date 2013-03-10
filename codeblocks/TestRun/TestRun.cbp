@@ -43,6 +43,10 @@
 		<Unit filename="../../demos/TestRun/main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="../../src/audiofile.h" />
+		<Unit filename="../../src/audiostream.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Extensions>
 			<envvars />
 			<code_completion />

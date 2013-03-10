@@ -29,12 +29,6 @@
 #include FT_GLYPH_H
 #include FT_STROKER_H
 
-#ifdef GK_WIN
-#define stricmp _stricmp
-#else
-#define stricmp strcasecmp
-#endif
-
 FT_Library ftlib;
 
 #define GK_FONT_TOTAL_STYLES 4

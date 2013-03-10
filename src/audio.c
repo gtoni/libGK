@@ -28,6 +28,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <gkaudiostream.h>
+
 static ALCdevice* device;
 static ALCcontext* ctx;
 
@@ -100,11 +102,15 @@ void gkInitAudio()
     updateAudioTimer->interval = 100;
     gkAddListener(updateAudioTimer, GK_ON_TIMER, 0, updateAudio, 0);
     gkStartTimer(updateAudioTimer, 0);
+
+    gkInitAudioStream();
 }
 
 void gkCleanupAudio()
 {
     struct gkSoundNode *c, *p = soundNodes;
+
+    gkCleanupAudioStream();
 
     gkStopTimer(updateAudioTimer);
     gkDestroyTimer(updateAudioTimer);
@@ -124,37 +130,40 @@ void gkCleanupAudio()
 }
 
 
-static int fillBuffer(int buffer, FILE* input)
+static int fillBuffer(int buffer, gkSound* sound)
 {
     char buf[GK_STREAM_BUFFER_SIZE];
-    size_t readBytes = fread(buf, sizeof(char), GK_STREAM_BUFFER_SIZE, input);
+    gkAudioStream* stream = sound->internal.stream;
+    gkAudioStreamInfo* info = &sound->internal.streamInfo;
+    size_t readBytes = stream->read(stream, buf, GK_STREAM_BUFFER_SIZE);
     if(readBytes>0)
     {
-        alBufferData(buffer, AL_FORMAT_STEREO16, buf, readBytes, 48000);
+        alBufferData(buffer, info->format, buf, readBytes, info->sampleRate);
         gkCheckALError();
     }
     return readBytes;
 }
 
-static int fillBuffers(int* buffers, int numToFill, FILE* input)
+static int fillBuffers(int* buffers, int numToFill, gkSound* sound)
 {
     int i = 0;
 
-    while( (i<numToFill) && (fillBuffer(buffers[i], input)>0) )
+    while( (i<numToFill) && (fillBuffer(buffers[i], sound)>0) )
         i++;
 
     return i;
 }
 
-static void fillQueue(gkSoundSource* source, int numBuffers, int* buffers, FILE* input)
+static void fillQueue(gkSoundSource* source, int numBuffers, int* buffers, gkSound* sound)
 {
-	int filled = fillBuffers(buffers, numBuffers, input);
+    gkAudioStream* stream = sound->internal.stream;
 
-	if(filled == 0 && feof(input) && source->internal.looping)
+	int filled = fillBuffers(buffers, numBuffers, sound);
+
+	if(filled == 0 && stream->eof(stream) && source->internal.looping)
     {
-        fseek(input, 0, SEEK_SET);
-        clearerr(input);
-        filled = fillBuffers(buffers, numBuffers, input);
+        stream->seek(stream, 0, SEEK_SET);
+        filled = fillBuffers(buffers, numBuffers, sound);
     }
 
 	alSourceQueueBuffers(source->id, filled, buffers);
@@ -163,38 +172,40 @@ static void fillQueue(gkSoundSource* source, int numBuffers, int* buffers, FILE*
 gkSound* gkLoadSound(char* filename, int flags)
 {
     gkSound* sound = 0;
-    FILE* file = fopen(filename, "rb");
+    gkAudioStream* stream = gkAudioStreamOpen(filename);
 
-    if( flags & GK_SOUND_STATIC )
+    if(stream)
     {
-        if(file)
-        {
-            size_t fileSize;
-            char* buf;
-            fseek(file, 0, SEEK_END);
-            fileSize = ftell(file);
-            fseek(file, 0, SEEK_SET);
-            buf = (char*)malloc(fileSize);
-            fread(buf, sizeof(char), fileSize, file);
+        gkAudioStreamInfo* info;
 
-            sound = (gkSound*)malloc(sizeof(gkSound));
-            sound->internal.flags = flags;
-
-            alGenBuffers(1, sound->internal.alBuffers);
-            alBufferData(sound->internal.alBuffers[0], AL_FORMAT_STEREO16, buf, fileSize, 48000);
-
-            free(buf);
-            fclose(file);
-        }
-    }
-    else if( flags & GK_SOUND_STREAM )
-    {
         sound = (gkSound*)malloc(sizeof(gkSound));
         sound->internal.flags = flags;
-        sound->internal.streamingFile = file;
 
-        alGenBuffers(GK_NUM_STREAM_BUFFERS, sound->internal.alBuffers);
+        info = &sound->internal.streamInfo;
+
+        stream->getInfo(stream, info);
+
+        sound->length = info->length;
+
+        if( flags & GK_SOUND_STATIC )
+        {
+            char* buf;
+            buf = (char*)malloc(info->streamSize);
+            stream->read(stream, buf, info->streamSize);
+
+            alGenBuffers(1, sound->internal.alBuffers);
+            alBufferData(sound->internal.alBuffers[0], info->format, buf, info->streamSize, info->sampleRate);
+
+            free(buf);
+            gkAudioStreamClose(stream);
+        }else if( flags & GK_SOUND_STREAM )
+        {
+            sound->internal.stream = stream;
+
+            alGenBuffers(GK_NUM_STREAM_BUFFERS, sound->internal.alBuffers);
+        }
     }
+
     return sound;
 }
 
@@ -287,9 +298,10 @@ gkSoundSource* gkPlaySound(gkSound* sound, gkSoundSource* source)
 
     if(sound->internal.flags & GK_SOUND_STREAM)
     {
-		fseek(sound->internal.streamingFile, 0, SEEK_SET);
+        gkAudioStream* stream = sound->internal.stream;
+        stream->seek(stream, 0, SEEK_SET);
 		alSourcei(source->id, AL_LOOPING, AL_FALSE);
-		fillQueue(source, GK_NUM_STREAM_BUFFERS, sound->internal.alBuffers, sound->internal.streamingFile);
+		fillQueue(source, GK_NUM_STREAM_BUFFERS, sound->internal.alBuffers, sound);
         alSourcePlay(source->id);
     }
     else
@@ -347,7 +359,7 @@ static void updateStream(struct gkSoundNode* stream)
 
 	if(queued<GK_NUM_STREAM_BUFFERS)
     {
-		fillQueue(source, (GK_NUM_STREAM_BUFFERS - queued), sound->internal.alBuffers, sound->internal.streamingFile);
+		fillQueue(source, (GK_NUM_STREAM_BUFFERS - queued), sound->internal.alBuffers + queued, sound);
     }
 
     if(processed>0)
@@ -357,7 +369,7 @@ static void updateStream(struct gkSoundNode* stream)
         alSourceUnqueueBuffers(source->id, processed, buffers);
 
         /* refill */
-		fillQueue(source, processed, buffers, sound->internal.streamingFile);
+		fillQueue(source, processed, buffers, sound);
 
         /* rotate buffer */
         for(i = 0; i<processed; i++){

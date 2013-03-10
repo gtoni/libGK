@@ -30,6 +30,8 @@ gkImage* img, *img2;
 gkFont* font;
 float mx, my;
 
+float pitch = 1;
+
 #define STAR_COUNT 2500
 
 typedef struct{
@@ -194,7 +196,7 @@ void updatePanel(gkPanel* panel){
 	for(i = 0; i<STAR_COUNT; i++){
 		float vx = pdata->vel[i].x, vy = pdata->vel[i].y;
 		float len = sqrtf(vx*vx + vy*vy);
-		float t = (float)100.0f/(float)gkGetFps();
+		float t = ((float)100.0f/(float)gkGetFps())*pitch*pitch;
 		if(len<2 && len > 0){
 			pdata->stars[i].x += vx*t;
 			pdata->stars[i].y += vy*t;
@@ -210,7 +212,7 @@ void updatePanel(gkPanel* panel){
 			gkMatrix mat = gkMatrixCreateTranslation(-100,-100);
 			gkMatrixMult(&mat, gkMatrixCreateRotation(rd));
 			gkMatrixMult(&mat, gkMatrixCreateTranslation(100,100));
-			rd += 0.1f;
+			rd += 0.1f*pitch*pitch;
 			gkSetLineColor(1,1,1,1);
 			gkSetLineWidth(2);
 			gkSetLineStipple(1, 0xf0f0);
@@ -346,11 +348,51 @@ void printResource(gkFontResource* rc){
 	}
 }
 
+gkSoundSource* sndInstance;
+
 GK_BOOL onSndStopped(gkEvent* e)
 {
     gkSoundEvent* evt = (gkSoundEvent*)e;
-    printf("Sound stopped %p %p Restarting\n", e->target, evt->sound);
-    gkAddListener( gkPlaySound(evt->sound), GK_ON_SOUND_STOPPED, 0, onSndStopped, 0);
+    printf("Restarting\n");
+    gkPlaySound(evt->sound, sndInstance);
+    return GK_TRUE;
+}
+
+GK_BOOL setTweenPitch(gkEvent* e, void *p)
+{
+    gkSetSoundPitch(sndInstance, pitch);
+    return GK_TRUE;
+}
+GK_BOOL pauseSound(gkEvent* e, void* p)
+{
+    gkPauseSound(sndInstance);
+}
+GK_BOOL onMouseStopSound(gkEvent* e)
+{
+    gkTween* tween;
+    if(pitch == 1.0f)
+    {
+        tween = gkAddTween(&pitch, GK_TWEEN_LINEAR, 1500, GK_FLOAT, 1.0f, 0.5f);
+        gkAddListener(tween, GK_ON_TWEEN_UPDATE, 0, setTweenPitch, &pitch);
+//        gkAddListener(tween, GK_ON_TWEEN_FINISHED, 0, pauseSound, 0);
+    }
+    else
+    {
+  //      gkSetSoundPitch(sndInstance, 0);
+//        gkResumeSound(sndInstance);
+        tween = gkAddTween(&pitch, GK_TWEEN_LINEAR, 1500, GK_FLOAT, pitch, 1.0f);
+        gkAddListener(tween, GK_ON_TWEEN_UPDATE, 0, setTweenPitch, &pitch);
+    }
+    return GK_TRUE;
+}
+
+GK_BOOL onMouseVolumeSound(gkEvent* e, void* p)
+{
+    gkMouseEvent* evt = (gkMouseEvent*)e;
+    float gain = gkGetSoundPitch(sndInstance) + ((float)evt->delta)/10.0f;
+    printf("new pitch %f\n", gain);
+    pitch = gain;
+    gkSetSoundPitch(sndInstance, gain);
     return GK_TRUE;
 }
 
@@ -479,13 +521,21 @@ int main(){
 //		}
 //		printResource(rc);
 //		gkRemoveFontResource(rc);
-        snd = gkLoadSound("../demos/TestRun/Heist.wav", GK_SOUND_STREAM);
-        gkAddListener( gkPlaySound(snd), GK_ON_SOUND_STOPPED, 0, onSndStopped, 0);
-		
+        snd = gkLoadSound("../demos/TestRun/Adrenaline.wav", GK_SOUND_STATIC);
+        sndInstance = gkCreateSoundSource();
+
+        gkSetSoundGain(sndInstance, 0.5f);
+        gkSetSoundLooping(sndInstance, GK_TRUE);
+
+        gkPlaySound(snd, sndInstance);
+        gkAddListener(panel, GK_ON_MOUSE_DOWN, 0, onMouseStopSound, 0);
+        gkAddListener(panel, GK_ON_MOUSE_WHEEL, 0, onMouseVolumeSound, 0);
+
 		gkRun();
+		gkDestroySoundSource(sndInstance);
 		gkDestroySound(snd);
 		gkRemoveFontResource(rc);
-		gkDestroyImage(img2); 
+		gkDestroyImage(img2);
 		gkDestroyImage(img);
 		gkDestroyPanel(panel);
 		gkDestroyPanel(p1);

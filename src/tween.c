@@ -108,24 +108,6 @@ gkTween* CDECL gkAddTween(void* var, uint32_t transitionType, uint64_t transitio
 	tween->varType = varType;
 	va_start(arglist, varType);
 	switch(varType){
-#ifdef GK_WIN
-		case GK_UNSIGNED_BYTE:
-			tween->value.ub.start = va_arg(arglist, uint8_t);
-			tween->value.ub.end = va_arg(arglist, uint8_t);
-		break;
-		case GK_BYTE:
-			tween->value.b.start = va_arg(arglist, int8_t);
-			tween->value.b.end = va_arg(arglist, int8_t);
-		break;
-		case GK_UNSIGNED_SHORT:
-			tween->value.us.start = va_arg(arglist, uint16_t);
-			tween->value.us.end = va_arg(arglist, uint16_t);
-		break;
-		case GK_SHORT:
-			tween->value.s.start = va_arg(arglist, int16_t);
-			tween->value.s.end = va_arg(arglist, int16_t);
-		break;
-#else
 		case GK_UNSIGNED_BYTE:
 			tween->value.ub.start = (uint8_t)va_arg(arglist, int);
 			tween->value.ub.end = (uint8_t)va_arg(arglist, int);
@@ -142,7 +124,6 @@ gkTween* CDECL gkAddTween(void* var, uint32_t transitionType, uint64_t transitio
 			tween->value.s.start = (int16_t)va_arg(arglist, int);
 			tween->value.s.end = (int16_t)va_arg(arglist, int);
 		break;
-#endif
 		case GK_UNSIGNED_INT:
 			tween->value.ui.start = va_arg(arglist, uint32_t);
 			tween->value.ui.end = va_arg(arglist, uint32_t);
@@ -152,7 +133,6 @@ gkTween* CDECL gkAddTween(void* var, uint32_t transitionType, uint64_t transitio
 			tween->value.i.end = va_arg(arglist, int32_t);
 		break;
 		case GK_FLOAT:
-			/* In MVC va_arg doesn't work with float */
 			tween->value.f.start = (float)va_arg(arglist, double);
 			tween->value.f.end = (float)va_arg(arglist, double);
 		break;

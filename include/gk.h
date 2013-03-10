@@ -527,34 +527,56 @@ gkPoint gkDrawText(gkFont* font, wchar_t* text, float x, float y, gkTextFormat* 
 	Types and functions for audio and sounds.
 */
 
-#define GK_SOUND_STATIC     0x01
-#define GK_SOUND_STREAM     0x02
-
 #include <gkaudio.h>
 
 struct gkSoundStruct{
-    uint32_t length;
     struct gkSoundInternal internal;
 };
 typedef struct gkSoundStruct gkSound;
+
+#define GK_SOUNDSOURCE_IDLE         0
+#define GK_SOUNDSOURCE_PLAYING      1
+#define GK_SOUNDSOURCE_PAUSED       2
+
+struct gkSoundSourceStruct
+{
+    gkListenerList listeners;
+    int id;
+    uint8_t state;
+    struct gkSoundSourceInternal internal;
+};
+typedef struct gkSoundSourceStruct gkSoundSource;
 
 #define GK_SOUND_EVENT_BASE    150
 #define GK_ON_SOUND_STOPPED     (GK_SOUND_EVENT_BASE + 1)
 
 GK_EVENT(gkSoundEvent)
     gkSound* sound;
+    gkSoundSource* source;
 GK_EVENT_END()
 
-struct gkSoundInstanceStruct{
-    gkListenerList listeners;
-    int alSource;
-};
-typedef struct gkSoundInstanceStruct gkSoundInstance;
+#define GK_SOUND_STATIC     0x01
+#define GK_SOUND_STREAM     0x02
 
 gkSound* gkLoadSound(char* filename, int flags);
-gkSoundInstance* gkPlaySound(gkSound* sound);
-
 void gkDestroySound(gkSound* sound);
+
+gkSoundSource* gkCreateSoundSource();
+void gkDestroySoundSource();
+
+gkSoundSource* gkPlaySound(gkSound* sound, gkSoundSource* source);
+void gkPauseSound(gkSoundSource* soundSource);
+void gkResumeSound(gkSoundSource* soundSource);
+void gkStopSound(gkSoundSource* soundSource, GK_BOOL dispatchStopEvent);
+
+void gkSetSoundGain(gkSoundSource* soundSource, float gain);
+float gkGetSoundGain(gkSoundSource* soundSource);
+
+void gkSetSoundPitch(gkSoundSource* soundSource, float pitch);
+float gkGetSoundPitch(gkSoundSource* soundSource);
+
+void gkSetSoundLooping(gkSoundSource* soundSource, GK_BOOL looping);
+GK_BOOL gkIsSoundLooping(gkSoundSource* soundSource);
 
 /************************************
 	Timers
@@ -574,12 +596,12 @@ struct gkTimerStruct{
 	uint32_t repeats;
 	uint64_t interval;
 	const GK_BOOL running;
-	const GK_BOOL destroyOnComplete;
+	const GK_BOOL autoDestroy;
 };
 typedef struct gkTimerStruct gkTimer;
 
 gkTimer* gkCreateTimer();
-void gkStartTimer(gkTimer* timer, GK_BOOL destroyOnComplete);
+void gkStartTimer(gkTimer* timer, GK_BOOL autoDestroy);
 void gkStopTimer(gkTimer* timer);
 void gkDestroyTimer(gkTimer* timer);
 

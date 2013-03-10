@@ -1,3 +1,24 @@
+/* Copyright (c) 2012 Toni Georgiev
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 #include "gk.h"
 #include "gk_internal.h"
 
@@ -13,18 +34,18 @@ static ALCcontext* ctx;
 struct gkSoundNode
 {
     gkSound* sound;
-    gkSoundInstance* instance;
+    gkSoundSource* source;
     struct gkSoundNode* prev, *next;
 };
 
 static struct gkSoundNode* soundNodes = 0, *lastSoundNode = 0;
 
-static void addSoundNode(gkSound* sound, gkSoundInstance* instance)
+static void addSoundNode(gkSound* sound, gkSoundSource* source)
 {
     struct gkSoundNode* node = (struct gkSoundNode*)malloc(sizeof(struct gkSoundNode));
 
     node->sound = sound;
-    node->instance = instance;
+    node->source = source;
     node->prev = lastSoundNode;
     node->next = 0;
 
@@ -37,6 +58,7 @@ static void addSoundNode(gkSound* sound, gkSoundInstance* instance)
 
 static void removeSoundNode(struct gkSoundNode* node)
 {
+    if(node->next == 0) lastSoundNode = node->prev;
     if(node->prev)
     {
         node->prev->next = node->next;
@@ -52,12 +74,12 @@ static void removeSoundNode(struct gkSoundNode* node)
     free(node);
 }
 
-
+#define gkCheckALError() {int err; if((err = alGetError()) != AL_NO_ERROR) printf("AL Error %X\n", err); }
 
 static gkTimer* updateAudioTimer;
 
 static GK_BOOL updateAudio(gkEvent* event, void* param);
-static void DestroySoundInstance(gkSoundInstance* instance);
+static void soundSourceStopped(struct gkSoundNode* node, GK_BOOL dispatchStopEvent);
 
 void gkInitAudio()
 {
@@ -87,12 +109,13 @@ void gkCleanupAudio()
     gkStopTimer(updateAudioTimer);
     gkDestroyTimer(updateAudioTimer);
 
-    /* free all SoundInstances and SoundNodes */
+    /* free all SoundSources and SoundNodes */
     while(p)
     {
         c = p;
         p = p->next;
-        DestroySoundInstance(c->instance);
+        if(c->source->internal.autoDestroy)
+            gkDestroySoundSource(c->source);
         removeSoundNode(c);
     }
 
@@ -108,6 +131,7 @@ static int fillBuffer(int buffer, FILE* input)
     if(readBytes>0)
     {
         alBufferData(buffer, AL_FORMAT_STEREO16, buf, readBytes, 48000);
+        gkCheckALError();
     }
     return readBytes;
 }
@@ -122,10 +146,18 @@ static int fillBuffers(int* buffers, int numToFill, FILE* input)
     return i;
 }
 
-static void fillQueue(int alSource, int numBuffers, int* buffers, FILE* input)
+static void fillQueue(gkSoundSource* source, int numBuffers, int* buffers, FILE* input)
 {
 	int filled = fillBuffers(buffers, numBuffers, input);
-	alSourceQueueBuffers(alSource, filled, buffers);
+
+	if(filled == 0 && feof(input) && source->internal.looping)
+    {
+        fseek(input, 0, SEEK_SET);
+        clearerr(input);
+        filled = fillBuffers(buffers, numBuffers, input);
+    }
+
+	alSourceQueueBuffers(source->id, filled, buffers);
 }
 
 gkSound* gkLoadSound(char* filename, int flags)
@@ -149,7 +181,7 @@ gkSound* gkLoadSound(char* filename, int flags)
             sound->internal.flags = flags;
 
             alGenBuffers(1, sound->internal.alBuffers);
-            alBufferData(sound->internal.alBuffers[0], AL_FORMAT_MONO8, buf, fileSize, 11025);
+            alBufferData(sound->internal.alBuffers[0], AL_FORMAT_STEREO16, buf, fileSize, 48000);
 
             free(buf);
             fclose(file);
@@ -178,69 +210,154 @@ void gkDestroySound(gkSound* sound)
     free(sound);
 }
 
-static gkSoundInstance* CreateSoundInstance()
+gkSoundSource* gkCreateSoundSource()
 {
-    gkSoundInstance* instance = (gkSoundInstance*)malloc(sizeof(gkSoundInstance));
+    gkSoundSource* source = (gkSoundSource*)malloc(sizeof(gkSoundSource));
 
-    gkInitListenerList(&instance->listeners);
+    gkInitListenerList(&source->listeners);
 
-    alGenSources(1, &instance->alSource);
+    alGenSources(1, &source->id);
 
-    alSourcei(instance->alSource, AL_SOURCE_RELATIVE, 1);
-    alSource3f(instance->alSource, AL_POSITION, 0,0,0);
+    alSourcei(source->id, AL_SOURCE_RELATIVE, 1);
+    alSource3f(source->id, AL_POSITION, 0,0,0);
 
-    return instance;
+    source->internal.autoDestroy = GK_FALSE;
+
+    source->state = GK_SOUNDSOURCE_IDLE;
+    source->internal.looping = GK_FALSE;
+
+    return source;
 }
 
-static void DestroySoundInstance(gkSoundInstance* instance)
+void gkSetSoundGain(gkSoundSource* source, float gain)
 {
-    gkCleanupListenerList(&instance->listeners);
-    alDeleteSources(1, &instance->alSource);
-    free(instance);
+    alSourcef(source->id, AL_GAIN, gain);
 }
 
-gkSoundInstance* gkPlaySound(gkSound* sound)
+float gkGetSoundGain(gkSoundSource* source)
 {
-    gkSoundInstance* soundInstance = CreateSoundInstance();
+    float gain;
+    alGetSourcef(source->id, AL_GAIN, &gain);
+    return gain;
+}
+
+void gkSetSoundPitch(gkSoundSource* source, float pitch)
+{
+    alSourcef(source->id, AL_PITCH, pitch);
+}
+
+float gkGetSoundPitch(gkSoundSource* source)
+{
+    float pitch;
+    alGetSourcef(source->id, AL_PITCH, &pitch);
+    return pitch;
+}
+
+void gkSetSoundLooping(gkSoundSource* source, GK_BOOL looping)
+{
+    source->internal.looping = looping;
+    if(source->state != GK_SOUNDSOURCE_IDLE)
+    {
+        int type;
+        alGetSourcei(source->id, AL_SOURCE_TYPE, &type);
+        if(type == AL_STATIC)
+            alSourcei(source->id, AL_LOOPING, looping);
+    }
+}
+
+GK_BOOL gkIsSoundLooping(gkSoundSource* source)
+{
+    return source->internal.looping;
+}
+
+void gkDestroySoundSource(gkSoundSource* source)
+{
+    gkCleanupListenerList(&source->listeners);
+    alDeleteSources(1, &source->id);
+    free(source);
+}
+
+gkSoundSource* gkPlaySound(gkSound* sound, gkSoundSource* source)
+{
+    if(source == 0)
+    {
+        source = gkCreateSoundSource();
+        source->internal.autoDestroy = GK_TRUE;
+    }
 
     if(sound->internal.flags & GK_SOUND_STREAM)
     {
 		fseek(sound->internal.streamingFile, 0, SEEK_SET);
-		fillQueue(soundInstance->alSource, GK_NUM_STREAM_BUFFERS, sound->internal.alBuffers, sound->internal.streamingFile);
-        alSourcePlay(soundInstance->alSource);
+		alSourcei(source->id, AL_LOOPING, AL_FALSE);
+		fillQueue(source, GK_NUM_STREAM_BUFFERS, sound->internal.alBuffers, sound->internal.streamingFile);
+        alSourcePlay(source->id);
     }
     else
     {
-        alSourcei(soundInstance->alSource, AL_BUFFER, sound->internal.alBuffers[0]);
-        alSourcePlay(soundInstance->alSource);
+        alSourcei(source->id, AL_BUFFER, sound->internal.alBuffers[0]);
+        alSourcei(source->id, AL_LOOPING, source->internal.looping);
+        alSourcePlay(source->id);
     }
 
-    addSoundNode(sound, soundInstance);
+    source->state = GK_SOUNDSOURCE_PLAYING;
 
-    return soundInstance;
+    addSoundNode(sound, source);
+
+    return source;
+}
+
+void gkPauseSound(gkSoundSource* source)
+{
+    source->state = GK_SOUNDSOURCE_PAUSED;
+    alSourcePause(source->id);
+}
+
+void gkResumeSound(gkSoundSource* source)
+{
+    source->state = GK_SOUNDSOURCE_PLAYING;
+    alSourcePlay(source->id);
+}
+
+void gkStopSound(gkSoundSource* source, GK_BOOL dispatchStopEvent)
+{
+    int state;
+    struct gkSoundNode* node = soundNodes;
+    alGetSourcei(source->id, AL_SOURCE_STATE, &state);
+
+    if(state != AL_STOPPED)
+        alSourceStop(source->id);
+
+    while(node)
+    {
+        if(node->source == source) break;
+        node = node->next;
+    }
+    soundSourceStopped(node, dispatchStopEvent);
 }
 
 static void updateStream(struct gkSoundNode* stream)
 {
     gkSound* sound = stream->sound;
-    gkSoundInstance* instance = stream->instance;
+    gkSoundSource* source = stream->source;
 
     int processed, queued;
 
-    alGetSourcei(instance->alSource, AL_BUFFERS_PROCESSED, &processed);
-    alGetSourcei(instance->alSource, AL_BUFFERS_QUEUED, &queued);
+    alGetSourcei(source->id, AL_BUFFERS_PROCESSED, &processed);
+    alGetSourcei(source->id, AL_BUFFERS_QUEUED, &queued);
 
 	if(queued<GK_NUM_STREAM_BUFFERS)
-		fillQueue(instance->alSource, (GK_NUM_STREAM_BUFFERS - queued), sound->internal.alBuffers, sound->internal.streamingFile);
+    {
+		fillQueue(source, (GK_NUM_STREAM_BUFFERS - queued), sound->internal.alBuffers, sound->internal.streamingFile);
+    }
 
     if(processed>0)
     {
         int i, u, *buffers = sound->internal.alBuffers;
 
-        alSourceUnqueueBuffers(instance->alSource, processed, buffers);
+        alSourceUnqueueBuffers(source->id, processed, buffers);
 
         /* refill */
-		fillQueue(instance->alSource, processed, buffers, sound->internal.streamingFile);
+		fillQueue(source, processed, buffers, sound->internal.streamingFile);
 
         /* rotate buffer */
         for(i = 0; i<processed; i++){
@@ -251,16 +368,25 @@ static void updateStream(struct gkSoundNode* stream)
     }
 }
 
-static void soundInstanceStopped(struct gkSoundNode* node)
+static void soundSourceStopped(struct gkSoundNode* node, GK_BOOL dispatchStopEvent)
 {
-    gkSoundEvent evt;
-    printf("Sound instance stopped\n");
-    evt.type = GK_ON_SOUND_STOPPED;
-    evt.target = node->instance;
-    evt.sound = node->sound;
-    gkDispatch(node->instance, &evt);
+    gkSoundSource* source = node->source;
 
-    DestroySoundInstance(node->instance);
+    source->state = GK_SOUNDSOURCE_IDLE;
+
+    alSourcei(source->id, AL_BUFFER, 0);
+
+    if(dispatchStopEvent)
+    {
+        gkSoundEvent evt;
+        evt.type = GK_ON_SOUND_STOPPED;
+        evt.target = source;
+        evt.sound = node->sound;
+        evt.source = source;
+        gkDispatch(source, &evt);
+    }
+    if(source->internal.autoDestroy)
+        gkDestroySoundSource(source);
     removeSoundNode(node);
 }
 
@@ -276,13 +402,16 @@ static GK_BOOL updateAudio(gkEvent* event, void* param)
         {
             curNode = p;
             p = p->next;
-            if( (curNode->sound->internal.flags & GK_SOUND_STREAM) )
+            if( (curNode->source->state == GK_SOUNDSOURCE_PLAYING) &&
+               (curNode->sound->internal.flags & GK_SOUND_STREAM) )
+            {
                 updateStream(curNode);
+            }
 
-            alGetSourcei(curNode->instance->alSource, AL_SOURCE_STATE, &state);
+            alGetSourcei(curNode->source->id, AL_SOURCE_STATE, &state);
 
             if( state == AL_STOPPED )
-                soundInstanceStopped(curNode);
+                soundSourceStopped(curNode, GK_TRUE);
         }
     }
     return GK_TRUE;

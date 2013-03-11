@@ -4,9 +4,11 @@
 #if !defined(WIN32) && !defined(_WIN32)
 #include <unistd.h>
 #endif
+#include <math.h>
 #include <gk.h>
 
 #include <GL/gl.h>
+
 
 
 #define MY_EVENT 1123
@@ -322,9 +324,6 @@ GK_BOOL onFocusOut(gkEvent* evt, void* p){
 	return GK_TRUE;
 }
 
-void onTimer1(gkEvent* evt, void* p){
-//	printf("onTimer1 @ %d\n", (int)gkMilliseconds());
-}
 void onTimer2(gkEvent* evt, void* p){
 //	printf("  onTimer2 @ %d\n", (int)gkMilliseconds());
 	if(gkMilliseconds()>6000){
@@ -348,13 +347,14 @@ void printResource(gkFontResource* rc){
 	}
 }
 
+gkSound* snd;
 gkSoundSource* sndInstance;
 
 GK_BOOL onSndStopped(gkEvent* e)
 {
-    gkSoundEvent* evt = (gkSoundEvent*)e;
+    gkSoundSource* source = (gkSoundSource*)e->target;
     printf("Restarting\n");
-    gkPlaySound(evt->sound, sndInstance);
+    gkPlaySound(source->sound, sndInstance);
     return GK_TRUE;
 }
 
@@ -390,11 +390,27 @@ GK_BOOL onMouseStopSound(gkEvent* e)
 GK_BOOL onMouseVolumeSound(gkEvent* e, void* p)
 {
     gkMouseEvent* evt = (gkMouseEvent*)e;
-    float gain = gkGetSoundPitch(sndInstance) + ((float)evt->delta)/10.0f;
-    printf("new pitch %f\n", gain);
-    pitch = gain;
-    gkSetSoundPitch(sndInstance, gain);
+    float gain = gkGetSoundGain(sndInstance) + ((float)evt->delta)/10.0f;
+    gkSetSoundGain(sndInstance, gain);
     return GK_TRUE;
+}
+
+void printTime(float sec)
+{
+    float hours, minutes;
+    hours = floorf(sec/3600.0f);
+    sec -= hours*3600.0f;
+    minutes = floorf(sec/60.0f);
+    sec -= minutes*60.0f;
+    printf("%02d:%02d:%02d", (int)hours, (int)minutes, (int)sec);
+}
+
+void onTimer1(gkEvent* evt, void* p){
+    printf("sound \t");
+    printTime(gkGetSoundOffset(sndInstance));
+    printf(" / ");
+    printTime(snd->length);
+    printf("\n");
 }
 
 int main(){
@@ -406,13 +422,11 @@ int main(){
 		PData d1, d2, d3;
 		gkPanel* p1 = gkCreatePanel(), *p2 = gkCreatePanel();
 		gkFontResource* rc;
-		gkSound* snd;
 
 		vp = gkCreateViewportPanel();
 
 		timer1 = gkCreateTimer();
 		timer1->delay = 100;
-		timer1->repeats = 3;
 		timer1->interval = 1000;
 		gkAddListener(timer1, GK_ON_TIMER, 0, onTimer1, 0);
 		gkStartTimer(timer1, GK_TRUE);
@@ -523,12 +537,12 @@ int main(){
 //		printResource(rc);
 //		gkRemoveFontResource(rc);
         snd = gkLoadSound("../demos/TestRun/Adrenaline.wav", GK_SOUND_STREAM);
-        printf("Sound is %2d:%2f long\n", (int)(snd->length/60), (float)((int)(snd->length*1000.0f)%60000)/1000.0f);
+//        snd = gkLoadSound("/media/DATA/mp3/schubert/CD 10/Franz Schubert - Masterworks Disc 10.mp3", GK_SOUND_STREAM);
         sndInstance = gkCreateSoundSource();
 
         gkSetSoundGain(sndInstance, 0.5f);
-        gkSetSoundLooping(sndInstance, GK_TRUE);
-		
+//        gkSetSoundLooping(sndInstance, GK_TRUE);
+
         gkPlaySound(snd, sndInstance);
         gkAddListener(panel, GK_ON_MOUSE_DOWN, 0, onMouseStopSound, 0);
         gkAddListener(panel, GK_ON_MOUSE_WHEEL, 0, onMouseVolumeSound, 0);

@@ -544,17 +544,13 @@ struct gkSoundSourceStruct
     gkListenerList listeners;
     int id;
     uint8_t state;
+    gkSound* sound;
     struct gkSoundSourceInternal internal;
 };
 typedef struct gkSoundSourceStruct gkSoundSource;
 
 #define GK_SOUND_EVENT_BASE    150
 #define GK_ON_SOUND_STOPPED     (GK_SOUND_EVENT_BASE + 1)
-
-GK_EVENT(gkSoundEvent)
-    gkSound* sound;
-    gkSoundSource* source;
-GK_EVENT_END()
 
 #define GK_SOUND_STATIC     0x01
 #define GK_SOUND_STREAM     0x02
@@ -578,6 +574,8 @@ float gkGetSoundPitch(gkSoundSource* soundSource);
 
 void gkSetSoundLooping(gkSoundSource* soundSource, GK_BOOL looping);
 GK_BOOL gkIsSoundLooping(gkSoundSource* soundSource);
+
+float gkGetSoundOffset(gkSoundSource* soundSource);
 
 /************************************
 	Timers

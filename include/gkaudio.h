@@ -38,6 +38,8 @@ struct gkSoundInternal
 
 struct gkSoundSourceInternal
 {
+    uint64_t currentOffset;
+    uint64_t lastOffset;
     GK_BOOL looping;
     GK_BOOL autoDestroy;
 };

@@ -35,18 +35,16 @@ static ALCcontext* ctx;
 
 struct gkSoundNode
 {
-    gkSound* sound;
     gkSoundSource* source;
     struct gkSoundNode* prev, *next;
 };
 
 static struct gkSoundNode* soundNodes = 0, *lastSoundNode = 0;
 
-static void addSoundNode(gkSound* sound, gkSoundSource* source)
+static void addSoundNode(gkSoundSource* source)
 {
     struct gkSoundNode* node = (struct gkSoundNode*)malloc(sizeof(struct gkSoundNode));
 
-    node->sound = sound;
     node->source = source;
     node->prev = lastSoundNode;
     node->next = 0;
@@ -154,8 +152,9 @@ static int fillBuffers(int* buffers, int numToFill, gkSound* sound)
     return i;
 }
 
-static void fillQueue(gkSoundSource* source, int numBuffers, int* buffers, gkSound* sound)
+static void fillQueue(gkSoundSource* source, int numBuffers, int* buffers)
 {
+    gkSound* sound = source->sound;
     gkAudioStream* stream = sound->internal.stream;
 
 	int filled = fillBuffers(buffers, numBuffers, sound);
@@ -167,6 +166,23 @@ static void fillQueue(gkSoundSource* source, int numBuffers, int* buffers, gkSou
     }
 
 	alSourceQueueBuffers(source->id, filled, buffers);
+}
+
+static void updateTimeOffset(gkSoundSource* source, uint64_t currentTime)
+{
+    if(source->sound == 0)
+        return;
+    if(source->sound->internal.flags & GK_SOUND_STREAM)
+    {
+        float pitch;
+        uint64_t elapsed = currentTime - source->internal.lastOffset;
+        uint64_t total = (uint64_t)(source->sound->length*1000.0f);
+        alGetSourcef(source->id, AL_PITCH, &pitch);
+        source->internal.currentOffset += (uint64_t)((float)elapsed*pitch);
+        if(total != 0)
+            source->internal.currentOffset %= total;
+        source->internal.lastOffset += elapsed;
+    }
 }
 
 gkSound* gkLoadSound(char* filename, int flags)
@@ -235,9 +251,17 @@ gkSoundSource* gkCreateSoundSource()
     source->internal.autoDestroy = GK_FALSE;
 
     source->state = GK_SOUNDSOURCE_IDLE;
+    source->sound = 0;
     source->internal.looping = GK_FALSE;
 
     return source;
+}
+
+void gkDestroySoundSource(gkSoundSource* source)
+{
+    gkCleanupListenerList(&source->listeners);
+    alDeleteSources(1, &source->id);
+    free(source);
 }
 
 void gkSetSoundGain(gkSoundSource* source, float gain)
@@ -254,6 +278,7 @@ float gkGetSoundGain(gkSoundSource* source)
 
 void gkSetSoundPitch(gkSoundSource* source, float pitch)
 {
+    updateTimeOffset(source, gkMilliseconds());
     alSourcef(source->id, AL_PITCH, pitch);
 }
 
@@ -281,11 +306,16 @@ GK_BOOL gkIsSoundLooping(gkSoundSource* source)
     return source->internal.looping;
 }
 
-void gkDestroySoundSource(gkSoundSource* source)
+float gkGetSoundOffset(gkSoundSource* source)
 {
-    gkCleanupListenerList(&source->listeners);
-    alDeleteSources(1, &source->id);
-    free(source);
+    if(source->sound == 0) return 0;
+    if(source->sound->internal.flags & GK_SOUND_STATIC)
+    {
+        float secOffset;
+        alGetSourcef(source->id, AL_SEC_OFFSET, &secOffset);
+        return secOffset;
+    }
+    return (float)source->internal.currentOffset*0.001f;
 }
 
 gkSoundSource* gkPlaySound(gkSound* sound, gkSoundSource* source)
@@ -296,12 +326,16 @@ gkSoundSource* gkPlaySound(gkSound* sound, gkSoundSource* source)
         source->internal.autoDestroy = GK_TRUE;
     }
 
+    source->sound = sound;
+    source->internal.currentOffset = gkMilliseconds();
+    source->internal.lastOffset = source->internal.currentOffset;
+
     if(sound->internal.flags & GK_SOUND_STREAM)
     {
         gkAudioStream* stream = sound->internal.stream;
         stream->seek(stream, 0, SEEK_SET);
 		alSourcei(source->id, AL_LOOPING, AL_FALSE);
-		fillQueue(source, GK_NUM_STREAM_BUFFERS, sound->internal.alBuffers, sound);
+		fillQueue(source, GK_NUM_STREAM_BUFFERS, sound->internal.alBuffers);
         alSourcePlay(source->id);
     }
     else
@@ -313,13 +347,14 @@ gkSoundSource* gkPlaySound(gkSound* sound, gkSoundSource* source)
 
     source->state = GK_SOUNDSOURCE_PLAYING;
 
-    addSoundNode(sound, source);
+    addSoundNode(source);
 
     return source;
 }
 
 void gkPauseSound(gkSoundSource* source)
 {
+    updateTimeOffset(source, gkMilliseconds());
     source->state = GK_SOUNDSOURCE_PAUSED;
     alSourcePause(source->id);
 }
@@ -327,6 +362,7 @@ void gkPauseSound(gkSoundSource* source)
 void gkResumeSound(gkSoundSource* source)
 {
     source->state = GK_SOUNDSOURCE_PLAYING;
+    source->internal.lastOffset = gkMilliseconds();
     alSourcePlay(source->id);
 }
 
@@ -347,10 +383,10 @@ void gkStopSound(gkSoundSource* source, GK_BOOL dispatchStopEvent)
     soundSourceStopped(node, dispatchStopEvent);
 }
 
-static void updateStream(struct gkSoundNode* stream)
+
+static void updateStream(gkSoundSource* source)
 {
-    gkSound* sound = stream->sound;
-    gkSoundSource* source = stream->source;
+    gkSound* sound = source->sound;
 
     int processed, queued;
 
@@ -359,7 +395,7 @@ static void updateStream(struct gkSoundNode* stream)
 
 	if(queued<GK_NUM_STREAM_BUFFERS)
     {
-		fillQueue(source, (GK_NUM_STREAM_BUFFERS - queued), sound->internal.alBuffers + queued, sound);
+		fillQueue(source, (GK_NUM_STREAM_BUFFERS - queued), sound->internal.alBuffers + queued);
     }
 
     if(processed>0)
@@ -369,7 +405,7 @@ static void updateStream(struct gkSoundNode* stream)
         alSourceUnqueueBuffers(source->id, processed, buffers);
 
         /* refill */
-		fillQueue(source, processed, buffers, sound);
+		fillQueue(source, processed, buffers);
 
         /* rotate buffer */
         for(i = 0; i<processed; i++){
@@ -390,13 +426,12 @@ static void soundSourceStopped(struct gkSoundNode* node, GK_BOOL dispatchStopEve
 
     if(dispatchStopEvent)
     {
-        gkSoundEvent evt;
+        gkEvent evt;
         evt.type = GK_ON_SOUND_STOPPED;
         evt.target = source;
-        evt.sound = node->sound;
-        evt.source = source;
         gkDispatch(source, &evt);
     }
+    source->sound = 0;
     if(source->internal.autoDestroy)
         gkDestroySoundSource(source);
     removeSoundNode(node);
@@ -406,21 +441,25 @@ static GK_BOOL updateAudio(gkEvent* event, void* param)
 {
     struct gkSoundNode* p, *curNode;
     int state;
+    uint64_t millis = gkMilliseconds();
 
     if(soundNodes != 0)
     {
         p = soundNodes;
         while(p)
         {
+            gkSoundSource* source = p->source;
             curNode = p;
             p = p->next;
-            if( (curNode->source->state == GK_SOUNDSOURCE_PLAYING) &&
-               (curNode->sound->internal.flags & GK_SOUND_STREAM) )
+
+            if( (source->state == GK_SOUNDSOURCE_PLAYING) &&
+               (source->sound->internal.flags & GK_SOUND_STREAM) )
             {
-                updateStream(curNode);
+                updateTimeOffset(source, millis);
+                updateStream(source);
             }
 
-            alGetSourcei(curNode->source->id, AL_SOURCE_STATE, &state);
+            alGetSourcei(source->id, AL_SOURCE_STATE, &state);
 
             if( state == AL_STOPPED )
                 soundSourceStopped(curNode, GK_TRUE);

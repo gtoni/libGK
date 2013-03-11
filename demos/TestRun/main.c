@@ -366,6 +366,7 @@ GK_BOOL setTweenPitch(gkEvent* e, void *p)
 GK_BOOL pauseSound(gkEvent* e, void* p)
 {
     gkPauseSound(sndInstance);
+	return GK_TRUE;
 }
 GK_BOOL onMouseStopSound(gkEvent* e)
 {
@@ -527,7 +528,7 @@ int main(){
 
         gkSetSoundGain(sndInstance, 0.5f);
         gkSetSoundLooping(sndInstance, GK_TRUE);
-
+		
         gkPlaySound(snd, sndInstance);
         gkAddListener(panel, GK_ON_MOUSE_DOWN, 0, onMouseStopSound, 0);
         gkAddListener(panel, GK_ON_MOUSE_WHEEL, 0, onMouseVolumeSound, 0);

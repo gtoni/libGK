@@ -147,7 +147,11 @@ static int eofWavStream(gkAudioStream* s)
 
 /* MP3 stream through libmpg123 */
 
+#ifdef GK_WIN
+#include <mpg123/mpg123_win.h>
+#else
 #include <mpg123.h>
+#endif
 
 typedef struct _gkMp3AudioStream gkMp3AudioStream;
 struct _gkMp3AudioStream{
@@ -218,8 +222,8 @@ static int readMp3Stream(gkAudioStream* s, void* buffer, size_t bytes)
 static int seekMp3Stream(gkAudioStream* s, size_t offset, int origin)
 {
     gkMp3AudioStream* stream = (gkMp3AudioStream*)s;
-    stream->eof = GK_FALSE;
     off_t streamOffset = mpg123_seek(stream->handle, offset, origin);
+    stream->eof = GK_FALSE;
     if(streamOffset>=0) return 0;
     return streamOffset;
 }
@@ -250,6 +254,7 @@ gkAudioStream* gkAudioStreamOpen(char* location)
         return createWavAudioStream(location);
     else if(stricmp(ext, "mp3") == 0)
         return createMp3AudioStream(location);
+	return 0;
 }
 
 void gkAudioStreamClose(gkAudioStream* stream)

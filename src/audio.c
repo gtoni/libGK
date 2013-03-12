@@ -24,6 +24,7 @@
 
 #include <AL/al.h>
 #include <AL/alc.h>
+#include <AL/efx.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,6 +33,10 @@
 
 static ALCdevice* device;
 static ALCcontext* ctx;
+
+/***
+    Utilities
+*/
 
 struct gkSoundNode
 {
@@ -75,58 +80,6 @@ static void removeSoundNode(struct gkSoundNode* node)
 }
 
 #define gkCheckALError() {int err; if((err = alGetError()) != AL_NO_ERROR) printf("AL Error %X\n", err); }
-
-static gkTimer* updateAudioTimer;
-
-static GK_BOOL updateAudio(gkEvent* event, void* param);
-static void soundSourceStopped(struct gkSoundNode* node, GK_BOOL dispatchStopEvent);
-
-void gkInitAudio()
-{
-    if(!(device = alcOpenDevice(NULL)))
-    {
-        printf("OpenAL: Failed to open device\n");
-    }
-    ctx = alcCreateContext(device, NULL);
-    if(ctx)
-    {
-        alcMakeContextCurrent(ctx);
-    }else
-    {
-        printf("Failed to create audio context");
-    }
-
-    updateAudioTimer = gkCreateTimer();
-    updateAudioTimer->interval = 100;
-    gkAddListener(updateAudioTimer, GK_ON_TIMER, 0, updateAudio, 0);
-    gkStartTimer(updateAudioTimer, 0);
-
-    gkInitAudioStream();
-}
-
-void gkCleanupAudio()
-{
-    struct gkSoundNode *c, *p = soundNodes;
-
-    gkCleanupAudioStream();
-
-    gkStopTimer(updateAudioTimer);
-    gkDestroyTimer(updateAudioTimer);
-
-    /* free all SoundSources and SoundNodes */
-    while(p)
-    {
-        c = p;
-        p = p->next;
-        if(c->source->internal.autoDestroy)
-            gkDestroySoundSource(c->source);
-        removeSoundNode(c);
-    }
-
-    alcDestroyContext(ctx);
-    alcCloseDevice(device);
-}
-
 
 static int fillBuffer(int buffer, gkSound* sound)
 {
@@ -187,6 +140,66 @@ static void updateTimeOffset(gkSoundSource* source, uint64_t currentTime)
         source->internal.lastOffset += elapsed;
     }
 }
+
+static gkTimer* updateAudioTimer;
+
+static GK_BOOL updateAudio(gkEvent* event, void* param);
+static void soundSourceStopped(struct gkSoundNode* node, GK_BOOL dispatchStopEvent);
+
+/***
+    Sound system initialization and cleanup
+*/
+
+void gkInitAudio()
+{
+    if(!(device = alcOpenDevice(NULL)))
+    {
+        printf("OpenAL: Failed to open device\n");
+    }
+    ctx = alcCreateContext(device, NULL);
+    if(ctx)
+    {
+        alcMakeContextCurrent(ctx);
+    }else
+    {
+        printf("Failed to create audio context");
+    }
+
+    updateAudioTimer = gkCreateTimer();
+    updateAudioTimer->interval = 100;
+    gkAddListener(updateAudioTimer, GK_ON_TIMER, 0, updateAudio, 0);
+    gkStartTimer(updateAudioTimer, 0);
+
+    gkInitAudioStream();
+}
+
+void gkCleanupAudio()
+{
+    struct gkSoundNode *c, *p = soundNodes;
+
+    gkCleanupAudioStream();
+
+    gkStopTimer(updateAudioTimer);
+    gkDestroyTimer(updateAudioTimer);
+
+    /* free all SoundSources and SoundNodes */
+    while(p)
+    {
+        c = p;
+        p = p->next;
+        if(c->source->internal.autoDestroy)
+            gkDestroySoundSource(c->source);
+        removeSoundNode(c);
+    }
+
+    alcDestroyContext(ctx);
+    alcCloseDevice(device);
+}
+
+
+/***
+    Sound creation and destruction
+*/
 
 gkSound* gkLoadSound(char* filename, int flags)
 {
@@ -270,6 +283,10 @@ void gkDestroySoundSource(gkSoundSource* source)
     free(source);
 }
 
+/***
+    Sound properties
+*/
+
 void gkSetSoundGain(gkSoundSource* source, float gain)
 {
     alSourcef(source->id, AL_GAIN, gain);
@@ -345,6 +362,10 @@ float gkGetSoundOffset(gkSoundSource* source)
     return (float)source->internal.currentOffset*0.001f;
 }
 
+/***
+    Playback control
+*/
+
 gkSoundSource* gkPlaySound(gkSound* sound, gkSoundSource* source)
 {
     if(source == 0)
@@ -410,6 +431,9 @@ void gkStopSound(gkSoundSource* source, GK_BOOL dispatchStopEvent)
     soundSourceStopped(node, dispatchStopEvent);
 }
 
+/***
+    Sound system heartbeat
+*/
 
 static void updateStream(gkSoundSource* source)
 {

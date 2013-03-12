@@ -95,6 +95,8 @@ static gkAudioStream* createWavAudioStream(char* location)
             stream->info.streamSize = header.dataSize;
             stream->info.length = (float)header.dataSize/(float)header.byteRate;
             stream->info.format = getAudioFormat(header.numChannels, header.bitsPerSample);
+            stream->info.channels = header.numChannels;
+            stream->info.bitsPerSample = header.bitsPerSample;
             stream->base.read = readWavStream;
             stream->base.seek = seekWavStream;
             stream->base.getInfo = getWavStreamInfo;
@@ -126,14 +128,15 @@ static int readWavStream(gkAudioStream* s, void* buffer, size_t bytes)
     return fread(buffer, sizeof(char), bytes, stream->handle);
 }
 
-static int seekWavStream(gkAudioStream* s, size_t offset, int origin)
+static int seekWavStream(gkAudioStream* s, size_t sampleOffset, int origin)
 {
     gkWavAudioStream* stream = (gkWavAudioStream*)s;
+    sampleOffset *= (stream->info.bitsPerSample/8)*stream->info.channels;
     if(origin == SEEK_SET)
     {
-        offset = offset + stream->startOffset;
+        sampleOffset = sampleOffset + stream->startOffset;
     }
-    return fseek(stream->handle, offset, origin);
+    return fseek(stream->handle, sampleOffset, origin);
 }
 
 static int eofWavStream(gkAudioStream* s)
@@ -205,9 +208,11 @@ static void getMp3StreamInfo(gkAudioStream* s, gkAudioStreamInfo* info)
 
     totalSamples = mpg123_length(stream->handle);
     info->format = getAudioFormat(channels, bitsPerSample);
+    info->channels = channels;
+    info->bitsPerSample = bitsPerSample;
     info->sampleRate = sampleRate;
     info->length = (float)totalSamples/(float)sampleRate;
-    info->streamSize = totalSamples*(bitsPerSample/sizeof(char));
+    info->streamSize = totalSamples*(bitsPerSample*channels)/8;
 }
 
 static int readMp3Stream(gkAudioStream* s, void* buffer, size_t bytes)
@@ -219,10 +224,10 @@ static int readMp3Stream(gkAudioStream* s, void* buffer, size_t bytes)
     return bytesRead;
 }
 
-static int seekMp3Stream(gkAudioStream* s, size_t offset, int origin)
+static int seekMp3Stream(gkAudioStream* s, size_t sampleOffset, int origin)
 {
     gkMp3AudioStream* stream = (gkMp3AudioStream*)s;
-    off_t streamOffset = mpg123_seek(stream->handle, offset, origin);
+    off_t streamOffset = mpg123_seek(stream->handle, sampleOffset, origin);
     stream->eof = GK_FALSE;
     if(streamOffset>=0) return 0;
     return streamOffset;

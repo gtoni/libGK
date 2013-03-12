@@ -177,10 +177,13 @@ static void updateTimeOffset(gkSoundSource* source, uint64_t currentTime)
         float pitch;
         uint64_t elapsed = currentTime - source->internal.lastOffset;
         uint64_t total = (uint64_t)(source->sound->length*1000.0f);
+
         alGetSourcef(source->id, AL_PITCH, &pitch);
         source->internal.currentOffset += (uint64_t)((float)elapsed*pitch);
+
         if(total != 0)
             source->internal.currentOffset %= total;
+
         source->internal.lastOffset += elapsed;
     }
 }
@@ -212,11 +215,14 @@ gkSound* gkLoadSound(char* filename, int flags)
             alGenBuffers(1, sound->internal.alBuffers);
             alBufferData(sound->internal.alBuffers[0], info->format, buf, info->streamSize, info->sampleRate);
 
+            sound->seekable = GK_TRUE;
+
             free(buf);
             gkAudioStreamClose(stream);
         }else if( flags & GK_SOUND_STREAM )
         {
             sound->internal.stream = stream;
+            sound->seekable = stream->seek != 0;
 
             alGenBuffers(GK_NUM_STREAM_BUFFERS, sound->internal.alBuffers);
         }
@@ -304,6 +310,27 @@ void gkSetSoundLooping(gkSoundSource* source, GK_BOOL looping)
 GK_BOOL gkIsSoundLooping(gkSoundSource* source)
 {
     return source->internal.looping;
+}
+
+void gkSetSoundOffset(gkSoundSource* source, float seconds)
+{
+    if(source->sound == 0 || !source->sound->seekable) return;
+    if(source->sound->internal.flags & GK_SOUND_STATIC)
+    {
+        alSourcef(source->id, AL_SEC_OFFSET, seconds);
+    }else
+    {
+        gkAudioStream* stream = source->sound->internal.stream;
+        gkAudioStreamInfo* info = &source->sound->internal.streamInfo;
+        int pos = (int)((float)info->sampleRate*seconds);
+        stream->seek(stream, pos, SEEK_SET);
+        alSourceStop(source->id);
+        alSourcei(source->id, AL_BUFFER, 0);
+        fillQueue(source, GK_NUM_STREAM_BUFFERS, source->sound->internal.alBuffers);
+        alSourcePlay(source->id);
+        source->internal.currentOffset = (int)seconds*1000.0f;
+        source->internal.lastOffset = gkMilliseconds();
+    }
 }
 
 float gkGetSoundOffset(gkSoundSource* source)

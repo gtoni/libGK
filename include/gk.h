@@ -531,6 +531,7 @@ gkPoint gkDrawText(gkFont* font, wchar_t* text, float x, float y, gkTextFormat* 
 
 struct gkSoundStruct{
     float length;
+    GK_BOOL seekable;
     struct gkSoundInternal internal;
 };
 typedef struct gkSoundStruct gkSound;
@@ -575,6 +576,7 @@ float gkGetSoundPitch(gkSoundSource* soundSource);
 void gkSetSoundLooping(gkSoundSource* soundSource, GK_BOOL looping);
 GK_BOOL gkIsSoundLooping(gkSoundSource* soundSource);
 
+void gkSetSoundOffset(gkSoundSource* soundSource, float seconds);
 float gkGetSoundOffset(gkSoundSource* soundSource);
 
 /************************************

@@ -34,6 +34,8 @@ typedef struct _gkAudioStreamInfo gkAudioStreamInfo;
 struct _gkAudioStreamInfo{
     int format;
     int sampleRate;
+    int channels;
+    int bitsPerSample;
     size_t streamSize;
     float length;
 };
@@ -41,7 +43,7 @@ struct _gkAudioStreamInfo{
 typedef struct _gkAudioStream gkAudioStream;
 struct _gkAudioStream{
     int (*read)(gkAudioStream* stream, void* buffer, size_t bytes);
-    int (*seek)(gkAudioStream* stream, size_t offset, int origin);
+    int (*seek)(gkAudioStream* stream, size_t sampleOffset, int origin);
     int (*eof)(gkAudioStream* stream);
     int (*getError)(gkAudioStream* stream);
     void (*getInfo)(gkAudioStream* stream, gkAudioStreamInfo* info);

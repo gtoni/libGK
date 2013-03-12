@@ -537,13 +537,14 @@ int main(){
 //		printResource(rc);
 //		gkRemoveFontResource(rc);
         snd = gkLoadSound("../demos/TestRun/Adrenaline.wav", GK_SOUND_STREAM);
-//        snd = gkLoadSound("/media/DATA/mp3/schubert/CD 10/Franz Schubert - Masterworks Disc 10.mp3", GK_SOUND_STREAM);
+//        snd = gkLoadSound("/media/DATA/mp3/WoW OST/World of Warcraft - Mists of Pandaria OST/01 - Heart of Pandaria.mp3", GK_SOUND_STREAM);
         sndInstance = gkCreateSoundSource();
 
         gkSetSoundGain(sndInstance, 0.5f);
-//        gkSetSoundLooping(sndInstance, GK_TRUE);
+        gkSetSoundLooping(sndInstance, GK_TRUE);
 
         gkPlaySound(snd, sndInstance);
+        gkSetSoundOffset(sndInstance, 15.0f);
         gkAddListener(panel, GK_ON_MOUSE_DOWN, 0, onMouseStopSound, 0);
         gkAddListener(panel, GK_ON_MOUSE_WHEEL, 0, onMouseVolumeSound, 0);
 

@@ -579,6 +579,8 @@ GK_BOOL gkIsSoundLooping(gkSoundSource* soundSource);
 void gkSetSoundOffset(gkSoundSource* soundSource, float seconds);
 float gkGetSoundOffset(gkSoundSource* soundSource);
 
+void gkSetMasterGain(float gain);
+float gkGetMasterGain();
 
 /************************************
 	Timers

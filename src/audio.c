@@ -363,6 +363,22 @@ float gkGetSoundOffset(gkSoundSource* source)
 }
 
 /***
+    Listener properties
+*/
+
+void gkSetMasterGain(float gain)
+{
+    alListenerf(AL_GAIN, gain);
+}
+
+float gkGetMasterGain()
+{
+    float gain;
+    alGetListenerf(AL_GAIN, &gain);
+    return gain;
+}
+
+/***
     Playback control
 */
 

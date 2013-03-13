@@ -239,6 +239,112 @@ static int eofMp3Stream(gkAudioStream* s)
     return stream->eof;
 }
 
+/**/
+/* OGG stream through libvorbisfile */
+
+#ifdef GK_WIN
+#include <mpg123/mpg123_win.h>
+#else
+#include <vorbis/vorbisfile.h>
+#endif
+
+typedef struct _gkOggAudioStream gkOggAudioStream;
+struct _gkOggAudioStream{
+    gkAudioStream base;
+    OggVorbis_File handle;
+    GK_BOOL eof;
+};
+
+static int readOggStream(gkAudioStream* stream, void* buffer, size_t bytes);
+static int seekOggStream(gkAudioStream* stream, size_t offset, int origin);
+static void getOggStreamInfo(gkAudioStream* stream, gkAudioStreamInfo* info);
+static int eofOggStream(gkAudioStream* stream);
+static void destroyOggAudioStream(gkAudioStream* stream);
+
+static gkAudioStream* createOggAudioStream(char* location)
+{
+    gkOggAudioStream* stream = (gkOggAudioStream*)malloc(sizeof(gkOggAudioStream));
+    if(ov_fopen(location, &stream->handle) != 0)
+    {
+        free(stream);
+        return 0;
+    }
+    stream->eof = GK_FALSE;
+    stream->base.read = readOggStream;
+
+    if(ov_seekable(&stream->handle) != 0)
+        stream->base.seek = seekOggStream;
+    else stream->base.seek = 0;
+
+    stream->base.getInfo = getOggStreamInfo;
+    stream->base.eof = eofOggStream;
+    stream->base.destroy = destroyOggAudioStream;
+    return (gkAudioStream*)stream;
+}
+
+static void destroyOggAudioStream(gkAudioStream* s)
+{
+    gkOggAudioStream* stream = (gkOggAudioStream*)s;
+    ov_clear(&stream->handle);
+    free(stream);
+}
+
+static void getOggStreamInfo(gkAudioStream* s, gkAudioStreamInfo* info)
+{
+    gkOggAudioStream* stream = (gkOggAudioStream*)s;
+    vorbis_info* vinfo = ov_info(&stream->handle, -1);
+
+    long totalSamples = ov_pcm_total(&stream->handle, -1);
+    info->channels = vinfo->channels;
+    info->bitsPerSample = 16;
+    info->format = getAudioFormat(info->channels, info->bitsPerSample);
+    info->sampleRate = vinfo->rate;
+    info->length = ov_time_total(&stream->handle, -1);
+    info->streamSize = totalSamples*(info->bitsPerSample*info->channels)/8;
+}
+
+static int readOggStream(gkAudioStream* s, void* buffer, size_t bytes)
+{
+    gkOggAudioStream* stream = (gkOggAudioStream*)s;
+    int currentSection;
+    size_t offset = 0;
+    while(offset<bytes)
+    {
+        size_t bytesRead = ov_read(&stream->handle, buffer + offset, bytes - offset, 0, 2, 1, &currentSection);
+        if(bytesRead == 0)
+        {
+            stream->eof = GK_TRUE;
+            break;
+        }
+        if(bytesRead<0)
+        {
+            break;
+        }
+        offset += bytesRead;
+    }
+    return offset;
+}
+
+static int seekOggStream(gkAudioStream* s, size_t sampleOffset, int origin)
+{
+    gkOggAudioStream* stream = (gkOggAudioStream*)s;
+    if(origin == SEEK_CUR)
+        sampleOffset += ov_pcm_tell(&stream->handle);
+    else if(origin == SEEK_END)
+        sampleOffset = ov_pcm_total(&stream->handle, -1) - sampleOffset;
+    if(ov_pcm_seek(&stream->handle, sampleOffset) == 0)
+    {
+        stream->eof = GK_FALSE;
+        return sampleOffset;
+    }
+    return 0;
+}
+
+static int eofOggStream(gkAudioStream* s)
+{
+    gkOggAudioStream* stream = (gkOggAudioStream*)s;
+    return stream->eof;
+}
 /* End of stream types */
 
 
@@ -259,6 +365,8 @@ gkAudioStream* gkAudioStreamOpen(char* location)
         return createWavAudioStream(location);
     else if(stricmp(ext, "mp3") == 0)
         return createMp3AudioStream(location);
+    else if(stricmp(ext, "ogg") == 0)
+        return createOggAudioStream(location);
 	return 0;
 }
 

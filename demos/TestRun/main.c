@@ -536,8 +536,8 @@ int main(){
 //		}
 //		printResource(rc);
 //		gkRemoveFontResource(rc);
-//        snd = gkLoadSound("../demos/TestRun/cat.wav", GK_SOUND_STATIC);
-        snd = gkLoadSound("/media/DATA/mp3/WoW OST/World of Warcraft - Mists of Pandaria OST/01 - Heart of Pandaria.mp3", GK_SOUND_STREAM);
+        snd = gkLoadSound("../demos/TestRun/cat.wav", GK_SOUND_STATIC);
+//        snd = gkLoadSound("/media/DATA/mp3/WoW OST/World of Warcraft - Mists of Pandaria OST/01 - Heart of Pandaria.mp3", GK_SOUND_STREAM);
         sndInstance = gkCreateSoundSource();
 
         gkSetSoundGain(sndInstance, 1.0f);
@@ -545,6 +545,7 @@ int main(){
 
         gkPlaySound(snd, sndInstance);
 //        gkSetSoundOffset(sndInstance, 15.0f);
+        gkSetMasterGain(1.0f);
         gkAddListener(panel, GK_ON_MOUSE_DOWN, 0, onMouseStopSound, 0);
         gkAddListener(panel, GK_ON_MOUSE_WHEEL, 0, onMouseVolumeSound, 0);
 

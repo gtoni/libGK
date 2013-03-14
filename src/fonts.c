@@ -569,11 +569,34 @@ gkBBox gkGetTextBBox(gkSentenceLine* lines, gkTextFormat* format, float leading)
 gkPoint gkAlignLine(gkSentenceLine* line, gkTextFormat* format, gkBBox* textBBox);
 gkPoint gkDrawSentenceLine(FT_Face face, gkSentenceLine* line, gkTextFormat* format);
 
-gkSize gkMeasureText(gkFont* font, wchar_t* text, gkTextFormat* format){
-	return GK_SIZE(0,0);
+gkSize gkMeasureText(gkFont* font, wchar_t* text, gkTextFormat* format)
+{
+	FT_Face face = ((gkFontFaceEx*)font->face)->ftface;
+	gkSentenceElement* elements;
+	gkSentenceLine* lines;
+	float oldTextFormatWidth;
+	gkBBox textBBox;
+
+	if(format == 0)
+        format = &gkDefaultTextFormat;
+
+	oldTextFormatWidth = format->width;
+	if(elements = gkParseSentenceElements(font, text, format))
+    {
+		float leading = ((float)face->size->metrics.height)/64.0f + format->lineSpacing;
+		lines = gkParseSentenceLines(elements, format);
+		textBBox = gkGetTextBBox(lines, format, leading);
+		gkFreeSentenceLines(lines);
+		gkFreeSentenceElements(elements);
+	}else{
+	    textBBox.minX = textBBox.maxX = 0;
+	    textBBox.minY = textBBox.maxY = 0;
+	}
+	format->width = oldTextFormatWidth;
+	return GK_SIZE(textBBox.maxX - textBBox.minX, textBBox.maxY - textBBox.minY);
 }
 
-gkPoint gkDrawText(gkFont* font, wchar_t* text, float x, float y, gkTextFormat* format){
+void gkDrawText(gkFont* font, wchar_t* text, float x, float y, gkTextFormat* format){
 	FT_Face face = ((gkFontFaceEx*)font->face)->ftface;
 	gkSentenceElement* elements;
 	gkSentenceLine* lines, *currentLine;
@@ -604,7 +627,6 @@ gkPoint gkDrawText(gkFont* font, wchar_t* text, float x, float y, gkTextFormat* 
 		gkFreeSentenceElements(elements);
 	}
 	format->width = oldTextFormatWidth;
-	return GK_POINT(0,0);
 }
 
 gkSentenceElement* gkParseSentenceElements(gkFont* font, wchar_t* text, gkTextFormat* format){

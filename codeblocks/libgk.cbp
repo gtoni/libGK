@@ -22,6 +22,8 @@
 					<Add option="-lopenal" />
 					<Add option="-lfreetype" />
 					<Add option="-lmpg123" />
+					<Add option="-lvorbis" />
+					<Add option="-lvorbisfile" />
 					<Add directory="../libs" />
 				</Linker>
 			</Target>
@@ -80,6 +82,8 @@
 			<debugger />
 			<lib_finder disable_auto="1">
 				<lib name="freetype2" />
+				<lib name="vorbisfile" />
+				<lib name="vorbis" />
 			</lib_finder>
 		</Extensions>
 	</Project>

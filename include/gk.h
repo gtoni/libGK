@@ -518,7 +518,7 @@ gkFont* gkCreateFont(char* family, uint16_t size, uint8_t style);
 void gkDestroyFont(gkFont* font);
 
 gkSize gkMeasureText(gkFont* font, wchar_t* text, gkTextFormat* format);
-gkPoint gkDrawText(gkFont* font, wchar_t* text, float x, float y, gkTextFormat* format);
+void gkDrawText(gkFont* font, wchar_t* text, float x, float y, gkTextFormat* format);
 
 
 /************************************
@@ -536,9 +536,9 @@ struct gkSoundStruct{
 };
 typedef struct gkSoundStruct gkSound;
 
-#define GK_SOUNDSOURCE_IDLE         0
-#define GK_SOUNDSOURCE_PLAYING      1
-#define GK_SOUNDSOURCE_PAUSED       2
+#define GK_SOUND_STATE_IDLE         0
+#define GK_SOUND_STATE_PLAYING      1
+#define GK_SOUND_STATE_PAUSED       2
 
 struct gkSoundSourceStruct
 {

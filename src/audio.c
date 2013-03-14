@@ -269,7 +269,7 @@ gkSoundSource* gkCreateSoundSource()
 
     source->internal.autoDestroy = GK_FALSE;
 
-    source->state = GK_SOUNDSOURCE_IDLE;
+    source->state = GK_SOUND_STATE_IDLE;
     source->sound = 0;
     source->internal.looping = GK_FALSE;
 
@@ -315,7 +315,7 @@ float gkGetSoundPitch(gkSoundSource* source)
 void gkSetSoundLooping(gkSoundSource* source, GK_BOOL looping)
 {
     source->internal.looping = looping;
-    if(source->state != GK_SOUNDSOURCE_IDLE)
+    if(source->state != GK_SOUND_STATE_IDLE)
     {
         int type;
         alGetSourcei(source->id, AL_SOURCE_TYPE, &type);
@@ -409,7 +409,7 @@ gkSoundSource* gkPlaySound(gkSound* sound, gkSoundSource* source)
         alSourcePlay(source->id);
     }
 
-    source->state = GK_SOUNDSOURCE_PLAYING;
+    source->state = GK_SOUND_STATE_PLAYING;
 
     addSoundNode(source);
 
@@ -419,13 +419,13 @@ gkSoundSource* gkPlaySound(gkSound* sound, gkSoundSource* source)
 void gkPauseSound(gkSoundSource* source)
 {
     updateTimeOffset(source, gkMilliseconds());
-    source->state = GK_SOUNDSOURCE_PAUSED;
+    source->state = GK_SOUND_STATE_PAUSED;
     alSourcePause(source->id);
 }
 
 void gkResumeSound(gkSoundSource* source)
 {
-    source->state = GK_SOUNDSOURCE_PLAYING;
+    source->state = GK_SOUND_STATE_PLAYING;
     source->internal.lastOffset = gkMilliseconds();
     alSourcePlay(source->id);
 }
@@ -487,7 +487,7 @@ static void soundSourceStopped(struct gkSoundNode* node, GK_BOOL dispatchStopEve
 {
     gkSoundSource* source = node->source;
 
-    source->state = GK_SOUNDSOURCE_IDLE;
+    source->state = GK_SOUND_STATE_IDLE;
 
     alSourcei(source->id, AL_BUFFER, 0);
 
@@ -519,7 +519,7 @@ static GK_BOOL updateAudio(gkEvent* event, void* param)
             curNode = p;
             p = p->next;
 
-            if( (source->state == GK_SOUNDSOURCE_PLAYING) &&
+            if( (source->state == GK_SOUND_STATE_PLAYING) &&
                (source->sound->internal.flags & GK_SOUND_STREAM) )
             {
                 updateTimeOffset(source, millis);

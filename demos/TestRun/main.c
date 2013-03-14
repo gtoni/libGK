@@ -28,7 +28,7 @@ struct drawer{
 #include <math.h>
 
 gkPanel* ppp;
-gkImage* img, *img2;
+gkImage* img, *img2, *img3;
 gkFont* font;
 float mx, my;
 
@@ -107,6 +107,8 @@ void myDrawFunc(gkPanel* p){
 		tf.underline = GK_TRUE;
 		gkDrawText(font, str, 0, 0, &tf);
 	}
+
+	gkDrawImage(img3, 0, 0);
 }
 
 #include <GL/gl.h>
@@ -543,12 +545,32 @@ int main(){
         gkSetSoundGain(sndInstance, 1.0f);
         gkSetSoundLooping(sndInstance, GK_TRUE);
 
-        gkPlaySound(snd, sndInstance);
+//        gkPlaySound(snd, sndInstance);
 //        gkSetSoundOffset(sndInstance, 15.0f);
         gkSetMasterGain(1.0f);
         gkAddListener(panel, GK_ON_MOUSE_DOWN, 0, onMouseStopSound, 0);
         gkAddListener(panel, GK_ON_MOUSE_WHEEL, 0, onMouseVolumeSound, 0);
 
+        {
+            gkTextFormat tf = gkDefaultTextFormat;
+            gkSize textSize;
+            gkFont* tmpFont = gkCreateFont("meiryo", 30, GK_FONT_ITALIC);
+            wchar_t* text = L"This text is an image\nMultilined :D\nand right aligned";
+            tf.textColor = GK_COLOR(1,1,1,1);
+            tf.strokeColor = GK_COLOR(0,0,0,1.0f);
+            tf.strokeSize = 3;
+            tf.align = GK_TEXT_ALIGN_RIGHT;
+            tf.valign = GK_TEXT_VALIGN_MIDDLE;
+            tf.underline = GK_TRUE;
+            textSize = gkMeasureText(tmpFont, text, &tf);
+            img3 = gkCreateImage(textSize.width, textSize.height);
+            if(gkBeginDrawToImage(img3, GK_TRUE))
+            {
+                gkDrawText(tmpFont, text, 0,0, &tf);
+                gkEndDrawToImage();
+            }
+            gkDestroyFont(tmpFont);
+        }
 		gkRun();
 		gkDestroySoundSource(sndInstance);
 		gkDestroySound(snd);

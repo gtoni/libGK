@@ -242,11 +242,7 @@ static int eofMp3Stream(gkAudioStream* s)
 /**/
 /* OGG stream through libvorbisfile */
 
-#ifdef GK_WIN
-#include <mpg123/mpg123_win.h>
-#else
 #include <vorbis/vorbisfile.h>
-#endif
 
 typedef struct _gkOggAudioStream gkOggAudioStream;
 struct _gkOggAudioStream{
@@ -294,7 +290,7 @@ static void getOggStreamInfo(gkAudioStream* s, gkAudioStreamInfo* info)
     gkOggAudioStream* stream = (gkOggAudioStream*)s;
     vorbis_info* vinfo = ov_info(&stream->handle, -1);
 
-    long totalSamples = ov_pcm_total(&stream->handle, -1);
+	uint64_t totalSamples = ov_pcm_total(&stream->handle, -1);
     info->channels = vinfo->channels;
     info->bitsPerSample = 16;
     info->format = getAudioFormat(info->channels, info->bitsPerSample);
@@ -310,7 +306,7 @@ static int readOggStream(gkAudioStream* s, void* buffer, size_t bytes)
     size_t offset = 0;
     while(offset<bytes)
     {
-        size_t bytesRead = ov_read(&stream->handle, buffer + offset, bytes - offset, 0, 2, 1, &currentSection);
+        size_t bytesRead = ov_read(&stream->handle, (char*)buffer + offset, bytes - offset, 0, 2, 1, &currentSection);
         if(bytesRead == 0)
         {
             stream->eof = GK_TRUE;

@@ -56,7 +56,7 @@
       <AdditionalDependencies>OpenGL32.lib;DevIL.lib;freetype2411MT.lib;libmpg123.lib;libvorbisfile.lib;OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <AdditionalDependencies>OpenGL32.lib;OpenAL32.lib;DevIL.lib;freetype2411MT.lib;dinput8.lib;libmpg123.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpenGL32.lib;OpenAL32.lib;DevIL.lib;freetype2411MT.lib;dinput8.lib;libmpg123.lib;libvorbisfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>..\..\libs\</AdditionalLibraryDirectories>

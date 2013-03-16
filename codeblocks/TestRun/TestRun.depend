@@ -1,1 +1,41 @@
 # depslib dependency file v1.0
+1363286132 source:/home/khaos/C-projects/libgk/demos/TestRun/main.c
+	<stdio.h>
+	<stdlib.h>
+	<unistd.h>
+	<math.h>
+	<gk.h>
+	<GL/gl.h>
+	<math.h>
+	<GL/gl.h>
+	<math.h>
+
+1363446964 /home/khaos/C-projects/libgk/include/gk.h
+	<memory.h>
+	<wchar.h>
+	<stdint.h>
+	<gkkeydefs.h>
+	<gkaudio.h>
+
+1362343447 /home/khaos/C-projects/libgk/include/gkkeydefs.h
+	<windows.h>
+
+1363038582 /home/khaos/C-projects/libgk/include/gkaudio.h
+	<stdio.h>
+	<gkaudiostream.h>
+
+1363209255 /home/khaos/C-projects/libgk/include/gkaudiostream.h
+
+1363284594 source:/home/khaos/C-projects/libgk/src/audiostream.c
+	<gk.h>
+	<stdlib.h>
+	<stdio.h>
+	"gk_internal.h"
+	<mpg123/mpg123_win.h>
+	<mpg123.h>
+	<vorbis/vorbisfile.h>
+
+1362949133 /home/khaos/C-projects/libgk/src/gk_internal.h
+	<windows.h>
+	<X11/Xlib.h>
+

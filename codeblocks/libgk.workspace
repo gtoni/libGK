@@ -5,7 +5,7 @@
 		<Project filename="TestRun/TestRun.cbp">
 			<Depends filename="libgk.cbp" />
 		</Project>
-		<Project filename="../../gkAudioTest/gkAudioTest.cbp">
+		<Project filename="../demos/MusicPlayer/MusicPlayer.cbp">
 			<Depends filename="libgk.cbp" />
 		</Project>
 	</Workspace>

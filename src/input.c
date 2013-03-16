@@ -283,7 +283,7 @@ uint32_t gkEnumJoysticks()
     if(gkJoysticks)
     {
         total = gkJoystickCount;
-        current = p = first = gkJoysticks[0];
+        current = p = first = (gkJoystickExt*)gkJoysticks[0];
         free(gkJoysticks);
         while(current)
         {
@@ -335,7 +335,7 @@ uint32_t gkEnumJoysticks()
     gkJoysticks = (gkJoystick**)calloc(total, sizeof(gkJoystickExt*));
     for(i = 0; i<total; i++)
     {
-        gkJoysticks[i] = first;
+        gkJoysticks[i] = (gkJoystick*)first;
         first = first->next;
     }
     gkJoystickCount = total;

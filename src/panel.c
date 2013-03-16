@@ -19,6 +19,7 @@
  * SOFTWARE.
  */
 
+#define GK_INTERNAL
 
 #include "gk.h"
 
@@ -31,39 +32,15 @@
 
 #define FABS(x) x<0?-x:x
 
-typedef struct gkPanelStructEx gkPanelEx;
-struct gkPanelStructEx{
-	gkListenerList listeners;
-	float x,y,width,height;
-	uint16_t autosizeMask;
-	gkMatrix transform;
-	gkColor colorFilter;
-	GK_BOOL mouseEnabled, mouseChildren, keyboardEnabled, keyboardChildren;
-	GK_BOOL visible;
-	GK_BOOL mouseOver;
-	float mouseX, mouseY;
-	void* data;
-	gkPanelResizeFunc resizeFunc;
-	gkPanelUpdateFunc updateFunc;
-	gkPanelDrawFunc drawFunc;
-	gkPanel* parent;
-	int16_t numChildren;
-	//exteneded information goes here
-	struct{
-		gkPanelEx *first, *last;
-	}children;
-	gkPanelEx* next;
-	gkPanelEx* nextChild;
-	GK_BOOL inIteration;
-	GK_BOOL mustDestroy;
-	GK_BOOL viewport;
-	float oldWidth, oldHeight;
-};
+gkPanel* gkFocusPanel = 0;
 
-gkPanelEx* gkFocusPanel = 0;
+gkPanel* gkCreatePanel()
+{
+    return gkCreatePanelEx(sizeof(gkPanel));
+}
 
-gkPanel* gkCreatePanel(){
-	gkPanelEx* panel = (gkPanelEx*)malloc(sizeof(gkPanelEx));
+gkPanel* gkCreatePanelEx(size_t panelSize){
+	gkPanel* panel = (gkPanel*)malloc(panelSize);
 	gkInitListenerList(&panel->listeners);
 	panel->x = 0;
 	panel->y = 0;
@@ -78,36 +55,43 @@ gkPanel* gkCreatePanel(){
 	panel->drawFunc = 0;
 	panel->parent = 0;
 	panel->numChildren = 0;
-	panel->children.first = panel->children.last = 0;
-	panel->next = 0;
-	panel->nextChild = 0;
-	panel->inIteration = GK_FALSE;
-	panel->mustDestroy = GK_FALSE;
-	panel->oldWidth = panel->oldHeight = 0;
 	panel->mouseOver = GK_FALSE;
 	panel->mouseX = panel->mouseY = 0;
 	panel->mouseEnabled = panel->mouseChildren = panel->keyboardEnabled = panel->keyboardChildren = GK_TRUE;
 	panel->visible = GK_TRUE;
-	panel->viewport = GK_FALSE;
-	return (gkPanel*)panel;
+
+	panel->mChildren.first = panel->mChildren.last = 0;
+	panel->mNext = 0;
+	panel->mNextChild = 0;
+	panel->mInIteration = GK_FALSE;
+	panel->mMustDestroy = GK_FALSE;
+	panel->mOldWidth = panel->mOldHeight = 0;
+	panel->mViewport = GK_FALSE;
+	return panel;
 }
-gkPanel* gkCreateViewportPanel(){
-	gkPanelEx* panel = (gkPanelEx*)gkCreatePanel();
-	panel->viewport = GK_TRUE;
-	return (gkPanel*)panel;
+
+gkPanel* gkCreateViewportPanel()
+{
+    return gkCreateViewportPanelEx(sizeof(gkPanel));
 }
-void gkDestroyPanel(gkPanel* ptr){
-	gkPanelEx* panel = (gkPanelEx*)ptr, *p;
-	if(panel->inIteration){
-		panel->mustDestroy = GK_TRUE;
+
+gkPanel* gkCreateViewportPanelEx(size_t panelSize){
+	gkPanel* panel = gkCreatePanelEx(panelSize);
+	panel->mViewport = GK_TRUE;
+	return panel;
+}
+void gkDestroyPanel(gkPanel* panel){
+	gkPanel *p;
+	if(panel->mInIteration){
+		panel->mMustDestroy = GK_TRUE;
 	}else{
-		if(panel->parent) gkRemoveChild((gkPanel*)panel);
+		if(panel->parent) gkRemoveChild(panel);
 		if(gkFocusPanel == panel) gkSetFocus(0);
 		gkCleanupListenerList(&panel->listeners);
-		for(p = panel->children.first; p; p = panel->nextChild){
-			panel->nextChild = p->next;
+		for(p = panel->mChildren.first; p; p = panel->mNextChild){
+			panel->mNextChild = p->mNext;
 			p->parent = 0;
-			p->next = 0;
+			p->mNext = 0;
 		}
 		free(panel);
 	}
@@ -126,48 +110,47 @@ float resizeEdge(float edge, uint8_t mask, float oldStart, float oldEnd, float s
 	return edge;
 }
 
-void gkResizePanel(gkPanel* panelPtr, float width, float height){
+void gkResizePanel(gkPanel* panel, float width, float height){
 	gkEvent evt;
-	gkPanelEx *panel = (gkPanelEx*)panelPtr, *p;
+	gkPanel *p;
 	float left, right, top, bottom, nleft, nright, ntop, nbottom;
-	if(panel->oldWidth == 0) panel->oldWidth = panel->width;
-	if(panel->oldHeight == 0) panel->oldHeight = panel->height;
+	if(panel->mOldWidth == 0) panel->mOldWidth = panel->width;
+	if(panel->mOldHeight == 0) panel->mOldHeight = panel->height;
 	panel->width = width;
 	panel->height = height;
 	left = panel->x; right = panel->x + panel->width;	top = panel->y; 	bottom = panel->y + panel->height;
-	panel->inIteration = GK_TRUE;
-	for(p = panel->children.first; p; p = panel->nextChild){
-		panel->nextChild = p->next;
-		nleft = resizeEdge(p->x,				 p->autosizeMask&3,		left, panel->x + panel->oldWidth ,left, right);
-		nright = resizeEdge(p->x + p->width,	(p->autosizeMask>>2)&3,	left, panel->x + panel->oldWidth, left, right);
-		ntop = resizeEdge(p->y,					(p->autosizeMask>>4)&3,	top,  panel->y + panel->oldHeight, top, bottom);
-		nbottom = resizeEdge(p->y + p->height,	(p->autosizeMask>>6)&3, top,  panel->y + panel->oldHeight, top, bottom);
+	panel->mInIteration = GK_TRUE;
+	for(p = panel->mChildren.first; p; p = panel->mNextChild){
+		panel->mNextChild = p->mNext;
+		nleft = resizeEdge(p->x,				 p->autosizeMask&3,		left, panel->x + panel->mOldWidth ,left, right);
+		nright = resizeEdge(p->x + p->width,	(p->autosizeMask>>2)&3,	left, panel->x + panel->mOldWidth, left, right);
+		ntop = resizeEdge(p->y,					(p->autosizeMask>>4)&3,	top,  panel->y + panel->mOldHeight, top, bottom);
+		nbottom = resizeEdge(p->y + p->height,	(p->autosizeMask>>6)&3, top,  panel->y + panel->mOldHeight, top, bottom);
 		p->x = nleft;
 		p->y = ntop;
 		if(p->resizeFunc){
-			p->resizeFunc((gkPanel*)p, nright - nleft, nbottom - ntop);
+			p->resizeFunc(p, nright - nleft, nbottom - ntop);
 		}
 	}
-	panel->oldWidth = panel->width;
-	panel->oldHeight = panel->height;
+	panel->mOldWidth = panel->width;
+	panel->mOldHeight = panel->height;
 	evt.type = GK_ON_PANEL_RESIZED;
 	evt.target = evt.currentTarget = panel;
 	gkDispatch(panel, &evt);
-	panel->inIteration = GK_FALSE;
-	if(panel->mustDestroy) gkDestroyPanel((gkPanel*)panel);
+	panel->mInIteration = GK_FALSE;
+	if(panel->mMustDestroy) gkDestroyPanel(panel);
 }
 
-void gkAddChild(gkPanel* parentPtr, gkPanel* childPtr){
-	gkPanelEx* parent = (gkPanelEx*)parentPtr, *child = (gkPanelEx*)childPtr;
+void gkAddChild(gkPanel* parent, gkPanel* child){
 	gkEvent evt;
-	if(child->parent) gkRemoveChild(childPtr);
-	child->parent = parentPtr;
-	child->next = 0;
-	if(parent->children.last){
-		parent->children.last->next = child;
-		parent->children.last = child;
+	if(child->parent) gkRemoveChild(child);
+	child->parent = parent;
+	child->mNext = 0;
+	if(parent->mChildren.last){
+		parent->mChildren.last->mNext = child;
+		parent->mChildren.last = child;
 	}else{
-		parent->children.first = parent->children.last = child;
+		parent->mChildren.first = parent->mChildren.last = child;
 	}
 	parent->numChildren++;
 
@@ -176,24 +159,24 @@ void gkAddChild(gkPanel* parentPtr, gkPanel* childPtr){
 	gkDispatch(child, &evt);
 }
 
-void gkAddChildAt(gkPanel* parentPtr, gkPanel* childPtr, int index){
-	gkPanelEx* parent = (gkPanelEx*)parentPtr, *child = (gkPanelEx*)childPtr, *p;
+void gkAddChildAt(gkPanel* parent, gkPanel* child, int index){
+	gkPanel *p;
 	gkEvent evt;
 	int i = 1;
-	if(child->parent) gkRemoveChild(childPtr);
-	child->parent = parentPtr;
-	child->next = 0;
-	if(parent->children.last){
+	if(child->parent) gkRemoveChild(child);
+	child->parent = parent;
+	child->mNext = 0;
+	if(parent->mChildren.last){
 		if(index>0){
-			for(p = parent->children.first; p && i<index; p = p->next) i++;
-			child->next = p->next;
-			p->next = child;
+			for(p = parent->mChildren.first; p && i<index; p = p->mNext) i++;
+			child->mNext = p->mNext;
+			p->mNext = child;
 		}else{
-			child->next = parent->children.first;
-			parent->children.first = child;
+			child->mNext = parent->mChildren.first;
+			parent->mChildren.first = child;
 		}
 	}else{
-		parent->children.first = parent->children.last = child;
+		parent->mChildren.first = parent->mChildren.last = child;
 	}
 	parent->numChildren++;
 
@@ -202,24 +185,24 @@ void gkAddChildAt(gkPanel* parentPtr, gkPanel* childPtr, int index){
 	gkDispatch(child, &evt);
 }
 
-void gkRemoveChild(gkPanel* childPtr){
-	gkPanelEx *child = (gkPanelEx*)childPtr, *panel = (gkPanelEx*)child->parent;
+void gkRemoveChild(gkPanel* child){
+	gkPanel *panel = child->parent;
 	if(panel){
 		gkEvent evt;
-		gkPanelEx* p, *prev = 0;
-		for(p = panel->children.first; p && p != child; p = p->next) prev = p;
+		gkPanel* p, *prev = 0;
+		for(p = panel->mChildren.first; p && p != child; p = p->mNext) prev = p;
 		if(p != 0){
-			if(p == panel->children.last) panel->children.last = prev;
+			if(p == panel->mChildren.last) panel->mChildren.last = prev;
 			if(prev){
-				prev->next = p->next;
+				prev->mNext = p->mNext;
 			}else{
-				panel->children.first = p->next;
+				panel->mChildren.first = p->mNext;
 			}
-			if(p == panel->nextChild) panel->nextChild = p->next;
+			if(p == panel->mNextChild) panel->mNextChild = p->mNext;
 			panel->numChildren--;
 		}
 		child->parent = 0;
-		child->next = 0;
+		child->mNext = 0;
 		if(gkFocusPanel == child) gkSetFocus(0);
 		evt.type = GK_ON_PANEL_REMOVED;
 		evt.target = evt.currentTarget = child;
@@ -231,48 +214,48 @@ void gkRemoveChildAt(gkPanel* parent, int childIndex){
 	gkRemoveChild(gkGetChildAt(parent, childIndex));
 }
 
-int gkGetChildIndex(gkPanel* childPtr){
-	gkPanelEx *child = (gkPanelEx*)childPtr, *parent = (gkPanelEx*)child->parent, *p;
+int gkGetChildIndex(gkPanel* child){
+	gkPanel *parent = child->parent, *p;
 	int index = 0;
 	if(parent){
-		for(p = parent->children.first; p && p != child; p = p->next)		index++;
+		for(p = parent->mChildren.first; p && p != child; p = p->mNext)		index++;
 	}
 	return index;
 }
 
-gkPanel* gkGetChildAt(gkPanel* parentPtr, int childIndex){
-	gkPanelEx *parent = (gkPanelEx*)parentPtr, *p;
+gkPanel* gkGetChildAt(gkPanel* parent, int childIndex){
+	gkPanel *p;
 	int index = 0;
 	if(parent){
-		for(p = parent->children.first; p && index != childIndex; p = p->next)		index++;
+		for(p = parent->mChildren.first; p && index != childIndex; p = p->mNext)		index++;
 	}
-	return (gkPanel*)p;
+	return p;
 }
 
-void gkProcessUpdatePanel(gkPanelEx* panel){
-	gkPanelEx* p;
-	panel->inIteration = GK_TRUE;
+void gkProcessUpdatePanel(gkPanel* panel){
+	gkPanel* p;
+	panel->mInIteration = GK_TRUE;
 	if(panel->updateFunc){
-		panel->updateFunc((gkPanel*)panel);
+		panel->updateFunc(panel);
 	}
-	for(p = panel->children.first; p; p = panel->nextChild){
-		panel->nextChild = p->next;
+	for(p = panel->mChildren.first; p; p = panel->mNextChild){
+		panel->mNextChild = p->mNext;
 		gkProcessUpdatePanel(p);
 	}
-	panel->inIteration = GK_FALSE;
-	if(panel->mustDestroy) gkDestroyPanel((gkPanel*)panel);
+	panel->mInIteration = GK_FALSE;
+	if(panel->mMustDestroy) gkDestroyPanel(panel);
 }
 
-void gkProcessDrawPanel(gkPanelEx* panel){
-	gkPanelEx* p;
+void gkProcessDrawPanel(gkPanel* panel){
+	gkPanel* p;
 	gkMatrix t = gkMatrixCreateTranslation(panel->x, panel->y);
 	if(!panel->visible) return;	/* Don't draw invisible panels */
-	panel->inIteration = GK_TRUE;
+	panel->mInIteration = GK_TRUE;
 	gkPushColorFilter(panel->colorFilter.r, panel->colorFilter.g, panel->colorFilter.b, panel->colorFilter.a);
 	gkPushTransform(&t);
 	gkPushTransform(&panel->transform);
-	if(panel->viewport){
-		gkMatrix m = gkLocalToGlobal((gkPanel*)panel);
+	if(panel->mViewport){
+		gkMatrix m = gkLocalToGlobal(panel);
 		gkPoint topLeft = gkTransformPoint(GK_POINT(0,0), &m);
 		gkPoint bottomRight = gkTransformPoint(GK_POINT(panel->width, panel->height), &m);
 		float h = FABS(bottomRight.y - topLeft.y);
@@ -283,7 +266,7 @@ void gkProcessDrawPanel(gkPanelEx* panel){
 		glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);
 		glViewport((GLint)topLeft.x, (GLint)gkGetScreenSize().height - topLeft.y - h, FABS(bottomRight.x - topLeft.x), h);
 		if(panel->drawFunc){
-			panel->drawFunc((gkPanel*)panel);
+			panel->drawFunc(panel);
 		}
 		glPopClientAttrib();
 		glPopAttrib();
@@ -293,18 +276,18 @@ void gkProcessDrawPanel(gkPanelEx* panel){
 		glPopMatrix();
 	}else{
 		if(panel->drawFunc){
-			panel->drawFunc((gkPanel*)panel);
+			panel->drawFunc(panel);
 		}
-		for(p = panel->children.first; p; p = panel->nextChild){
-			panel->nextChild = p->next;
+		for(p = panel->mChildren.first; p; p = panel->mNextChild){
+			panel->mNextChild = p->mNext;
 			gkProcessDrawPanel(p);
 		}
 	}
 	gkPopTransform();
 	gkPopTransform();
 	gkPopColorFilter();
-	panel->inIteration = GK_FALSE;
-	if(panel->mustDestroy) gkDestroyPanel((gkPanel*)panel);
+	panel->mInIteration = GK_FALSE;
+	if(panel->mMustDestroy) gkDestroyPanel(panel);
 }
 
 gkMatrix gkGlobalToLocal(gkPanel* panel){
@@ -327,20 +310,20 @@ gkMatrix gkLocalToGlobal(gkPanel* panel){
 
 /*** Panel input handling ***/
 
-gkPanelEx* gkMouseTarget = 0;
+gkPanel* gkMouseTarget = 0;
 gkPoint gkMousePosition;
 
 #define BYTE_OFFSET(obj, prop) ((char*)&obj->prop - (char*)obj)
 
-gkPanelEx* gkGetMouseTarget(gkPanelEx* panel, gkPoint pos, size_t enabledOffset, size_t enabledChildrenOffset){
-	gkPanelEx** children, *p;
+gkPanel* gkGetMouseTarget(gkPanel* panel, gkPoint pos, size_t enabledOffset, size_t enabledChildrenOffset){
+	gkPanel** children, *p;
 	int i = panel->numChildren;
 	GK_BOOL *enabled = (GK_BOOL*)((char*)panel + enabledOffset);
 	GK_BOOL *enabledChildren = (GK_BOOL*)((char*)panel + enabledChildrenOffset);
 	if(!panel->visible) return 0;	/* ignore invisible panels */
 	if(*enabledChildren){
-		children = (gkPanelEx**)calloc(panel->numChildren, sizeof(gkPanelEx*));
-		for(p = panel->children.first; p && i>0; p = p->next) children[--i] = p;	/* also reverses the order so in the next loop it starts from the last and goes to first */
+		children = (gkPanel**)calloc(panel->numChildren, sizeof(gkPanel*));
+		for(p = panel->mChildren.first; p && i>0; p = p->mNext) children[--i] = p;	/* also reverses the order so in the next loop it starts from the last and goes to first */
 		for(i = 0; i<panel->numChildren; i++){
 			gkMatrix t = children[i]->transform;
 			gkPoint tmpPos = pos;
@@ -367,7 +350,7 @@ gkPanelEx* gkGetMouseTarget(gkPanelEx* panel, gkPoint pos, size_t enabledOffset,
 
 void gkCheckFocusedPanel(){
 	if(gkFocusPanel){
-		gkPanel* p = (gkPanel*)gkFocusPanel;
+		gkPanel* p = gkFocusPanel;
 		GK_BOOL focusable = p->keyboardEnabled && p->visible;
 		if(focusable){
 			p = p->parent;
@@ -380,8 +363,8 @@ void gkCheckFocusedPanel(){
 	}
 }
 
-void gkUpdateMouseTarget(gkPanel* panelPtr){
-	gkPanelEx* mainPanel = (gkPanelEx*)panelPtr, *oldMouseTarget, *p, *lastCommon;
+void gkUpdateMouseTarget(gkPanel* mainPanel){
+	gkPanel *oldMouseTarget, *p, *lastCommon;
 	gkPoint pos = gkMousePosition;
 	if(!mainPanel){
 		gkMouseTarget = 0;
@@ -398,14 +381,14 @@ void gkUpdateMouseTarget(gkPanel* panelPtr){
 		leave.target = oldMouseTarget;
 		leave.position = gkMousePosition;
 
-		for(p = oldMouseTarget; p; p = (gkPanelEx*)p->parent) p->mouseOver = GK_FALSE;	/* reset mouse over */
-		for(p = gkMouseTarget; p; p = (gkPanelEx*)p->parent) p->mouseOver = GK_TRUE;	/* set mouse over to all panels under the mouse */
-		for(p = oldMouseTarget; p && !p->mouseOver; p = (gkPanelEx*)p->parent){
+		for(p = oldMouseTarget; p; p = p->parent) p->mouseOver = GK_FALSE;	/* reset mouse over */
+		for(p = gkMouseTarget; p; p = p->parent) p->mouseOver = GK_TRUE;	/* set mouse over to all panels under the mouse */
+		for(p = oldMouseTarget; p && !p->mouseOver; p = p->parent){
 			leave.currentTarget = p;
 			gkDispatch(p, &leave);	/* dispatch GK_ON_MOUSE_LEAVE */
 		}
 		lastCommon = p;
-		for(p = gkMouseTarget; p != 0 && p != lastCommon; p = (gkPanelEx*)p->parent){
+		for(p = gkMouseTarget; p != 0 && p != lastCommon; p = p->parent){
 			enter.currentTarget = p;
 			gkDispatch(p, &enter);	/* dispatch GK_ON_MOUSE_ENTER */
 		}
@@ -413,33 +396,33 @@ void gkUpdateMouseTarget(gkPanel* panelPtr){
 }
 
 void gkProcessMouseEvent(gkMouseEvent* mouseEvent){
-	gkPanel* current, *newFocusTarget = 0, *curFocusTarget = (gkPanel*)gkFocusPanel;
+	gkPanel* current, *newFocusTarget = 0, *curFocusTarget = gkFocusPanel;
 	gkMousePosition = mouseEvent->position;
 	if(mouseEvent->type == GK_ON_MOUSE_DOWN){
 		gkPanel* mainPanel = gkGetMainPanel();
 		if(mainPanel){
-			newFocusTarget = (gkPanel*)gkGetMouseTarget((gkPanelEx*)mainPanel, gkMousePosition, BYTE_OFFSET(mainPanel, keyboardEnabled), BYTE_OFFSET(mainPanel, keyboardChildren));
+			newFocusTarget = gkGetMouseTarget(mainPanel, gkMousePosition, BYTE_OFFSET(mainPanel, keyboardEnabled), BYTE_OFFSET(mainPanel, keyboardChildren));
 		}
 	}
 	if(gkMouseTarget){
-		mouseEvent->target = current = (gkPanel*)gkMouseTarget;
+		mouseEvent->target = current = gkMouseTarget;
 		do{
 			gkMatrix m = gkGlobalToLocal(current);
 			mouseEvent->position = gkTransformPoint(gkMousePosition, &m);
 			mouseEvent->currentTarget = current;
 		}while(gkDispatch(current, mouseEvent) && (current = current->parent));
 	}
-	if(newFocusTarget && curFocusTarget == (gkPanel*)gkFocusPanel){
+	if(newFocusTarget && curFocusTarget == gkFocusPanel){
 		gkSetFocus(newFocusTarget);
 	}
 }
 
 
 void gkSetFocus(gkPanel* panel){
-	static gkPanelEx *tmpNextFocused = 0;
-	gkPanelEx* tmp = gkFocusPanel;
-	if(panel == (gkPanel*)gkFocusPanel) return;
-	tmpNextFocused = (gkPanelEx*)panel;
+	static gkPanel *tmpNextFocused = 0;
+	gkPanel* tmp = gkFocusPanel;
+	if(panel == gkFocusPanel) return;
+	tmpNextFocused = panel;
 	gkFocusPanel = 0;
 	if(tmp){
 		gkEvent evt;
@@ -461,11 +444,11 @@ void gkSetFocus(gkPanel* panel){
 }
 
 gkPanel* gkGetFocus(){
-	return (gkPanel*)gkFocusPanel;
+	return gkFocusPanel;
 }
 
 void gkProcessKeyboardEvent(gkKeyboardEvent* keyboardEvent){
 	if(!gkFocusPanel) return;
-	keyboardEvent->target = keyboardEvent->currentTarget = (gkPanel*)gkFocusPanel;
+	keyboardEvent->target = keyboardEvent->currentTarget = gkFocusPanel;
 	gkDispatch(gkFocusPanel, keyboardEvent);
 }

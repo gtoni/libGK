@@ -22,6 +22,12 @@
 #ifndef _GK_H_
 #define _GK_H_
 
+#ifdef GK_INTERNAL
+#define GK_READONLY
+#else
+#define GK_READONLY const
+#endif
+
 #include <memory.h>
 #include <wchar.h>
 
@@ -390,18 +396,34 @@ struct gkPanelStruct{
 	gkColor colorFilter;
 	GK_BOOL mouseEnabled, mouseChildren, keyboardEnabled, keyboardChildren;
 	GK_BOOL visible;
-	const GK_BOOL mouseOver;
-	const float mouseX, mouseY;
 	void* data;
 	gkPanelResizeFunc resizeFunc;
 	gkPanelUpdateFunc updateFunc;
 	gkPanelDrawFunc drawFunc;
-	gkPanel* parent;
-	const int16_t numChildren;
+
+GK_READONLY GK_BOOL mouseOver;
+GK_READONLY float mouseX, mouseY;
+GK_READONLY gkPanel* parent;
+GK_READONLY int16_t numChildren;
+
+/* INTERNALS */
+    struct{
+        gkPanel *first, *last;
+    }mChildren;
+    gkPanel* mNext;
+    gkPanel* mNextChild;
+    GK_BOOL mInIteration;
+    GK_BOOL mMustDestroy;
+    GK_BOOL mViewport;
+    float mOldWidth, mOldHeight;
 };
 
 gkPanel* gkCreatePanel();
+gkPanel* gkCreatePanelEx(size_t panelSize);
+
 gkPanel* gkCreateViewportPanel();
+gkPanel* gkCreateViewportPanelEx(size_t panelSize);
+
 void gkDestroyPanel(gkPanel* panel);
 
 void gkResizePanel(gkPanel* panel, float width, float height);
@@ -543,9 +565,11 @@ typedef struct gkSoundStruct gkSound;
 struct gkSoundSourceStruct
 {
     gkListenerList listeners;
-    int id;
-    uint8_t state;
-    gkSound* sound;
+
+GK_READONLY int id;
+GK_READONLY uint8_t state;
+GK_READONLY gkSound* sound;
+
     struct gkSoundSourceInternal internal;
 };
 typedef struct gkSoundSourceStruct gkSoundSource;
@@ -599,8 +623,8 @@ struct gkTimerStruct{
 	uint64_t delay;
 	uint32_t repeats;
 	uint64_t interval;
-	const GK_BOOL running;
-	const GK_BOOL autoDestroy;
+GK_READONLY GK_BOOL running;
+GK_READONLY GK_BOOL autoDestroy;
 };
 typedef struct gkTimerStruct gkTimer;
 

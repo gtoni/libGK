@@ -19,6 +19,8 @@
  * SOFTWARE.
  */
 
+#define GK_INTERNAL
+
 #include "gk.h"
 #include "gk_internal.h"
 

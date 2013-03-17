@@ -289,13 +289,15 @@ GK_BOOL onPanelResize(gkEvent* evt, void *p){
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-void mresize1(gkPanel* p, float w, float h){
+void mresize1(gkPanel* p, gkClientArea* area){
 	if(p->numChildren>0){
-		gkResizePanel(p, w,h);
+        p->width = area->width;
+        p->height = area->height;
 		p = gkGetChildAt(p, 1);
 		p->x = 10;
-		p->y = h - 210;
-		gkResizePanel(p, w - 20, 200);
+		p->y = area->height - 210;
+		p->width = area->width - 20;
+		p->height = 200;
 	}
 }
 
@@ -440,10 +442,8 @@ int main(){
 		gkStartTimer(timer2, GK_FALSE);
 
 		d1.id = 0; d2.id = 1; d3.id = 2;
-		gkResizePanel(panel, 400,400);
-		gkAddChild(panel, vp);
-		gkAddChild(panel, p1);
-		gkAddChild(p1, p2);
+		panel->width = 400;
+		panel->height = 400;
 		d.drawing = GK_FALSE;
 		for(i = 0; i<MAX_LINES; i++){
 			lines[i] = GK_POINT(0,0);
@@ -464,11 +464,16 @@ int main(){
 		p2->x = 50;
 		p2->y = 50;
 		p2->transform = gkMatrixCreateRotation(1.5);
+
 		panel->data = &d1;
-		vp->autosizeMask = GK_END_LEFT|GK_END_RIGHT|GK_END_TOP|GK_END_BOTTOM;
-		p2->autosizeMask = GK_END_LEFT|GK_END_RIGHT|GK_END_TOP|GK_END_BOTTOM;
-		p1->autosizeMask = GK_START_LEFT|GK_END_RIGHT|GK_START_TOP|GK_START_BOTTOM;
-		panel->resizeFunc = mresize1;
+		vp->layoutMethod = gkLayoutMethodAutosize(GK_END_LEFT|GK_END_RIGHT|GK_END_TOP|GK_END_BOTTOM);
+		p2->layoutMethod = gkLayoutMethodAutosize(GK_END_LEFT|GK_END_RIGHT|GK_END_TOP|GK_END_BOTTOM);
+		p1->layoutMethod = gkLayoutMethodAutosize(GK_START_LEFT|GK_END_RIGHT|GK_START_TOP|GK_START_BOTTOM);
+		panel->layoutMethod.func = mresize1;
+
+		gkAddChild(panel, vp);
+		gkAddChild(panel, p1);
+		gkAddChild(p1, p2);
 		p1->data = &d2;
 		p2->data = &d3;
 		p1->drawFunc = myDrawFunc;
@@ -498,7 +503,7 @@ int main(){
 		gkAddListener(panel, GK_ON_PANEL_RESIZED, 0, onPanelResize, 0);
 		gkSetMainPanel(panel);
 		gkSetWindowTitle(L"Simple panel");
-//		gkSetWindowResizable(GK_FALSE);
+		gkSetWindowResizable(GK_TRUE);
 		gkSetScreenSize(GK_SIZE(1280,720));
 		gkSetTargetFps(GK_VSYNC);
 //		gkSetFullscreen(GK_TRUE);

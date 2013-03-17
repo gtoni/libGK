@@ -37,6 +37,9 @@ extern uint64_t gkAppStartTime;
 extern gkMouseState gkGlobalMouseState;
 extern gkKeyboardState gkGlobalKeyboardState;
 
+void gkUpdateClientArea(gkClientArea* area, float x, float y, float width, float height);
+
+void gkProcessLayoutMainPanel(gkPanel* panel, float width, float height);
 void gkProcessUpdatePanel(gkPanel* panel);
 void gkProcessDrawPanel(gkPanel* panel);
 

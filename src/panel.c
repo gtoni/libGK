@@ -30,7 +30,104 @@
 #include <stdlib.h>
 #include <GL/gl.h>
 
+static void gkUpdateClientArea(gkClientArea* area, gkClientArea* oldArea, float x, float y, float width, float height)
+{
+    area->deltaX = (x - oldArea->x);
+    area->deltaY = (y - oldArea->y);
+    area->deltaWidth = (width - oldArea->width);
+    area->deltaHeight = (height - oldArea->height);
+    area->x = x;
+    area->y = y;
+    area->width = width;
+    area->height = height;
+}
+
+void gkProcessLayoutPanel(gkPanel* panel, gkClientArea* clientArea);
+void gkUpdateLayout(gkPanel* panel);
+
 #define FABS(x) x<0?-x:x
+
+/* AutosizeMask layout method */
+
+float resizeEdge(float edge, uint8_t mask, float oldStart, float oldEnd, float start, float end){
+	if(mask == 1){
+		return edge;
+	}else if(mask == 2){
+		float offset = (oldEnd - oldStart) - edge;
+		return (end - start) - offset;
+	}else if(mask == 3){
+		float k = edge/(oldEnd - oldStart);
+		return (end - start)*k;
+	}
+	return edge;
+}
+
+void gkLayoutFuncAutosize(gkPanel* p, gkClientArea* area)
+{
+	float left, right, top, bottom, nleft, nright, ntop, nbottom;
+	left = 0; right = area->width;	top = 0; 	bottom = area->height;
+	uint16_t autosizeMask = (p->layoutMethod.params[0]);
+
+	nleft = resizeEdge(p->x,				 autosizeMask&3,		left, area->width - area->deltaWidth ,left, right);
+	nright = resizeEdge(p->x + p->width,	(autosizeMask>>2)&3,	left, area->width - area->deltaWidth, left, right);
+	ntop = resizeEdge(p->y,					(autosizeMask>>4)&3,	top,  area->height - area->deltaHeight, top, bottom);
+	nbottom = resizeEdge(p->y + p->height,	(autosizeMask>>6)&3,    top,  area->height - area->deltaHeight, top, bottom);
+	p->x = nleft;
+	p->y = ntop;
+	p->width = nright - nleft;
+	p->height = nbottom - ntop;
+}
+
+gkPanelLayoutMethod gkLayoutMethodAutosize(uint16_t mask)
+{
+    gkPanelLayoutMethod method = {
+        gkLayoutFuncAutosize,
+        (int32_t)mask, 0,0,0,0
+    };
+    return method;
+}
+
+/* Advanced layout method*/
+
+void gkLayoutFuncAdvanced(gkPanel* p, gkClientArea* area)
+{
+    gkAdvancedLayoutParams* params = (gkAdvancedLayoutParams*)&p->layoutMethod.params;
+    float w = area->width - (params->margin.left + params->margin.right);
+    float h = area->height - (params->margin.top + params->margin.bottom);
+    if(params->flags & GK_RELATIVE_X)
+        p->x = params->margin.left + w*params->relativeX;
+    if(params->flags & GK_RELATIVE_Y)
+        p->y = params->margin.top + h*params->relativeY;
+    if(params->flags & GK_RELATIVE_WIDTH)
+        p->width = w*params->relativeWidth;
+    if(params->flags & GK_RELATIVE_HEIGHT)
+        p->height = h*params->relativeHeight;
+    if((params->flags & GK_LAYOUT_MIN_WIDTH) &&  p->width < params->minWidth)
+        p->width = params->minWidth;
+    if((params->flags & GK_LAYOUT_MAX_WIDTH) &&  p->width > params->maxWidth)
+        p->width = params->maxWidth;
+    if((params->flags & GK_LAYOUT_MIN_HEIGHT) &&  p->height < params->minHeight)
+        p->height = params->minHeight;
+    if((params->flags & GK_LAYOUT_MAX_HEIGHT) &&  p->height > params->maxHeight)
+        p->height = params->maxHeight;
+}
+
+gkPanelLayoutMethod gkLayoutMethodAdvanced(gkAdvancedLayoutParams* params)
+{
+    gkPanelLayoutMethod method;
+    method.func = gkLayoutFuncAdvanced;
+    memcpy(&method.params, params, sizeof(gkAdvancedLayoutParams));
+    return method;
+}
+
+gkPanelLayoutMethod gkLayoutMethodNone()
+{
+    gkPanelLayoutMethod method = {
+        0,
+        0,0,0,0,0
+    };
+    return method;
+}
 
 gkPanel* gkFocusPanel = 0;
 
@@ -46,11 +143,10 @@ gkPanel* gkCreatePanelEx(size_t panelSize){
 	panel->y = 0;
 	panel->width = 0;
 	panel->height = 0;
-	panel->autosizeMask = GK_START_LEFT|GK_START_RIGHT|GK_START_TOP|GK_START_BOTTOM;
 	panel->transform = gkMatrixCreateIdentity();
 	panel->colorFilter = GK_COLOR(1,1,1,1);
 	panel->data = 0;
-	panel->resizeFunc = gkResizePanel;
+	panel->layoutMethod = gkLayoutMethodNone();
 	panel->updateFunc = 0;
 	panel->drawFunc = 0;
 	panel->parent = 0;
@@ -63,10 +159,15 @@ gkPanel* gkCreatePanelEx(size_t panelSize){
 	panel->mChildren.first = panel->mChildren.last = 0;
 	panel->mNext = 0;
 	panel->mNextChild = 0;
-	panel->mInIteration = GK_FALSE;
+	panel->mGuardDestroy = GK_FALSE;
 	panel->mMustDestroy = GK_FALSE;
-	panel->mOldWidth = panel->mOldHeight = 0;
 	panel->mViewport = GK_FALSE;
+	panel->mClientArea.x = 0;
+	panel->mClientArea.y = 0;
+	panel->mClientArea.width = 0;
+	panel->mClientArea.height = 0;
+	panel->mClientArea.deltaX = panel->mClientArea.deltaY =
+        panel->mClientArea.deltaWidth = panel->mClientArea.deltaHeight = 0;
 	return panel;
 }
 
@@ -80,9 +181,21 @@ gkPanel* gkCreateViewportPanelEx(size_t panelSize){
 	panel->mViewport = GK_TRUE;
 	return panel;
 }
+
+static void gkGuardDestroy(gkPanel* panel)
+{
+    panel->mGuardDestroy = GK_TRUE;
+}
+static void gkUnguardDestroy(gkPanel* panel)
+{
+    panel->mGuardDestroy = GK_FALSE;
+    if(panel->mMustDestroy)
+        gkDestroyPanel(panel);
+}
+
 void gkDestroyPanel(gkPanel* panel){
 	gkPanel *p;
-	if(panel->mInIteration){
+	if(panel->mGuardDestroy){
 		panel->mMustDestroy = GK_TRUE;
 	}else{
 		if(panel->parent) gkRemoveChild(panel);
@@ -97,77 +210,26 @@ void gkDestroyPanel(gkPanel* panel){
 	}
 }
 
-float resizeEdge(float edge, uint8_t mask, float oldStart, float oldEnd, float start, float end){
-	if(mask == 1){
-		return edge;
-	}else if(mask == 2){
-		float offset = (oldEnd - oldStart) - edge;
-		return (end - start) - offset;
-	}else if(mask == 3){
-		float k = edge/(oldEnd - oldStart);
-		return (end - start)*k;
-	}
-	return edge;
-}
-
-void gkResizePanel(gkPanel* panel, float width, float height){
-	gkEvent evt;
-	gkPanel *p;
-	float left, right, top, bottom, nleft, nright, ntop, nbottom;
-	if(panel->mOldWidth == 0) panel->mOldWidth = panel->width;
-	if(panel->mOldHeight == 0) panel->mOldHeight = panel->height;
-	panel->width = width;
-	panel->height = height;
-	left = panel->x; right = panel->x + panel->width;	top = panel->y; 	bottom = panel->y + panel->height;
-	panel->mInIteration = GK_TRUE;
-	for(p = panel->mChildren.first; p; p = panel->mNextChild){
-		panel->mNextChild = p->mNext;
-		nleft = resizeEdge(p->x,				 p->autosizeMask&3,		left, panel->x + panel->mOldWidth ,left, right);
-		nright = resizeEdge(p->x + p->width,	(p->autosizeMask>>2)&3,	left, panel->x + panel->mOldWidth, left, right);
-		ntop = resizeEdge(p->y,					(p->autosizeMask>>4)&3,	top,  panel->y + panel->mOldHeight, top, bottom);
-		nbottom = resizeEdge(p->y + p->height,	(p->autosizeMask>>6)&3, top,  panel->y + panel->mOldHeight, top, bottom);
-		p->x = nleft;
-		p->y = ntop;
-		if(p->resizeFunc){
-			p->resizeFunc(p, nright - nleft, nbottom - ntop);
-		}
-	}
-	panel->mOldWidth = panel->width;
-	panel->mOldHeight = panel->height;
-	evt.type = GK_ON_PANEL_RESIZED;
-	evt.target = evt.currentTarget = panel;
-	gkDispatch(panel, &evt);
-	panel->mInIteration = GK_FALSE;
-	if(panel->mMustDestroy) gkDestroyPanel(panel);
-}
-
 void gkAddChild(gkPanel* parent, gkPanel* child){
-	gkEvent evt;
-	if(child->parent) gkRemoveChild(child);
-	child->parent = parent;
-	child->mNext = 0;
-	if(parent->mChildren.last){
-		parent->mChildren.last->mNext = child;
-		parent->mChildren.last = child;
-	}else{
-		parent->mChildren.first = parent->mChildren.last = child;
-	}
-	parent->numChildren++;
-
-	evt.type = GK_ON_PANEL_ADDED;
-	evt.target = evt.currentTarget = child;
-	gkDispatch(child, &evt);
+    gkAddChildAt(parent, child, parent->numChildren);
 }
 
 void gkAddChildAt(gkPanel* parent, gkPanel* child, int index){
-	gkPanel *p;
+    gkPanel* p;
 	gkEvent evt;
 	int i = 1;
 	if(child->parent) gkRemoveChild(child);
+
+	gkUpdateLayout(parent);
+
 	child->parent = parent;
 	child->mNext = 0;
 	if(parent->mChildren.last){
-		if(index>0){
+        if(index >= parent->numChildren)
+        {
+            parent->mChildren.last->mNext = child;
+            parent->mChildren.last = child;
+        }else if(index>0){
 			for(p = parent->mChildren.first; p && i<index; p = p->mNext) i++;
 			child->mNext = p->mNext;
 			p->mNext = child;
@@ -232,9 +294,56 @@ gkPanel* gkGetChildAt(gkPanel* parent, int childIndex){
 	return p;
 }
 
+void gkProcessChildrenLayout(gkPanel* panel)
+{
+    gkPanel* p;
+	gkGuardDestroy(panel);
+	for(p = panel->mChildren.first; p; p = panel->mNextChild){
+		panel->mNextChild = p->mNext;
+		gkProcessLayoutPanel(p, &panel->mClientArea);
+	}
+	gkUnguardDestroy(panel);
+}
+
+void gkUpdateLayout(gkPanel* panel)
+{
+    gkClientArea old = panel->mClientArea;
+	gkUpdateClientArea(&panel->mClientArea, &old, panel->x, panel->y, panel->width, panel->height);
+	gkProcessChildrenLayout(panel);
+}
+
+void gkProcessLayoutPanel(gkPanel* panel, gkClientArea* clientArea)
+{
+    gkClientArea old = panel->mClientArea;
+	gkUpdateClientArea(&panel->mClientArea, &old, panel->x, panel->y, panel->width, panel->height);
+
+	if(panel->layoutMethod.func)
+    {
+		panel->layoutMethod.func(panel, clientArea);
+        gkUpdateClientArea(&panel->mClientArea, &old, panel->x, panel->y, panel->width, panel->height);
+	}
+
+    gkProcessChildrenLayout(panel);
+}
+
+void gkProcessLayoutMainPanel(gkPanel* panel, float width, float height)
+{
+	gkUpdateClientArea(&panel->mClientArea, &panel->mClientArea, panel->x, panel->y, width, height);
+
+	if(panel->layoutMethod.func)
+    {
+		panel->layoutMethod.func(panel, &panel->mClientArea);
+    }
+
+	panel->width = width;
+	panel->height = height;
+
+    gkProcessChildrenLayout(panel);
+}
+
 void gkProcessUpdatePanel(gkPanel* panel){
 	gkPanel* p;
-	panel->mInIteration = GK_TRUE;
+	gkGuardDestroy(panel);
 	if(panel->updateFunc){
 		panel->updateFunc(panel);
 	}
@@ -242,15 +351,14 @@ void gkProcessUpdatePanel(gkPanel* panel){
 		panel->mNextChild = p->mNext;
 		gkProcessUpdatePanel(p);
 	}
-	panel->mInIteration = GK_FALSE;
-	if(panel->mMustDestroy) gkDestroyPanel(panel);
+	gkUnguardDestroy(panel);
 }
 
 void gkProcessDrawPanel(gkPanel* panel){
 	gkPanel* p;
 	gkMatrix t = gkMatrixCreateTranslation(panel->x, panel->y);
 	if(!panel->visible) return;	/* Don't draw invisible panels */
-	panel->mInIteration = GK_TRUE;
+	gkGuardDestroy(panel);
 	gkPushColorFilter(panel->colorFilter.r, panel->colorFilter.g, panel->colorFilter.b, panel->colorFilter.a);
 	gkPushTransform(&t);
 	gkPushTransform(&panel->transform);
@@ -286,8 +394,7 @@ void gkProcessDrawPanel(gkPanel* panel){
 	gkPopTransform();
 	gkPopTransform();
 	gkPopColorFilter();
-	panel->mInIteration = GK_FALSE;
-	if(panel->mMustDestroy) gkDestroyPanel(panel);
+	gkUnguardDestroy(panel);
 }
 
 gkMatrix gkGlobalToLocal(gkPanel* panel){

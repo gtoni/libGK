@@ -361,9 +361,39 @@ void gkDrawPath(gkPoint* points, int count, GK_BOOL polygon);
 #define GK_PANEL_EVENT_BASE		100
 #define GK_ON_PANEL_ADDED		(GK_PANEL_EVENT_BASE + 1)
 #define GK_ON_PANEL_REMOVED		(GK_PANEL_EVENT_BASE + 2)
+
+/* TODO: fix GK_ON_PANEL_RESIZED */
 #define GK_ON_PANEL_RESIZED		(GK_PANEL_EVENT_BASE + 3)
+
 #define GK_ON_PANEL_FOCUS_IN	(GK_PANEL_EVENT_BASE + 4)
 #define GK_ON_PANEL_FOCUS_OUT	(GK_PANEL_EVENT_BASE + 5)
+
+struct gkClientAreaStruct
+{
+    float x;
+    float y;
+    float width;
+    float height;
+    float deltaX;
+    float deltaY;
+    float deltaWidth;
+    float deltaHeight;
+};
+typedef struct gkClientAreaStruct gkClientArea;
+
+
+typedef struct gkPanelStruct gkPanel;
+
+typedef void (*gkPanelLayoutMethodFunc)(gkPanel* panel, gkClientArea* clientArea);
+
+struct gkPanelLayoutMethodStruct
+{
+    gkPanelLayoutMethodFunc func;
+    float params[14];
+};
+typedef struct gkPanelLayoutMethodStruct gkPanelLayoutMethod;
+
+/* Autosize layout method */
 
 /* Autosize masks */
 #define GK_START_LEFT		1
@@ -382,24 +412,48 @@ void gkDrawPath(gkPoint* points, int count, GK_BOOL polygon);
 #define GK_END_BOTTOM		128
 #define GK_SPAN_BOTTOM		192
 
-typedef struct gkPanelStruct gkPanel;
+gkPanelLayoutMethod gkLayoutMethodAutosize(uint16_t mask);
 
-typedef void (*gkPanelResizeFunc)(gkPanel* panel, float width, float height);
+#define GK_RELATIVE_X           0x01
+#define GK_RELATIVE_Y           0x02
+#define GK_RELATIVE_WIDTH       0x04
+#define GK_RELATIVE_HEIGHT      0x08
+#define GK_LAYOUT_MIN_WIDTH     0x10
+#define GK_LAYOUT_MAX_WIDTH     0x20
+#define GK_LAYOUT_MIN_HEIGHT    0x40
+#define GK_LAYOUT_MAX_HEIGHT    0x80
+
+typedef struct{
+    uint8_t flags;
+    float relativeX;
+    float relativeY;
+    float relativeWidth;
+    float relativeHeight;
+    struct{
+        float left, right, top, bottom;
+    }margin;
+    float minWidth, maxWidth;
+    float minHeight, maxHeight;
+}gkAdvancedLayoutParams;
+
+gkPanelLayoutMethod gkLayoutMethodAdvanced(gkAdvancedLayoutParams* params);
+
+gkPanelLayoutMethod gkLayoutMethodNone();
+
 typedef void (*gkPanelUpdateFunc)(gkPanel* panel);
 typedef void (*gkPanelDrawFunc)(gkPanel* panel);
 
 struct gkPanelStruct{
 	gkListenerList listeners;
 	float x,y,width,height;
-	uint16_t autosizeMask;
 	gkMatrix transform;
 	gkColor colorFilter;
 	GK_BOOL mouseEnabled, mouseChildren, keyboardEnabled, keyboardChildren;
 	GK_BOOL visible;
 	void* data;
-	gkPanelResizeFunc resizeFunc;
 	gkPanelUpdateFunc updateFunc;
 	gkPanelDrawFunc drawFunc;
+	gkPanelLayoutMethod layoutMethod;
 
 GK_READONLY GK_BOOL mouseOver;
 GK_READONLY float mouseX, mouseY;
@@ -412,11 +466,13 @@ GK_READONLY int16_t numChildren;
     }mChildren;
     gkPanel* mNext;
     gkPanel* mNextChild;
-    GK_BOOL mInIteration;
+    GK_BOOL mGuardDestroy;
     GK_BOOL mMustDestroy;
     GK_BOOL mViewport;
-    float mOldWidth, mOldHeight;
+    gkClientArea mClientArea;
 };
+
+void gkLayoutMethodAutosizeMasks(gkPanel* panel, gkClientArea* clientArea);
 
 gkPanel* gkCreatePanel();
 gkPanel* gkCreatePanelEx(size_t panelSize);
@@ -425,8 +481,6 @@ gkPanel* gkCreateViewportPanel();
 gkPanel* gkCreateViewportPanelEx(size_t panelSize);
 
 void gkDestroyPanel(gkPanel* panel);
-
-void gkResizePanel(gkPanel* panel, float width, float height);
 
 void gkAddChild(gkPanel* parent, gkPanel* child);
 void gkAddChildAt(gkPanel* parent, gkPanel* child, int index);

@@ -194,9 +194,9 @@ void gkSetScreenSize(gkSize size)
             XResizeWindow(display, gkWindow, size.width, size.height);
             XSync(display, True);
 #endif
-            if(gkMainPanel && gkMainPanel->resizeFunc)
+            if(gkMainPanel)
             {
-                gkMainPanel->resizeFunc(gkMainPanel, size.width, size.height);
+                gkProcessLayoutMainPanel(gkMainPanel, size.width, size.height);
             }
 
             updateGLSize(size);
@@ -493,10 +493,7 @@ void gkSetMainPanel(gkPanel* panel)
     {
         gkMainPanel->x = 0;
         gkMainPanel->y = 0;
-        if(gkMainPanel->resizeFunc)
-        {
-            gkMainPanel->resizeFunc(gkMainPanel, gkScreenSize.width, gkScreenSize.height);
-        }
+        gkProcessLayoutMainPanel(gkMainPanel, gkScreenSize.width, gkScreenSize.height);
     }
 }
 gkPanel* gkGetMainPanel()
@@ -1146,6 +1143,15 @@ uint64_t gkFpsAccum = 0;
 void drawFrame()
 {
     uint64_t td;
+    gkClientArea area;
+    area.x = 0;
+    area.y = 0;
+    area.width = gkScreenSize.width;
+    area.height = gkScreenSize.height;
+    area.deltaX = 0;
+    area.deltaY = 0;
+    area.deltaWidth = 0;
+    area.deltaHeight = 0;
 
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     gkResetTransform();
@@ -1156,6 +1162,7 @@ void drawFrame()
     gkTimeSinceLastFrame = gkMilliseconds();
     if(gkMainPanel)
     {
+        gkProcessLayoutMainPanel(gkMainPanel, gkScreenSize.width, gkScreenSize.height);
         gkProcessUpdatePanel(gkMainPanel);
         gkProcessDrawPanel(gkMainPanel);
     }

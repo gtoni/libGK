@@ -926,9 +926,9 @@ void TimerUpdate(HWND wnd, UINT msg, UINT_PTR id, DWORD elapsed)
         if(sz.width != gkScreenSize.width || sz.height != gkScreenSize.height)
         {
             updateGLSize(sz);
-            if(gkMainPanel && gkMainPanel->resizeFunc)
+            if(gkMainPanel)
             {
-                gkMainPanel->resizeFunc(gkMainPanel, sz.width, sz.height);
+                gkProcessLayoutMainPanel(gkMainPanel, sz.width, sz.height);
             }
             gkScreenSize = sz;
         }

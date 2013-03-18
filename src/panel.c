@@ -65,8 +65,8 @@ float resizeEdge(float edge, uint8_t mask, float oldStart, float oldEnd, float s
 void gkLayoutFuncAutosize(gkPanel* p, gkClientArea* area)
 {
 	float left, right, top, bottom, nleft, nright, ntop, nbottom;
-	left = 0; right = area->width;	top = 0; 	bottom = area->height;
 	uint16_t autosizeMask = (p->layoutMethod.params[0]);
+	left = 0; right = area->width;	top = 0; 	bottom = area->height;
 
 	nleft = resizeEdge(p->x,				 autosizeMask&3,		left, area->width - area->deltaWidth ,left, right);
 	nright = resizeEdge(p->x + p->width,	(autosizeMask>>2)&3,	left, area->width - area->deltaWidth, left, right);

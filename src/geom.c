@@ -117,7 +117,7 @@ void gkMatrixInverse(gkMatrix* mat){
 				-(m[3]*m[8] - m[6]*m[5]), (m[0]*m[8] - m[6]*m[2]), -(m[0]*m[5] - m[3]*m[2]),
 				(m[3]*m[7] - m[6]*m[4]), -(m[0]*m[7] - m[6]*m[1]), (m[0]*m[4] - m[3]*m[1])
 		};
-		for(i = 0; i<9; i++) m[i] /= d;
+		for(i = 0; i<9; i++) inv.data[i] /= d;
 		*mat = inv;
 	}
 }

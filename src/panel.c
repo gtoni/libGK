@@ -144,6 +144,8 @@ gkPanel* gkCreatePanelEx(size_t panelSize){
 	panel->width = 0;
 	panel->height = 0;
 	panel->transform = gkMatrixCreateIdentity();
+	panel->anchorX = 0;
+	panel->anchorY = 0;
 	panel->colorFilter = GK_COLOR(1,1,1,1);
 	panel->data = 0;
 	panel->layoutMethod = gkLayoutMethodNone();
@@ -354,15 +356,20 @@ void gkProcessUpdatePanel(gkPanel* panel){
 	gkUnguardDestroy(panel);
 }
 
-void gkProcessDrawPanel(gkPanel* panel){
+void gkProcessDrawPanel(gkPanel* panel)
+{
 	gkPanel* p;
 	gkMatrix t = gkMatrixCreateTranslation(panel->x, panel->y);
-	if(!panel->visible) return;	/* Don't draw invisible panels */
+	gkMatrix t2 = gkMatrixCreateTranslation(-panel->anchorX*panel->width, -panel->anchorY*panel->height);
+	if(!panel->visible)
+        return;	/* Don't draw invisible panels */
 	gkGuardDestroy(panel);
 	gkPushColorFilter(panel->colorFilter.r, panel->colorFilter.g, panel->colorFilter.b, panel->colorFilter.a);
 	gkPushTransform(&t);
 	gkPushTransform(&panel->transform);
-	if(panel->mViewport){
+	gkPushTransform(&t2);
+	if(panel->mViewport)
+    {
 		gkMatrix m = gkLocalToGlobal(panel);
 		gkPoint topLeft = gkTransformPoint(GK_POINT(0,0), &m);
 		gkPoint bottomRight = gkTransformPoint(GK_POINT(panel->width, panel->height), &m);
@@ -393,6 +400,7 @@ void gkProcessDrawPanel(gkPanel* panel){
 	}
 	gkPopTransform();
 	gkPopTransform();
+	gkPopTransform();
 	gkPopColorFilter();
 	gkUnguardDestroy(panel);
 }
@@ -404,10 +412,12 @@ gkMatrix gkGlobalToLocal(gkPanel* panel){
 }
 
 gkMatrix gkLocalToGlobal(gkPanel* panel){
-	gkMatrix m = gkMatrixCreateIdentity(), t;
+	gkMatrix m = gkMatrixCreateIdentity(), t, t2;
 	gkPanel* p = panel;
 	do{
 		t = gkMatrixCreateTranslation(p->x, p->y);
+		t2 = gkMatrixCreateTranslation(-p->anchorX*p->width, -p->anchorY*p->height);
+		gkMatrixMultPtr(&m, &t2);
 		gkMatrixMultPtr(&m, &p->transform);
 		gkMatrixMultPtr(&m, &t);
 		p = p->parent;
@@ -432,12 +442,15 @@ gkPanel* gkGetMouseTarget(gkPanel* panel, gkPoint pos, size_t enabledOffset, siz
 		children = (gkPanel**)calloc(panel->numChildren, sizeof(gkPanel*));
 		for(p = panel->mChildren.first; p && i>0; p = p->mNext) children[--i] = p;	/* also reverses the order so in the next loop it starts from the last and goes to first */
 		for(i = 0; i<panel->numChildren; i++){
-			gkMatrix t = children[i]->transform;
+            gkMatrix translate, t;
 			gkPoint tmpPos = pos;
+            float det;
 			p = children[i];
+            translate = gkMatrixCreateTranslation(p->x, p->y);
+            t = gkMatrixCreateTranslation(-p->anchorX*p->width, -p->anchorY*p->height);
+            gkMatrixMultPtr(&t, &p->transform);
+			gkMatrixMultPtr(&t, &translate);
 			gkMatrixInverse(&t);
-			tmpPos.x -= p->x;
-			tmpPos.y -= p->y;
 			tmpPos = gkTransformPoint(tmpPos, &t);
 			if((p = gkGetMouseTarget(p, tmpPos, enabledOffset, enabledChildrenOffset)) != 0){
 				panel->mouseX = pos.x;

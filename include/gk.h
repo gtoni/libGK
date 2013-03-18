@@ -447,6 +447,7 @@ struct gkPanelStruct{
 	gkListenerList listeners;
 	float x,y,width,height;
 	gkMatrix transform;
+	float anchorX, anchorY;
 	gkColor colorFilter;
 	GK_BOOL mouseEnabled, mouseChildren, keyboardEnabled, keyboardChildren;
 	GK_BOOL visible;

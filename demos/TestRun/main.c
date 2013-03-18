@@ -461,9 +461,11 @@ int main(){
 		p1->transform = gkMatrixCreateRotation(0.5);
 		p2->width = 100;
 		p2->height = 100;
-		p2->x = 50;
-		p2->y = 50;
-		p2->transform = gkMatrixCreateRotation(1.5);
+		p2->x = 100;
+		p2->y = 100;
+		p2->anchorX = 0.5f;
+		p2->anchorY = 0.5f;
+		p2->transform = gkMatrixCreateRotation(-0.5);
 
 		panel->data = &d1;
 		vp->layoutMethod = gkLayoutMethodAutosize(GK_END_LEFT|GK_END_RIGHT|GK_END_TOP|GK_END_BOTTOM);

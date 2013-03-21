@@ -30,104 +30,11 @@
 #include <stdlib.h>
 #include <GL/gl.h>
 
-static void gkUpdateClientArea(gkClientArea* area, gkClientArea* oldArea, float x, float y, float width, float height)
-{
-    area->deltaX = (x - oldArea->x);
-    area->deltaY = (y - oldArea->y);
-    area->deltaWidth = (width - oldArea->width);
-    area->deltaHeight = (height - oldArea->height);
-    area->x = x;
-    area->y = y;
-    area->width = width;
-    area->height = height;
-}
-
+void gkProcessChildrenLayout(gkPanel* panel);
 void gkProcessLayoutPanel(gkPanel* panel, gkClientArea* clientArea);
 void gkUpdateLayout(gkPanel* panel);
 
 #define FABS(x) x<0?-x:x
-
-/* AutosizeMask layout method */
-
-float resizeEdge(float edge, uint8_t mask, float oldStart, float oldEnd, float start, float end){
-	if(mask == 1){
-		return edge;
-	}else if(mask == 2){
-		float offset = (oldEnd - oldStart) - edge;
-		return (end - start) - offset;
-	}else if(mask == 3){
-		float k = edge/(oldEnd - oldStart);
-		return (end - start)*k;
-	}
-	return edge;
-}
-
-void gkLayoutFuncAutosize(gkPanel* p, gkClientArea* area)
-{
-	float left, right, top, bottom, nleft, nright, ntop, nbottom;
-	uint16_t autosizeMask = (p->layoutMethod.params[0]);
-	left = 0; right = area->width;	top = 0; 	bottom = area->height;
-
-	nleft = resizeEdge(p->x,				 autosizeMask&3,		left, area->width - area->deltaWidth ,left, right);
-	nright = resizeEdge(p->x + p->width,	(autosizeMask>>2)&3,	left, area->width - area->deltaWidth, left, right);
-	ntop = resizeEdge(p->y,					(autosizeMask>>4)&3,	top,  area->height - area->deltaHeight, top, bottom);
-	nbottom = resizeEdge(p->y + p->height,	(autosizeMask>>6)&3,    top,  area->height - area->deltaHeight, top, bottom);
-	p->x = nleft;
-	p->y = ntop;
-	p->width = nright - nleft;
-	p->height = nbottom - ntop;
-}
-
-gkPanelLayoutMethod gkLayoutMethodAutosize(uint16_t mask)
-{
-    gkPanelLayoutMethod method = {
-        gkLayoutFuncAutosize,
-        (int32_t)mask, 0,0,0,0
-    };
-    return method;
-}
-
-/* Advanced layout method*/
-
-void gkLayoutFuncAdvanced(gkPanel* p, gkClientArea* area)
-{
-    gkAdvancedLayoutParams* params = (gkAdvancedLayoutParams*)&p->layoutMethod.params;
-    float w = area->width - (params->margin.left + params->margin.right);
-    float h = area->height - (params->margin.top + params->margin.bottom);
-    if(params->flags & GK_RELATIVE_X)
-        p->x = params->margin.left + w*params->relativeX;
-    if(params->flags & GK_RELATIVE_Y)
-        p->y = params->margin.top + h*params->relativeY;
-    if(params->flags & GK_RELATIVE_WIDTH)
-        p->width = w*params->relativeWidth;
-    if(params->flags & GK_RELATIVE_HEIGHT)
-        p->height = h*params->relativeHeight;
-    if((params->flags & GK_LAYOUT_MIN_WIDTH) &&  p->width < params->minWidth)
-        p->width = params->minWidth;
-    if((params->flags & GK_LAYOUT_MAX_WIDTH) &&  p->width > params->maxWidth)
-        p->width = params->maxWidth;
-    if((params->flags & GK_LAYOUT_MIN_HEIGHT) &&  p->height < params->minHeight)
-        p->height = params->minHeight;
-    if((params->flags & GK_LAYOUT_MAX_HEIGHT) &&  p->height > params->maxHeight)
-        p->height = params->maxHeight;
-}
-
-gkPanelLayoutMethod gkLayoutMethodAdvanced(gkAdvancedLayoutParams* params)
-{
-    gkPanelLayoutMethod method;
-    method.func = gkLayoutFuncAdvanced;
-    memcpy(&method.params, params, sizeof(gkAdvancedLayoutParams));
-    return method;
-}
-
-gkPanelLayoutMethod gkLayoutMethodNone()
-{
-    gkPanelLayoutMethod method = {
-        0,
-        0,0,0,0,0
-    };
-    return method;
-}
 
 gkPanel* gkFocusPanel = 0;
 
@@ -149,6 +56,7 @@ gkPanel* gkCreatePanelEx(size_t panelSize){
 	panel->colorFilter = GK_COLOR(1,1,1,1);
 	panel->data = 0;
 	panel->layoutMethod = gkLayoutMethodNone();
+	panel->contentLayoutFunc = 0;
 	panel->updateFunc = 0;
 	panel->drawFunc = 0;
 	panel->parent = 0;
@@ -296,17 +204,6 @@ gkPanel* gkGetChildAt(gkPanel* parent, int childIndex){
 	return p;
 }
 
-void gkProcessChildrenLayout(gkPanel* panel)
-{
-    gkPanel* p;
-	gkGuardDestroy(panel);
-	for(p = panel->mChildren.first; p; p = panel->mNextChild){
-		panel->mNextChild = p->mNext;
-		gkProcessLayoutPanel(p, &panel->mClientArea);
-	}
-	gkUnguardDestroy(panel);
-}
-
 void gkUpdateLayout(gkPanel* panel)
 {
     gkClientArea old = panel->mClientArea;
@@ -314,22 +211,11 @@ void gkUpdateLayout(gkPanel* panel)
 	gkProcessChildrenLayout(panel);
 }
 
-void gkProcessLayoutPanel(gkPanel* panel, gkClientArea* clientArea)
-{
-    gkClientArea old = panel->mClientArea;
-	gkUpdateClientArea(&panel->mClientArea, &old, panel->x, panel->y, panel->width, panel->height);
-
-	if(panel->layoutMethod.func)
-    {
-		panel->layoutMethod.func(panel, clientArea);
-        gkUpdateClientArea(&panel->mClientArea, &old, panel->x, panel->y, panel->width, panel->height);
-	}
-
-    gkProcessChildrenLayout(panel);
-}
-
 void gkProcessLayoutMainPanel(gkPanel* panel, float width, float height)
 {
+    float oldWidth = panel->width;
+    float oldHeight = panel->height;
+
 	gkUpdateClientArea(&panel->mClientArea, &panel->mClientArea, panel->x, panel->y, width, height);
 
 	if(panel->layoutMethod.func)
@@ -341,6 +227,67 @@ void gkProcessLayoutMainPanel(gkPanel* panel, float width, float height)
 	panel->height = height;
 
     gkProcessChildrenLayout(panel);
+
+    if(oldWidth != width || oldHeight != height)
+    {
+        gkEvent changedEvent;
+        changedEvent.type = GK_ON_PANEL_RESIZED;
+        changedEvent.target = panel;
+        changedEvent.currentTarget = panel;
+        gkDispatch(panel, &changedEvent);
+    }
+}
+
+void gkProcessLayoutPanel(gkPanel* panel, gkClientArea* clientArea)
+{
+    gkClientArea old = panel->mClientArea;
+    float tmpWidth, tmpHeight;
+    float oldWidth = panel->width;
+    float oldHeight = panel->height;
+
+	gkUpdateClientArea(&panel->mClientArea, &old, panel->x, panel->y, panel->width, panel->height);
+
+	if(panel->layoutMethod.func)
+    {
+		panel->layoutMethod.func(panel, clientArea);
+        gkUpdateClientArea(&panel->mClientArea, &old, panel->x, panel->y, panel->width, panel->height);
+	}
+
+    tmpWidth = panel->width;
+    tmpHeight = panel->height;
+
+    gkProcessChildrenLayout(panel);
+
+    /* Re-adjust this panel's layout if it's size changed */
+    if( panel->layoutMethod.func && (tmpWidth != panel->width || tmpHeight != panel->height) )
+    {
+		panel->layoutMethod.func(panel, clientArea);
+        gkUpdateClientArea(&panel->mClientArea, &old, panel->x, panel->y, panel->width, panel->height);
+    }
+
+    if(oldWidth != panel->width || oldHeight != panel->height)
+    {
+        gkEvent changedEvent;
+        changedEvent.type = GK_ON_PANEL_RESIZED;
+        changedEvent.target = panel;
+        changedEvent.currentTarget = panel;
+        gkDispatch(panel, &changedEvent);
+    }
+}
+void gkProcessChildrenLayout(gkPanel* panel)
+{
+    gkPanel* p;
+    gkClientArea clientArea = panel->mClientArea;
+	gkGuardDestroy(panel);
+	for(p = panel->mChildren.first; p; p = panel->mNextChild){
+		panel->mNextChild = p->mNext;
+		if(panel->contentLayoutFunc)
+        {
+            panel->contentLayoutFunc(panel, p, &clientArea);
+        }
+        gkProcessLayoutPanel(p, &clientArea);
+	}
+	gkUnguardDestroy(panel);
 }
 
 void gkProcessUpdatePanel(gkPanel* panel){
@@ -571,4 +518,169 @@ void gkProcessKeyboardEvent(gkKeyboardEvent* keyboardEvent){
 	if(!gkFocusPanel) return;
 	keyboardEvent->target = keyboardEvent->currentTarget = gkFocusPanel;
 	gkDispatch(gkFocusPanel, keyboardEvent);
+}
+
+/* Layout methods and client area functions */
+
+void gkUpdateClientArea(gkClientArea* area, gkClientArea* oldArea, float x, float y, float width, float height)
+{
+    area->deltaX = (x - oldArea->x);
+    area->deltaY = (y - oldArea->y);
+    area->deltaWidth = (width - oldArea->width);
+    area->deltaHeight = (height - oldArea->height);
+    area->x = x;
+    area->y = y;
+    area->width = width;
+    area->height = height;
+}
+
+/* Layout methods */
+
+/* AutosizeMask layout method */
+
+float resizeEdge(float edge, uint8_t mask, float oldStart, float oldEnd, float start, float end){
+	if(mask == 1){
+		return edge;
+	}else if(mask == 2){
+		float offset = (oldEnd - oldStart) - edge;
+		return (end - start) - offset;
+	}else if(mask == 3){
+		float k = edge/(oldEnd - oldStart);
+		return (end - start)*k;
+	}
+	return edge;
+}
+
+void gkLayoutFuncAutosize(gkPanel* p, gkClientArea* area)
+{
+	float left, right, top, bottom, nleft, nright, ntop, nbottom;
+	uint16_t autosizeMask = (p->layoutMethod.params[0]);
+	left = 0; right = area->width;	top = 0; 	bottom = area->height;
+
+	nleft = resizeEdge(p->x,				 autosizeMask&3,		left, area->width - area->deltaWidth ,left, right);
+	nright = resizeEdge(p->x + p->width,	(autosizeMask>>2)&3,	left, area->width - area->deltaWidth, left, right);
+	ntop = resizeEdge(p->y,					(autosizeMask>>4)&3,	top,  area->height - area->deltaHeight, top, bottom);
+	nbottom = resizeEdge(p->y + p->height,	(autosizeMask>>6)&3,    top,  area->height - area->deltaHeight, top, bottom);
+	p->x = nleft;
+	p->y = ntop;
+	p->width = nright - nleft;
+	p->height = nbottom - ntop;
+}
+
+gkPanelLayoutMethod gkLayoutMethodAutosize(uint16_t mask)
+{
+    gkPanelLayoutMethod method = {
+        gkLayoutFuncAutosize,
+        (int32_t)mask, 0,0,0,0
+    };
+    return method;
+}
+
+/* Relative layout method*/
+
+void gkLayoutFuncRelative(gkPanel* p, gkClientArea* area)
+{
+    gkLayoutRelativeParams* params = (gkLayoutRelativeParams*)&p->layoutMethod.params;
+    float w = area->width - (params->margin.left + params->margin.right);
+    float h = area->height - (params->margin.top + params->margin.bottom);
+
+    if(params->flags & GK_LAYOUT_RELATIVE_X)
+        p->x = area->x + params->margin.left + w*params->relativeX;
+
+    if(params->flags & GK_LAYOUT_RELATIVE_Y)
+        p->y = area->y + params->margin.top + h*params->relativeY;
+
+    if(params->flags & GK_LAYOUT_RELATIVE_WIDTH)
+        p->width = w*params->relativeWidth;
+
+    if(params->flags & GK_LAYOUT_RELATIVE_HEIGHT)
+        p->height = h*params->relativeHeight;
+
+    if(params->minWidth>0 &&  p->width < params->minWidth)
+        p->width = params->minWidth;
+
+    if(params->maxWidth>0 &&  p->width > params->maxWidth)
+        p->width = params->maxWidth;
+
+    if(params->minHeight>0 &&  p->height < params->minHeight)
+        p->height = params->minHeight;
+
+    if(params->maxHeight>0 &&  p->height > params->maxHeight)
+        p->height = params->maxHeight;
+}
+
+gkPanelLayoutMethod gkLayoutMethodRelative(gkLayoutRelativeParams* params)
+{
+    gkPanelLayoutMethod method;
+    method.func = gkLayoutFuncRelative;
+    memcpy(&method.params, params, sizeof(gkLayoutRelativeParams));
+    return method;
+}
+
+/* Align layout method*/
+
+static void gkLayoutFuncAlign(gkPanel* p, gkClientArea* area)
+{
+	uint32_t align = (p->layoutMethod.params[0]);
+	int reverseAnchorX = 0, reverseAnchorY = 0;
+    if(align & GK_LAYOUT_ALIGN_CLIENT_WIDTH)
+    {
+        p->x = 0;
+        p->width = area->width;
+        reverseAnchorX = 1;
+    }else if(align & GK_LAYOUT_ALIGN_LEFT)
+    {
+        p->x = area->x;
+        reverseAnchorX = 1;
+    }else if(align & GK_LAYOUT_ALIGN_RIGHT)
+    {
+        p->x = area->width - p->width;
+        reverseAnchorX = 1;
+    }else if(align & GK_LAYOUT_ALIGN_HCENTER)
+    {
+        p->x = (area->width - p->width)*0.5f;
+        reverseAnchorX = 1;
+    }
+
+    if(align & GK_LAYOUT_ALIGN_CLIENT_HEIGHT)
+    {
+        p->y = 0;
+        p->height = area->height;
+        reverseAnchorY = 1;
+    }else if(align & GK_LAYOUT_ALIGN_TOP)
+    {
+        p->y = area->y;
+        reverseAnchorY = 1;
+    }else if(align & GK_LAYOUT_ALIGN_BOTTOM)
+    {
+        p->y = area->height - p->height;
+        reverseAnchorY = 1;
+    }else if(align & GK_LAYOUT_ALIGN_VCENTER)
+    {
+        p->y = (area->height - p->height)*0.5f;
+        reverseAnchorY = 1;
+    }
+
+    if(reverseAnchorX)
+        p->x += p->anchorX*p->width;
+    if(reverseAnchorY)
+        p->y += p->anchorY*p->height;
+}
+
+gkPanelLayoutMethod gkLayoutMethodAlign(int align)
+{
+    gkPanelLayoutMethod method = {
+        gkLayoutFuncAlign,
+        (int32_t)align, 0,0,0,0
+    };
+    return method;
+}
+
+gkPanelLayoutMethod gkLayoutMethodNone()
+{
+    gkPanelLayoutMethod method = {
+        0,
+        0,0,0,0,0
+    };
+    return method;
 }

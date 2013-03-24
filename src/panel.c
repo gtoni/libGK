@@ -33,6 +33,7 @@
 void gkProcessChildrenLayout(gkPanel* panel);
 void gkProcessLayoutPanel(gkPanel* panel, gkClientArea* clientArea);
 void gkUpdateLayout(gkPanel* panel);
+void gkUpdateClientArea(gkClientArea* area, gkClientArea* oldArea, float x, float y, float width, float height);
 
 #define FABS(x) x<0?-x:x
 
@@ -56,7 +57,7 @@ gkPanel* gkCreatePanelEx(size_t panelSize){
 	panel->colorFilter = GK_COLOR(1,1,1,1);
 	panel->data = 0;
 	panel->layoutMethod = gkLayoutMethodNone();
-	panel->contentLayoutFunc = 0;
+	panel->composeLayoutFunc = 0;
 	panel->updateFunc = 0;
 	panel->drawFunc = 0;
 	panel->parent = 0;
@@ -278,15 +279,20 @@ void gkProcessChildrenLayout(gkPanel* panel)
 {
     gkPanel* p;
     gkClientArea clientArea = panel->mClientArea;
+    gkRect clientRect = { 0, 0, panel->width, panel->height };
 	gkGuardDestroy(panel);
 	for(p = panel->mChildren.first; p; p = panel->mNextChild){
 		panel->mNextChild = p->mNext;
-		if(panel->contentLayoutFunc)
+		if(panel->composeLayoutFunc)
         {
-            panel->contentLayoutFunc(panel, p, &clientArea);
+            gkRect childRect = panel->composeLayoutFunc(panel, p, &clientRect);
+            gkUpdateClientArea(&clientArea, &panel->mClientArea, childRect.x, childRect.y, childRect.width, childRect.height);
+            gkProcessLayoutPanel(p, &clientArea);
+        }else
+        {
+            gkProcessLayoutPanel(p, &clientArea);
         }
-        gkProcessLayoutPanel(p, &clientArea);
-	}
+    }
 	gkUnguardDestroy(panel);
 }
 
@@ -625,7 +631,7 @@ static void gkLayoutFuncAlign(gkPanel* p, gkClientArea* area)
 	int reverseAnchorX = 0, reverseAnchorY = 0;
     if(align & GK_LAYOUT_ALIGN_CLIENT_WIDTH)
     {
-        p->x = 0;
+        p->x = area->x;
         p->width = area->width;
         reverseAnchorX = 1;
     }else if(align & GK_LAYOUT_ALIGN_LEFT)
@@ -634,17 +640,17 @@ static void gkLayoutFuncAlign(gkPanel* p, gkClientArea* area)
         reverseAnchorX = 1;
     }else if(align & GK_LAYOUT_ALIGN_RIGHT)
     {
-        p->x = area->width - p->width;
+        p->x = area->x + (area->width - p->width);
         reverseAnchorX = 1;
     }else if(align & GK_LAYOUT_ALIGN_HCENTER)
     {
-        p->x = (area->width - p->width)*0.5f;
+        p->x = area->x + (area->width - p->width)*0.5f;
         reverseAnchorX = 1;
     }
 
     if(align & GK_LAYOUT_ALIGN_CLIENT_HEIGHT)
     {
-        p->y = 0;
+        p->y = area->y;
         p->height = area->height;
         reverseAnchorY = 1;
     }else if(align & GK_LAYOUT_ALIGN_TOP)
@@ -653,11 +659,11 @@ static void gkLayoutFuncAlign(gkPanel* p, gkClientArea* area)
         reverseAnchorY = 1;
     }else if(align & GK_LAYOUT_ALIGN_BOTTOM)
     {
-        p->y = area->height - p->height;
+        p->y = area->y + (area->height - p->height);
         reverseAnchorY = 1;
     }else if(align & GK_LAYOUT_ALIGN_VCENTER)
     {
-        p->y = (area->height - p->height)*0.5f;
+        p->y = area->y + (area->height - p->height)*0.5f;
         reverseAnchorY = 1;
     }
 

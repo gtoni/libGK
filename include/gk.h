@@ -369,8 +369,18 @@ typedef struct gkClientAreaStruct gkClientArea;
 typedef struct gkPanelLayoutMethodStruct gkPanelLayoutMethod;
 typedef struct gkPanelStruct gkPanel;
 
+/**
+    The purpose of this callback is to set the panel's position and size
+    according to a given client area.
+*/
 typedef void (*gkPanelLayoutFunc)(gkPanel* panel, gkClientArea* clientArea);
-typedef void (*gkPanelContentLayoutFunc)(gkPanel* panel, gkPanel* child, gkClientArea* clientArea);
+
+/**
+    The purpose of this callback is to return the client area that a
+    child may occupy.
+*/
+typedef gkRect (*gkPanelComposeLayoutFunc)(gkPanel* panel, gkPanel* child, gkRect* clientRect);
+
 typedef void (*gkPanelUpdateFunc)(gkPanel* panel);
 typedef void (*gkPanelDrawFunc)(gkPanel* panel);
 
@@ -404,7 +414,7 @@ struct gkPanelStruct{
 	gkPanelUpdateFunc updateFunc;
 	gkPanelDrawFunc drawFunc;
 	gkPanelLayoutMethod layoutMethod;
-	gkPanelContentLayoutFunc contentLayoutFunc;
+	gkPanelComposeLayoutFunc composeLayoutFunc;
 
 GK_READONLY GK_BOOL mouseOver;
 GK_READONLY float mouseX, mouseY;
@@ -450,9 +460,6 @@ gkPanel* gkGetMainPanel();
 /**
     Layout methods and client area functions
 */
-
-void gkUpdateClientArea(gkClientArea* area, gkClientArea* oldArea, float x, float y, float width, float height);
-
 
 /* Autosize layout method */
 

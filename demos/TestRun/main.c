@@ -289,7 +289,7 @@ GK_BOOL onPanelResize(gkEvent* evt, void *p){
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-void mresize1(gkPanel* p, gkClientArea* area){
+void mresize1(gkPanel* p, gkRect* area){
 	if(p->numChildren>0){
         p->width = area->width;
         p->height = area->height;
@@ -468,10 +468,10 @@ int main(){
 		p2->transform = gkMatrixCreateRotation(-0.5);
 
 		panel->data = &d1;
-		vp->layoutMethod = gkLayoutMethodAutosize(GK_END_LEFT|GK_END_RIGHT|GK_END_TOP|GK_END_BOTTOM);
-		p2->layoutMethod = gkLayoutMethodAutosize(GK_END_LEFT|GK_END_RIGHT|GK_END_TOP|GK_END_BOTTOM);
-		p1->layoutMethod = gkLayoutMethodAutosize(GK_START_LEFT|GK_END_RIGHT|GK_START_TOP|GK_START_BOTTOM);
-		panel->layoutMethod.func = mresize1;
+//		vp->layoutMethod = gkLayoutMethodAutosize(GK_END_LEFT|GK_END_RIGHT|GK_END_TOP|GK_END_BOTTOM);
+	//	p2->layoutMethod = gkLayoutMethodAutosize(GK_END_LEFT|GK_END_RIGHT|GK_END_TOP|GK_END_BOTTOM);
+	//	p1->layoutMethod = gkLayoutMethodAutosize(GK_START_LEFT|GK_END_RIGHT|GK_START_TOP|GK_START_BOTTOM);
+		panel->layoutFunc = mresize1;
 
 		gkAddChild(panel, vp);
 		gkAddChild(panel, p1);
@@ -545,14 +545,14 @@ int main(){
 //		}
 //		printResource(rc);
 //		gkRemoveFontResource(rc);
-        snd = gkLoadSound("../demos/TestRun/cat.wav", GK_SOUND_STATIC);
-//        snd = gkLoadSound("/media/DATA/mp3/WoW OST/World of Warcraft - Mists of Pandaria OST/01 - Heart of Pandaria.mp3", GK_SOUND_STREAM);
+//        snd = gkLoadSound("../demos/TestRun/cat.wav", GK_SOUND_STATIC);
+        snd = gkLoadSound("/media/DATA/mp3/WoW OST/World of Warcraft - Mists of Pandaria OST/01 - Heart of Pandaria.mp3", GK_SOUND_STREAM);
         sndInstance = gkCreateSoundSource();
 
         gkSetSoundGain(sndInstance, 1.0f);
-        gkSetSoundLooping(sndInstance, GK_TRUE);
+//        gkSetSoundLooping(sndInstance, GK_TRUE);
 
-//        gkPlaySound(snd, sndInstance);
+        gkPlaySound(snd, sndInstance);
 //        gkSetSoundOffset(sndInstance, 15.0f);
         gkSetMasterGain(1.0f);
         gkAddListener(panel, GK_ON_MOUSE_DOWN, 0, onMouseStopSound, 0);

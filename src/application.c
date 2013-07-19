@@ -1143,15 +1143,6 @@ uint64_t gkFpsAccum = 0;
 void drawFrame()
 {
     uint64_t td;
-    gkClientArea area;
-    area.x = 0;
-    area.y = 0;
-    area.width = gkScreenSize.width;
-    area.height = gkScreenSize.height;
-    area.deltaX = 0;
-    area.deltaY = 0;
-    area.deltaWidth = 0;
-    area.deltaHeight = 0;
 
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     gkResetTransform();

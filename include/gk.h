@@ -365,42 +365,11 @@ void gkDrawPath(gkPoint* points, int count, GK_BOOL polygon);
 #define GK_ON_PANEL_FOCUS_IN	(GK_PANEL_EVENT_BASE + 4)
 #define GK_ON_PANEL_FOCUS_OUT	(GK_PANEL_EVENT_BASE + 5)
 
-typedef struct gkClientAreaStruct gkClientArea;
-typedef struct gkPanelLayoutMethodStruct gkPanelLayoutMethod;
 typedef struct gkPanelStruct gkPanel;
 
-/**
-    The purpose of this callback is to set the panel's position and size
-    according to a given client area.
-*/
-typedef void (*gkPanelLayoutFunc)(gkPanel* panel, gkClientArea* clientArea);
-
-/**
-    The purpose of this callback is to return the client area that a
-    child may occupy.
-*/
-typedef gkRect (*gkPanelComposeLayoutFunc)(gkPanel* panel, gkPanel* child, gkRect* clientRect);
-
+typedef void (*gkPanelLayoutFunc)(gkPanel* panel, gkRect* clientRect);
 typedef void (*gkPanelUpdateFunc)(gkPanel* panel);
 typedef void (*gkPanelDrawFunc)(gkPanel* panel);
-
-struct gkClientAreaStruct
-{
-    float x;
-    float y;
-    float width;
-    float height;
-    float deltaX;
-    float deltaY;
-    float deltaWidth;
-    float deltaHeight;
-};
-
-struct gkPanelLayoutMethodStruct
-{
-    gkPanelLayoutFunc func;
-    float params[14];
-};
 
 struct gkPanelStruct{
 	gkListenerList listeners;
@@ -411,10 +380,9 @@ struct gkPanelStruct{
 	GK_BOOL mouseEnabled, mouseChildren, keyboardEnabled, keyboardChildren;
 	GK_BOOL visible;
 	void* data;
+	gkPanelLayoutFunc layoutFunc;
 	gkPanelUpdateFunc updateFunc;
 	gkPanelDrawFunc drawFunc;
-	gkPanelLayoutMethod layoutMethod;
-	gkPanelComposeLayoutFunc composeLayoutFunc;
 
 GK_READONLY GK_BOOL mouseOver;
 GK_READONLY float mouseX, mouseY;
@@ -430,7 +398,6 @@ GK_READONLY int16_t numChildren;
     GK_BOOL mGuardDestroy;
     GK_BOOL mMustDestroy;
     GK_BOOL mViewport;
-    gkClientArea mClientArea;
 };
 
 gkPanel* gkCreatePanel();
@@ -456,67 +423,6 @@ gkPanel* gkGetFocus();
 
 void gkSetMainPanel(gkPanel* panel);
 gkPanel* gkGetMainPanel();
-
-/**
-    Layout methods and client area functions
-*/
-
-/* Autosize layout method */
-
-/* Autosize masks */
-#define GK_START_LEFT		1
-#define GK_END_LEFT			2
-#define GK_SPAN_LEFT		3
-
-#define GK_START_RIGHT		4
-#define GK_END_RIGHT		8
-#define GK_SPAN_RIGHT		12
-
-#define GK_START_TOP		16
-#define GK_END_TOP			32
-#define GK_SPAN_TOP			48
-
-#define GK_START_BOTTOM		64
-#define GK_END_BOTTOM		128
-#define GK_SPAN_BOTTOM		192
-
-gkPanelLayoutMethod gkLayoutMethodAutosize(uint16_t mask);
-
-
-#define GK_LAYOUT_RELATIVE_X           0x01
-#define GK_LAYOUT_RELATIVE_Y           0x02
-#define GK_LAYOUT_RELATIVE_WIDTH       0x04
-#define GK_LAYOUT_RELATIVE_HEIGHT      0x08
-
-typedef struct{
-    uint8_t flags;
-    float relativeX;
-    float relativeY;
-    float relativeWidth;
-    float relativeHeight;
-    struct{
-        float left, right, top, bottom;
-    }margin;
-    float minWidth, maxWidth;
-    float minHeight, maxHeight;
-}gkLayoutRelativeParams;
-
-gkPanelLayoutMethod gkLayoutMethodRelative(gkLayoutRelativeParams* params);
-
-
-#define GK_LAYOUT_ALIGN_CLIENT_WIDTH       0x01
-#define GK_LAYOUT_ALIGN_LEFT               0x02
-#define GK_LAYOUT_ALIGN_RIGHT              0x04
-#define GK_LAYOUT_ALIGN_HCENTER            0x08
-#define GK_LAYOUT_ALIGN_CLIENT_HEIGHT      0x10
-#define GK_LAYOUT_ALIGN_TOP                0x20
-#define GK_LAYOUT_ALIGN_BOTTOM             0x40
-#define GK_LAYOUT_ALIGN_VCENTER            0x80
-
-gkPanelLayoutMethod gkLayoutMethodAlign(int align);
-
-gkPanelLayoutMethod gkLayoutMethodNone();
-
 
 /************************************
 	Images

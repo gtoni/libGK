@@ -8,5 +8,6 @@
 		<Project filename="../demos/MusicPlayer/MusicPlayer.cbp">
 			<Depends filename="libgk.cbp" />
 		</Project>
+		<Project filename="../../BrainExcersice1/BrainExcersice1.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>

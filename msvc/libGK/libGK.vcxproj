@@ -91,9 +91,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\gk.h" />
-    <ClInclude Include="..\..\include\gkaudio.h" />
-    <ClInclude Include="..\..\include\gkaudiostream.h" />
     <ClInclude Include="..\..\include\gkkeydefs.h" />
+    <ClInclude Include="..\..\src\gkaudio.h" />
     <ClInclude Include="..\..\src\gk_internal.h" />
     <ClInclude Include="..\..\src\GLee.h" />
   </ItemGroup>

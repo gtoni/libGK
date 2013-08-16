@@ -31,8 +31,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <gkaudiostream.h>
-
 static ALCdevice* device;
 static ALCcontext* ctx;
 

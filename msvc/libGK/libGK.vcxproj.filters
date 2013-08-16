@@ -27,11 +27,8 @@
     <ClInclude Include="..\..\include\gkkeydefs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\gkaudio.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\gkaudiostream.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\..\src\gkaudio.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

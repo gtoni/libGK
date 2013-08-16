@@ -22,8 +22,39 @@
 #ifndef _GK_AUDIO_H_
 #define _GK_AUDIO_H_
 
-#include <stdio.h>
-#include <gkaudiostream.h>
+#define GK_AUDIO_FORMAT_UNSUPPORTED 0xffff
+#define GK_AUDIO_FORMAT_MONO8       0x1100
+#define GK_AUDIO_FORMAT_MONO16      0x1101
+#define GK_AUDIO_FORMAT_MONO32      GK_AUDIO_FORMAT_UNSUPPORTED
+#define GK_AUDIO_FORMAT_STEREO8     0x1102
+#define GK_AUDIO_FORMAT_STEREO16    0x1103
+#define GK_AUDIO_FORMAT_STEREO32    GK_AUDIO_FORMAT_UNSUPPORTED
+
+typedef struct _gkAudioStreamInfo gkAudioStreamInfo;
+struct _gkAudioStreamInfo{
+    int format;
+    int sampleRate;
+    int channels;
+    int bitsPerSample;
+    size_t streamSize;
+    float length;
+};
+
+typedef struct _gkAudioStream gkAudioStream;
+struct _gkAudioStream{
+    int (*read)(gkAudioStream* stream, void* buffer, size_t bytes);
+    int (*seek)(gkAudioStream* stream, size_t sampleOffset, int origin);
+    int (*eof)(gkAudioStream* stream);
+    int (*getError)(gkAudioStream* stream);
+    void (*getInfo)(gkAudioStream* stream, gkAudioStreamInfo* info);
+    void (*destroy)(gkAudioStream* stream);
+};
+
+void gkInitAudioStream();
+void gkCleanupAudioStream();
+
+gkAudioStream* gkAudioStreamOpen(char* location);
+void gkAudioStreamClose(gkAudioStream* stream);
 
 #define GK_NUM_STREAM_BUFFERS 10
 #define GK_STREAM_BUFFER_SIZE 1024*8

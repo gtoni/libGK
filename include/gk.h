@@ -527,14 +527,19 @@ void gkDrawText(gkFont* font, wchar_t* text, float x, float y, gkTextFormat* for
 	Types and functions for audio and sounds.
 */
 
-#include <gkaudio.h>
+#ifdef GK_INTERNAL
+#include "gkaudio.h"
+#endif
 
 struct gkSoundStruct{
     float length;
     GK_BOOL seekable;
+#ifdef GK_INTERNAL
     struct gkSoundInternal internal;
+#endif
 };
 typedef struct gkSoundStruct gkSound;
+
 
 #define GK_SOUND_STATE_IDLE         0
 #define GK_SOUND_STATE_PLAYING      1
@@ -547,10 +552,13 @@ struct gkSoundSourceStruct
 GK_READONLY int id;
 GK_READONLY uint8_t state;
 GK_READONLY gkSound* sound;
-
+#ifdef GK_INTERNAL
     struct gkSoundSourceInternal internal;
+#endif
 };
 typedef struct gkSoundSourceStruct gkSoundSource;
+
+
 
 #define GK_SOUND_EVENT_BASE    150
 #define GK_ON_SOUND_STOPPED     (GK_SOUND_EVENT_BASE + 1)

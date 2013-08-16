@@ -360,7 +360,6 @@ gkPanel* gkGetMouseTarget(gkPanel* panel, gkPoint pos, size_t enabledOffset, siz
 		for(i = 0; i<panel->numChildren; i++){
             gkMatrix translate, t;
 			gkPoint tmpPos = pos;
-            float det;
 			p = children[i];
             translate = gkMatrixCreateTranslation(p->x, p->y);
             t = gkMatrixCreateTranslation(-p->anchorX*p->width, -p->anchorY*p->height);
@@ -435,10 +434,7 @@ void gkProcessMouseEvent(gkMouseEvent* mouseEvent){
 	gkPanel* current, *newFocusTarget = 0, *curFocusTarget = gkFocusPanel;
 	gkMousePosition = mouseEvent->position;
 	if(mouseEvent->type == GK_ON_MOUSE_DOWN){
-		gkPanel* mainPanel = gkGetMainPanel();
-		if(mainPanel){
-			newFocusTarget = gkGetMouseTarget(mainPanel, gkMousePosition, BYTE_OFFSET(mainPanel, keyboardEnabled), BYTE_OFFSET(mainPanel, keyboardChildren));
-		}
+		newFocusTarget = gkGetMouseTarget(gkMainPanel, gkMousePosition, BYTE_OFFSET(gkMainPanel, keyboardEnabled), BYTE_OFFSET(gkMainPanel, keyboardChildren));
 	}
 	if(gkMouseTarget){
 		mouseEvent->target = current = gkMouseTarget;

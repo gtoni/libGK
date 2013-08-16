@@ -88,7 +88,8 @@ void myDrawFunc(gkPanel* p){
 			float len = sqrtf(vx*vx + vy*vy);
 			gkSetLineWidth(0);
 			gkSetFillColor(1,0.8,0,(1.0f - len/2.0f)*0.8f);
-			gkDrawPoint(pdata->stars[i].x, pdata->stars[i].y, pdata->rad[i]);
+//			gkDrawPoint(pdata->stars[i].x, pdata->stars[i].y, pdata->rad[i]);
+			gkDrawImage(img2, pdata->stars[i].x, pdata->stars[i].y);
 		}
 		gkDrawImage(img, p->mouseX + 10.0f,p->mouseY + 10.0f);
 		gkDrawImage(img2, mx, my);
@@ -420,7 +421,6 @@ void onTimer1(gkEvent* evt, void* p){
 int main(){
 	if(gkInit()){
 		gkTimer* timer1, *timer2;
-		gkPanel* panel = gkCreatePanel();
 		int i;
 		struct drawer d;
 		PData d1, d2, d3;
@@ -442,8 +442,6 @@ int main(){
 		gkStartTimer(timer2, GK_FALSE);
 
 		d1.id = 0; d2.id = 1; d3.id = 2;
-		panel->width = 400;
-		panel->height = 400;
 		d.drawing = GK_FALSE;
 		for(i = 0; i<MAX_LINES; i++){
 			lines[i] = GK_POINT(0,0);
@@ -467,23 +465,23 @@ int main(){
 		p2->anchorY = 0.5f;
 		p2->transform = gkMatrixCreateRotation(-0.5);
 
-		panel->data = &d1;
+		gkMainPanel->data = &d1;
 //		vp->layoutMethod = gkLayoutMethodAutosize(GK_END_LEFT|GK_END_RIGHT|GK_END_TOP|GK_END_BOTTOM);
 	//	p2->layoutMethod = gkLayoutMethodAutosize(GK_END_LEFT|GK_END_RIGHT|GK_END_TOP|GK_END_BOTTOM);
 	//	p1->layoutMethod = gkLayoutMethodAutosize(GK_START_LEFT|GK_END_RIGHT|GK_START_TOP|GK_START_BOTTOM);
-		panel->layoutFunc = mresize1;
+		gkMainPanel->layoutFunc = mresize1;
 
-		gkAddChild(panel, vp);
-		gkAddChild(panel, p1);
+		gkAddChild(gkMainPanel, vp);
+		gkAddChild(gkMainPanel, p1);
 		gkAddChild(p1, p2);
 		p1->data = &d2;
 		p2->data = &d3;
 		p1->drawFunc = myDrawFunc;
 		p2->drawFunc = myDrawFunc;
-		panel->drawFunc = myDrawFunc;
+		gkMainPanel->drawFunc = myDrawFunc;
 		p1->updateFunc = updatePanel;
 		p2->updateFunc = updatePanel;
-		panel->updateFunc = updatePanel;
+		gkMainPanel->updateFunc = updatePanel;
 		gkAddListener(p1, GK_ON_MOUSE_ENTER, 0, onMouseEnter, 0);
 		gkAddListener(p1, GK_ON_MOUSE_LEAVE, 0, onMouseLeave, 0);
 		gkAddListener(p2, GK_ON_MOUSE_ENTER, 0, onMouseEnter, 0);
@@ -491,19 +489,18 @@ int main(){
 		gkAddListener(p2, GK_ON_PANEL_FOCUS_OUT, 0, onFocusOut, 0);
 		gkAddListener(p2, GK_ON_PANEL_FOCUS_IN, 0, onFocusIn, 0);
 //		gkAddListener(p1, GK_ON_KEY_DOWN, 0, onMouseDown, &d);
-		gkAddListener(panel, GK_ON_CHARACTER, 0, onKUp, 0);
+		gkAddListener(gkMainPanel, GK_ON_CHARACTER, 0, onKUp, 0);
 		gkAddListener(p1, GK_ON_CHARACTER, 0, onKUp, 0);
 		gkAddListener(p2, GK_ON_CHARACTER, 0, onKUp, 0);
 //		gkAddListener(gkKeyboard, GK_ON_KEY_REPEAT, 0, onMouseDown, &d);
 //		gkAddListener(gkKeyboard, GK_ON_KEY_UP, 0, onMouseUp, &d);
-		gkAddListener(panel, GK_ON_MOUSE_DOWN, 0, onMouseDown, &d);
-		gkAddListener(panel, GK_ON_MOUSE_UP, 0, onMouseUp, &d);
-		gkAddListener(panel, GK_ON_MOUSE_MOVE, 0, onMouseMove, &d);
+		gkAddListener(gkMainPanel, GK_ON_MOUSE_DOWN, 0, onMouseDown, &d);
+		gkAddListener(gkMainPanel, GK_ON_MOUSE_UP, 0, onMouseUp, &d);
+		gkAddListener(gkMainPanel, GK_ON_MOUSE_MOVE, 0, onMouseMove, &d);
 		gkAddListener(p1, GK_ON_MOUSE_MOVE, 0, onMouseMove, 0);
 		gkAddListener(p2, GK_ON_MOUSE_MOVE, 0, onMouseMove, 0);
 		gkAddListener(p1, MY_EVENT, 0, onMyEvent, 0);
-		gkAddListener(panel, GK_ON_PANEL_RESIZED, 0, onPanelResize, 0);
-		gkSetMainPanel(panel);
+		gkAddListener(gkMainPanel, GK_ON_PANEL_RESIZED, 0, onPanelResize, 0);
 		gkSetWindowTitle(L"Simple panel");
 		gkSetWindowResizable(GK_TRUE);
 		gkSetScreenSize(GK_SIZE(1280,720));
@@ -545,8 +542,8 @@ int main(){
 //		}
 //		printResource(rc);
 //		gkRemoveFontResource(rc);
-//        snd = gkLoadSound("../demos/TestRun/cat.wav", GK_SOUND_STATIC);
-        snd = gkLoadSound("/media/DATA/mp3/WoW OST/World of Warcraft - Mists of Pandaria OST/01 - Heart of Pandaria.mp3", GK_SOUND_STREAM);
+        snd = gkLoadSound("../demos/TestRun/cat.wav", GK_SOUND_STATIC);
+//        snd = gkLoadSound("/media/DATA/mp3/WoW OST/World of Warcraft - Mists of Pandaria OST/01 - Heart of Pandaria.mp3", GK_SOUND_STREAM);
         sndInstance = gkCreateSoundSource();
 
         gkSetSoundGain(sndInstance, 1.0f);
@@ -555,8 +552,8 @@ int main(){
         gkPlaySound(snd, sndInstance);
 //        gkSetSoundOffset(sndInstance, 15.0f);
         gkSetMasterGain(1.0f);
-        gkAddListener(panel, GK_ON_MOUSE_DOWN, 0, onMouseStopSound, 0);
-        gkAddListener(panel, GK_ON_MOUSE_WHEEL, 0, onMouseVolumeSound, 0);
+        gkAddListener(gkMainPanel, GK_ON_MOUSE_DOWN, 0, onMouseStopSound, 0);
+        gkAddListener(gkMainPanel, GK_ON_MOUSE_WHEEL, 0, onMouseVolumeSound, 0);
 
         {
             gkTextFormat tf = gkDefaultTextFormat;
@@ -584,7 +581,6 @@ int main(){
 		gkRemoveFontResource(rc);
 		gkDestroyImage(img2);
 		gkDestroyImage(img);
-		gkDestroyPanel(panel);
 		gkDestroyPanel(p1);
 		gkDestroyPanel(p2);
 		gkDestroyPanel(vp);

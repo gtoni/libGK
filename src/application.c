@@ -19,6 +19,8 @@
  * SOFTWARE.
  */
 
+#define GK_INTERNAL
+
 #include "gk.h"
 #include "gk_internal.h"
 
@@ -96,6 +98,7 @@ GK_BOOL gkInit()
     gkKeyboard = (gkListenerList*)malloc(sizeof(gkListenerList));
     gkInitListenerList(gkMouse);
     gkInitListenerList(gkKeyboard);
+	gkMainPanel = gkCreatePanel();
     initGk();
     return GK_TRUE;
 }
@@ -103,6 +106,7 @@ GK_BOOL gkInit()
 void gkRun()
 {
     runGk();
+	gkDestroyPanel(gkMainPanel);
     gkCleanupListenerList(gkKeyboard);
     gkCleanupListenerList(gkMouse);
     free(gkKeyboard);
@@ -194,10 +198,7 @@ void gkSetScreenSize(gkSize size)
             XResizeWindow(display, gkWindow, size.width, size.height);
             XSync(display, True);
 #endif
-            if(gkMainPanel)
-            {
-                gkProcessLayoutMainPanel(gkMainPanel, size.width, size.height);
-            }
+            gkProcessLayoutMainPanel(gkMainPanel, size.width, size.height);
 
             updateGLSize(size);
 
@@ -484,24 +485,6 @@ GK_BOOL gkIsWindowResizable()
 {
     return gkWindowResizable;
 }
-
-
-void gkSetMainPanel(gkPanel* panel)
-{
-    gkMainPanel = panel;
-    if(gkMainPanel)
-    {
-        gkMainPanel->x = 0;
-        gkMainPanel->y = 0;
-        gkProcessLayoutMainPanel(gkMainPanel, gkScreenSize.width, gkScreenSize.height);
-    }
-}
-gkPanel* gkGetMainPanel()
-{
-    return gkMainPanel;
-}
-
-
 
 
 ///////////////////////////////
@@ -810,7 +793,7 @@ void initGk()
                               WGL_STENCIL_BITS_ARB,0,
                               WGL_DOUBLE_BUFFER_ARB,GL_TRUE,
                               WGL_SAMPLE_BUFFERS_ARB,GL_TRUE,
-                              WGL_SAMPLES_ARB, 4 ,						// Check For 2x Multisampling
+                              WGL_SAMPLES_ARB, 2 ,						// Check For 2x Multisampling
                               0,0
                             };
         if(wglChoosePixelFormatARB(hdc, iAttributes, fAttributes, 1, &pixelFormat, &numFormats))
@@ -926,10 +909,7 @@ void TimerUpdate(HWND wnd, UINT msg, UINT_PTR id, DWORD elapsed)
         if(sz.width != gkScreenSize.width || sz.height != gkScreenSize.height)
         {
             updateGLSize(sz);
-            if(gkMainPanel)
-            {
-                gkProcessLayoutMainPanel(gkMainPanel, sz.width, sz.height);
-            }
+            gkProcessLayoutMainPanel(gkMainPanel, sz.width, sz.height);
             gkScreenSize = sz;
         }
         loop();
@@ -1151,12 +1131,11 @@ void drawFrame()
     gkInFrame = GK_TRUE;
     td = (gkMilliseconds() - gkTimeSinceLastFrame);
     gkTimeSinceLastFrame = gkMilliseconds();
-    if(gkMainPanel)
-    {
-        gkProcessLayoutMainPanel(gkMainPanel, gkScreenSize.width, gkScreenSize.height);
-        gkProcessUpdatePanel(gkMainPanel);
-        gkProcessDrawPanel(gkMainPanel);
-    }
+
+	gkProcessLayoutMainPanel(gkMainPanel, gkScreenSize.width, gkScreenSize.height);
+    gkProcessUpdatePanel(gkMainPanel);
+    gkProcessDrawPanel(gkMainPanel);
+
     gkFpsAccum += td;
     gkFpsFrames++;
     if(gkFpsAccum>=gkFpsFreq)

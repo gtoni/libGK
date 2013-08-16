@@ -400,6 +400,8 @@ GK_READONLY int16_t numChildren;
     GK_BOOL mViewport;
 };
 
+extern gkPanel* gkMainPanel;
+
 gkPanel* gkCreatePanel();
 gkPanel* gkCreatePanelEx(size_t panelSize);
 
@@ -420,9 +422,6 @@ gkMatrix gkGlobalToLocal(gkPanel* panel);
 
 void gkSetFocus(gkPanel* panel);
 gkPanel* gkGetFocus();
-
-void gkSetMainPanel(gkPanel* panel);
-gkPanel* gkGetMainPanel();
 
 /************************************
 	Images

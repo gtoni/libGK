@@ -57,7 +57,7 @@ struct gkTimerRefStruct{
 gkTimerRef *gkTimers, *gkTimersLast;
 
 struct gkTimerStructEx{
-	gkListenerList listeners;
+	gkDispatcher dispatcher;
 	uint64_t delay;
 	uint32_t repeats;
 	uint64_t interval;
@@ -73,7 +73,7 @@ typedef struct gkTimerStructEx gkTimerEx;
 gkTimer* gkCreateTimer(){
 	gkTimerEx* timer = (gkTimerEx*)malloc(sizeof(gkTimerEx));
 	gkTimerRef* ref = (gkTimerRef*)malloc(sizeof(gkTimerRef));
-	gkInitListenerList(&timer->listeners);
+	gkInitDispatcher(&timer->dispatcher);
 	timer->delay = 0;
 	timer->repeats = 0;
 	timer->interval = 0;
@@ -106,7 +106,7 @@ void gkStopTimer(gkTimer* timer){
 
 void gkDestroyTimer(gkTimer* timer){
 	((gkTimerEx*)timer)->ref->timer = 0;
-	gkCleanupListenerList(&timer->listeners);
+	gkCleanupDispatcher(&timer->dispatcher);
 	free(timer);
 }
 

@@ -30,7 +30,7 @@
 #include <X11/Xlib.h>
 #endif
 
-gkListenerList *gkMouse = 0;
+gkDispatcher *gkMouse = 0;
 
 gkMouseState gkGlobalMouseState;
 
@@ -50,7 +50,7 @@ void gkSetMousePosition(float x, float y){
 }
 
 
-gkListenerList *gkKeyboard = 0;
+gkDispatcher *gkKeyboard = 0;
 
 gkKeyboardState gkGlobalKeyboardState;
 
@@ -83,7 +83,7 @@ void gkInitJoystick(){
 	HRESULT hr;
 	hr = DirectInput8Create(GetModuleHandle(0), DIRECTINPUT_VERSION, &IID_IDirectInput8, (void**)&gkDI,NULL);
 	if(FAILED(hr)){
-		printf("Could not create DirectInput8 interface");
+		printf("GK [ERROR]: Could not create DirectInput8 interface");
 		return;
 	}
 	gkJoysticks = 0;
@@ -169,7 +169,7 @@ uint32_t gkEnumJoysticks(){
 			LPDIRECTINPUTDEVICE8 joystick;
 			HRESULT hr = gkDI->lpVtbl->CreateDevice(gkDI, &p->guid, &joystick, NULL);
 			if(FAILED(hr)){
-				printf("Could not create Direct Input device");
+				printf("GK [ERROR]: Could not create Direct Input device");
 			}else{
 				gkJoystickExt* j = (gkJoystickExt*)malloc(sizeof(gkJoystickExt));
 				j->name = p->name;

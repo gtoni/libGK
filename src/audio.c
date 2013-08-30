@@ -79,7 +79,7 @@ static void removeSoundNode(struct gkSoundNode* node)
     free(node);
 }
 
-#define gkCheckALError() {int err; if((err = alGetError()) != AL_NO_ERROR) printf("AL Error %X\n", err); }
+#define gkCheckALError() {int err; if((err = alGetError()) != AL_NO_ERROR) printf("GK [ERROR]: AL Error %X\n", err); }
 
 static int fillBuffer(int buffer, gkSound* sound)
 {
@@ -154,7 +154,7 @@ void gkInitAudio()
 {
     if(!(device = alcOpenDevice(NULL)))
     {
-        printf("OpenAL: Failed to open device\n");
+        printf("GK [ERROR]: OpenAL: Failed to open device\n");
     }
     ctx = alcCreateContext(device, NULL);
     if(ctx)
@@ -162,7 +162,7 @@ void gkInitAudio()
         alcMakeContextCurrent(ctx);
     }else
     {
-        printf("Failed to create audio context");
+        printf("GK [ERROR]: Failed to create audio context");
     }
 
     updateAudioTimer = gkCreateTimer();
@@ -260,7 +260,7 @@ gkSoundSource* gkCreateSoundSource()
 {
     gkSoundSource* source = (gkSoundSource*)malloc(sizeof(gkSoundSource));
 
-    gkInitListenerList(&source->listeners);
+    gkInitDispatcher(&source->dispatcher);
 
     alGenSources(1, &source->id);
 
@@ -278,7 +278,7 @@ gkSoundSource* gkCreateSoundSource()
 
 void gkDestroySoundSource(gkSoundSource* source)
 {
-    gkCleanupListenerList(&source->listeners);
+    gkCleanupDispatcher(&source->dispatcher);
     alDeleteSources(1, &source->id);
     free(source);
 }

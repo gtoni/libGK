@@ -31,7 +31,7 @@
 #define GK_FLOAT_PI     3.14159265358979323846f
 
 struct gkTweenStruct{
-	gkListenerList listeners;
+	gkDispatcher listeners;
 	void* var;
 	uint32_t transitionType;
 	uint64_t transitionTime;
@@ -91,7 +91,7 @@ void gkInitTweens(){
 
 void gkDestroyTween(gkTweenRef* tweenRef){
 	gkTweenEx* tween = tweenRef->tween;
-	gkCleanupListenerList(&tween->listeners);
+	gkCleanupDispatcher(&tween->listeners);
 	free(tween);
 	tweenRef->tween = 0;
 }
@@ -101,7 +101,7 @@ gkTween* CDECL gkAddTween(void* var, uint32_t transitionType, uint64_t transitio
 	gkTweenEx* tween = (gkTweenEx*)malloc(sizeof(gkTweenEx));
 	gkTweenRef* tweenRef = (gkTweenRef*)malloc(sizeof(gkTweenRef));
 	gkRemoveTweens(var, sizeof(void*));	/* Remove any previous tweens on the same variable */
-	gkInitListenerList(&tween->listeners);
+	gkInitDispatcher(&tween->listeners);
 	tween->var = var;
 	tween->transitionType = transitionType;
 	tween->transitionTime = transitionTime;

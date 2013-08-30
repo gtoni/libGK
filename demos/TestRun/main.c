@@ -542,12 +542,12 @@ int main(){
 //		}
 //		printResource(rc);
 //		gkRemoveFontResource(rc);
-        snd = gkLoadSound("../demos/TestRun/cat.wav", GK_SOUND_STATIC);
+        snd = gkLoadSound("../demos/TestRun/Adrenaline.wav", GK_SOUND_STATIC);
 //        snd = gkLoadSound("/media/DATA/mp3/WoW OST/World of Warcraft - Mists of Pandaria OST/01 - Heart of Pandaria.mp3", GK_SOUND_STREAM);
         sndInstance = gkCreateSoundSource();
 
         gkSetSoundGain(sndInstance, 1.0f);
-//        gkSetSoundLooping(sndInstance, GK_TRUE);
+        gkSetSoundLooping(sndInstance, GK_TRUE);
 
         gkPlaySound(snd, sndInstance);
 //        gkSetSoundOffset(sndInstance, 15.0f);

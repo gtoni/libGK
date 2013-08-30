@@ -33,16 +33,16 @@ struct gkEventListener
 };
 
 
-void gkInitListenerList(gkListenerList* listeners)
+void gkInitDispatcher(gkDispatcher* dispatcher)
 {
-    listeners->ptr = 0;
+    dispatcher->listeners = 0;
 }
 
-void gkCleanupListenerList(gkListenerList* listeners)
+void gkCleanupDispatcher(gkDispatcher* dispatcher)
 {
-    if(listeners->ptr)
+    if(dispatcher->listeners)
     {
-        listenerNode* node = listeners->ptr, *p;
+        listenerNode* node = dispatcher->listeners, *p;
         while(node)
         {
             node = (p = node)->next;
@@ -51,20 +51,20 @@ void gkCleanupListenerList(gkListenerList* listeners)
     }
 }
 
-void gkAddListener(gkListenerListPointer pListeners, int type, short priority, gkEventListenerFunc func, void* param)
+void gkAddListener(gkDispatcherHandle pDispatcher, int type, short priority, gkEventListenerFunc func, void* param)
 {
-    gkListenerList* listeners = (gkListenerList*) pListeners;
+    gkDispatcher* dispatcher = (gkDispatcher*) pDispatcher;
     listenerNode* listener = (listenerNode*)malloc(sizeof(listenerNode));
     listener->type = type;
     listener->priority = priority;
     listener->func = func;
     listener->param = param;
     listener->next = 0;
-    gkRemoveListener(listeners, type, func, param);
-    if(listeners->ptr)
+    gkRemoveListener(dispatcher, type, func, param);
+    if(dispatcher->listeners)
     {
         listenerNode* node, *prev = 0;
-        for(node = listeners->ptr; node; node = (prev = node)->next)
+        for(node = dispatcher->listeners; node; node = (prev = node)->next)
         {
             if(listener->priority > node->priority)
             {
@@ -75,7 +75,7 @@ void gkAddListener(gkListenerListPointer pListeners, int type, short priority, g
                 }
                 else
                 {
-                    listeners->ptr = listener;
+                    dispatcher->listeners = listener;
                     listener->next = node;
                 }
                 break;
@@ -89,17 +89,17 @@ void gkAddListener(gkListenerListPointer pListeners, int type, short priority, g
     }
     else
     {
-        listeners->ptr = listener;
+        dispatcher->listeners = listener;
     }
 }
 
-void gkRemoveListener(gkListenerListPointer pListeners, int type, gkEventListenerFunc func, void* param)
+void gkRemoveListener(gkDispatcherHandle pDispatcher, int type, gkEventListenerFunc func, void* param)
 {
-    gkListenerList* listeners = (gkListenerList*) pListeners;
-    if(listeners->ptr)
+    gkDispatcher* dispatcher = (gkDispatcher*) pDispatcher;
+    if(dispatcher->listeners)
     {
         listenerNode* node, *prev = 0;
-        for(node = listeners->ptr; node; node = (prev = node)->next)
+        for(node = dispatcher->listeners; node; node = (prev = node)->next)
         {
             if(node->type == type && node->func == func && node->param == param)
             {
@@ -110,7 +110,7 @@ void gkRemoveListener(gkListenerListPointer pListeners, int type, gkEventListene
                 }
                 else
                 {
-                    listeners->ptr = node->next;
+                    dispatcher->listeners = node->next;
                     free(node);
                 }
                 break;
@@ -119,13 +119,13 @@ void gkRemoveListener(gkListenerListPointer pListeners, int type, gkEventListene
     }
 }
 
-int gkHasListeners(gkListenerListPointer pListeners, int type)
+int gkHasListeners(gkDispatcherHandle pDispatcher, int type)
 {
-    gkListenerList* listeners = (gkListenerList*) pListeners;
-    if(listeners->ptr)
+    gkDispatcher* dispatcher = (gkDispatcher*) pDispatcher;
+    if(dispatcher->listeners)
     {
         listenerNode* listener;
-        for(listener = (listenerNode*)listeners->ptr; listener; listener = listener->next)
+        for(listener = (listenerNode*)dispatcher->listeners; listener; listener = listener->next)
         {
             if(listener->type == type) return 1;
         }
@@ -133,12 +133,12 @@ int gkHasListeners(gkListenerListPointer pListeners, int type)
     return 0;
 }
 
-GK_BOOL gkDispatch(gkListenerListPointer pListeners, gkEventPointer eventPtr)
+GK_BOOL gkDispatch(gkDispatcherHandle pDispatcher, gkEventHandle eventPtr)
 {
-    gkListenerList* listeners = (gkListenerList*) pListeners;
+    gkDispatcher* dispatcher = (gkDispatcher*) pDispatcher;
     GK_BOOL result = GK_TRUE;
     gkEvent* eventData = (gkEvent*)eventPtr;
-    if(listeners->ptr)
+    if(dispatcher->listeners)
     {
         struct callNode
         {
@@ -148,7 +148,7 @@ GK_BOOL gkDispatch(gkListenerListPointer pListeners, gkEventPointer eventPtr)
         };
         struct callNode* callList = 0, *pnode = 0, *cnode;
         listenerNode* listener;
-        for(listener = (listenerNode*)listeners->ptr; listener; listener = listener->next)
+        for(listener = (listenerNode*)dispatcher->listeners; listener; listener = listener->next)
         {
             if(listener->type == eventData->type)
             {

@@ -277,19 +277,19 @@ void gkInitDrawToImageBuffer(gkSize size){
 		if(status != GL_FRAMEBUFFER_COMPLETE_EXT){
 			switch(status){
 				case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
-					printf("GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT\n");
+					printf("GK [ERROR]: InitDrawToImageBuffer GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT\n");
 					break;
 				case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:
-					printf("GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT\n");
+					printf("GK [ERROR]: InitDrawToImageBuffer GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT\n");
 					break;
 				case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:
-					printf("GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT\n");
+					printf("GK [ERROR]: InitDrawToImageBuffer GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT\n");
 					break;
 				case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:
-					printf("GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT\n");
+					printf("GK [ERROR]: InitDrawToImageBuffer GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT\n");
 					break;
 				case GL_FRAMEBUFFER_UNSUPPORTED_EXT:
-					printf("GL_FRAMEBUFFER_UNSUPPORTED_EXT\n");
+					printf("GK [ERROR]: InitDrawToImageBuffer GL_FRAMEBUFFER_UNSUPPORTED_EXT\n");
 					break;
 			}
 			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
@@ -322,9 +322,9 @@ void gkInitDrawToImageBuffer(gkSize size){
 		}
 	}
 
-	if(gkUseFBO) printf("Using FBO\n");
-	else if(gkUseAuxBuffer) printf("Using aux buffer\n");
-	else if(gkUseTexCopy) printf("Using TexCopy\n");
+	if(gkUseFBO) printf("GK [INFO]: Using FBO\n");
+	else if(gkUseAuxBuffer) printf("GK [INFO]: Using aux buffer\n");
+	else if(gkUseTexCopy) printf("GK [INFO]: Using TexCopy\n");
 }
 
 void gkCleanupDrawToImageBuffer(){
@@ -402,7 +402,7 @@ void gkEndDrawToImage(){
 	gkTransformNode *transformNode;
 
 	if(gkImageToDraw == 0){
-		printf("No target image to draw to\n");
+		printf("GK [ERROR]: No target image to draw to\n");
 		return;
 	}
 

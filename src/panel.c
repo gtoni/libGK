@@ -45,7 +45,7 @@ gkPanel* gkCreatePanel()
 
 gkPanel* gkCreatePanelEx(size_t panelSize){
 	gkPanel* panel = (gkPanel*)malloc(panelSize);
-	gkInitListenerList(&panel->listeners);
+	gkInitDispatcher(&panel->dispatcher);
 	panel->x = 0;
 	panel->y = 0;
 	panel->width = 0;
@@ -103,7 +103,7 @@ void gkDestroyPanel(gkPanel* panel){
 	}else{
 		if(panel->parent) gkRemoveChild(panel);
 		if(gkFocusPanel == panel) gkSetFocus(0);
-		gkCleanupListenerList(&panel->listeners);
+		gkCleanupDispatcher(&panel->dispatcher);
 		for(p = panel->mChildren.first; p; p = panel->mNextChild){
 			panel->mNextChild = p->mNext;
 			p->parent = 0;

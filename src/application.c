@@ -94,10 +94,10 @@ GK_BOOL gkInit()
 {
     gkActive = GK_TRUE;
     gkFullscreen = GK_FALSE;
-    gkMouse = (gkListenerList*)malloc(sizeof(gkListenerList));
-    gkKeyboard = (gkListenerList*)malloc(sizeof(gkListenerList));
-    gkInitListenerList(gkMouse);
-    gkInitListenerList(gkKeyboard);
+    gkMouse = (gkDispatcher*)malloc(sizeof(gkDispatcher));
+    gkKeyboard = (gkDispatcher*)malloc(sizeof(gkDispatcher));
+    gkInitDispatcher(gkMouse);
+    gkInitDispatcher(gkKeyboard);
 	gkMainPanel = gkCreatePanel();
     initGk();
     return GK_TRUE;
@@ -107,8 +107,8 @@ void gkRun()
 {
     runGk();
 	gkDestroyPanel(gkMainPanel);
-    gkCleanupListenerList(gkKeyboard);
-    gkCleanupListenerList(gkMouse);
+    gkCleanupDispatcher(gkKeyboard);
+    gkCleanupDispatcher(gkMouse);
     free(gkKeyboard);
     free(gkMouse);
 }
@@ -764,20 +764,20 @@ void initGk()
 
 	if(!(p = ChoosePixelFormat(hdc, &pfd)))
 	{
-		printf("Count not Choose pixel format\n");
+		printf("GK [ERROR]: Could not Choose pixel format\n");
 	}
 	if(!SetPixelFormat(hdc, p, &pfd))
 	{
-		printf("Could not set pixel format\n");
+		printf("GK [ERROR]: Could not set pixel format\n");
 	}
 
     if(!(hglrc = wglCreateContext(hdc)))
     {
-        printf("Count not create context\n");
+        printf("GK [ERROR]: Could not create context\n");
     }
     if(!wglMakeCurrent(hdc, hglrc))
     {
-        printf("Count not set current context\n");
+        printf("GK [ERROR]: Could not set current context\n");
     }
 
     if(GLEE_WGL_ARB_pixel_format)
@@ -807,27 +807,27 @@ void initGk()
 
 			if(!SetPixelFormat(hdc, pixelFormat, &pfd))
 			{
-				printf("MS: Could not set pixel format\n");
+				printf("GK [ERROR]: (WGL) Could not set pixel format\n");
 			}
 
 			if(!(hglrc = wglCreateContext(hdc)))
 			{
-				printf("MS: Count not create context\n");
+				printf("GK [ERROR]: (WGL) Count not create context\n");
 			}
 			if(!wglMakeCurrent(hdc, hglrc))
 			{
-				printf("MS: Count not set current context\n");
+				printf("GK [ERROR]: (WGL) Count not set current context\n");
 			}
-			printf("Use multisampling\n");
+			printf("GK [INFO]: Use multisampling\n");
 			glEnable(GL_MULTISAMPLE);
 		}
 		else
 		{
-			printf("No multisampling!\n");
+			printf("GK [INFO]: No multisampling!\n");
 		}
 	}else
 	{
-		printf("No WGL_ARB_pixel_format\n");
+		printf("GK [INFO]: WGL_ARB_pixel_format extension not supported!\n");
 	}
 #else
     int glAttribs[] = { GLX_RGBA, GLX_DEPTH_SIZE, 16, GLX_DOUBLEBUFFER, GLX_ALPHA_SIZE, 8, GLX_SAMPLE_BUFFERS, 1, GLX_SAMPLES, 2, None };
@@ -848,9 +848,9 @@ void initGk()
     vi = glXChooseVisual(display, screen, glAttribs);
     if(vi == 0)
     {
-        printf("No appropriate visual found\n");
+        printf("GK [ERROR]: (X) No appropriate visual found\n");
     }else{
-        printf("visual %p selected\n", (void*)vi->visualid);
+        printf("GK [INFO]: (X) visual %p selected\n", (void*)vi->visualid);
     }
 
     cmap = XCreateColormap(display, root, vi->visual, AllocNone);
@@ -868,10 +868,10 @@ void initGk()
 
     if(glXIsDirect(display, glCtx))
     {
-        printf("Direct GLX\n");
+        printf("GK [INFO]: Direct GLX\n");
     }else
     {
-        printf("Not direct GLX\n");
+        printf("GK [INFO]: Not direct GLX\n");
     }
 
     XMapWindow(display, gkWindow);
@@ -1055,7 +1055,7 @@ static void processEvent(XEvent* event)
         {
             XLowerWindow(display, gkWindow);
             XSync(display, True);
-            printf("Alt + F4 clicked");
+            printf("GK [INFO]: Alt + F4 clicked, exiting...");
             gkExit();
         }
         else if(event->xkey.keycode == GK_KEY_TAB && gkGlobalKeyboardState.keys[GK_KEY_LALT])
@@ -1068,7 +1068,7 @@ static void processEvent(XEvent* event)
         onWindowKeyUp(event->xkey.keycode, event->xkey.state);
     }else
     {
-        printf("%d\n", event->type);
+        printf("GK [DEBUG]: Unknown event %d\n", event->type);
     }
 }
 #endif

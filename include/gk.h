@@ -25,7 +25,7 @@
 #ifdef GK_INTERNAL
 #define GK_READONLY
 #else
-#define GK_READONLY const
+#define GK_READONLY /*const*/
 #endif
 
 #include <memory.h>
@@ -79,26 +79,25 @@
 
 	Some useful geometric structures and functions
 */
-struct gkPointStruct{
+typedef struct gkPoint
+{
 	float x,y;
-};
+}gkPoint;
 
-struct gkSizeStruct{
+typedef struct gkSize
+{
 	float width, height;
-};
+}gkSize;
 
-struct gkRectStruct{
+typedef struct gkRect
+{
 	float x,y,width,height;
-};
+}gkRect;
 
-struct gkMatrixStruct{
+typedef struct gkMatrix
+{
 	float data[9];
-};
-
-typedef struct gkPointStruct	gkPoint;
-typedef struct gkSizeStruct		gkSize;
-typedef struct gkRectStruct		gkRect;
-typedef struct gkMatrixStruct	gkMatrix;
+}gkMatrix;
 
 gkPoint	GK_POINT(float x, float y);
 gkSize	GK_SIZE(float width, float height);
@@ -133,8 +132,8 @@ void	gkExit();
 
 wchar_t* gkGetAppDir();
 void	gkSetTargetFps(int targetFps);
-int	gkGetTargetFps();
-int	gkGetFps();
+int		gkGetTargetFps();
+int		gkGetFps();
 
 void	gkSetScreenSize(gkSize size);
 gkSize	gkGetScreenSize();
@@ -168,22 +167,22 @@ GK_BOOL	gkIsWindowResizable();
 GK_EVENT(gkEvent)
 GK_EVENT_END()
 
+typedef struct gkDispatcher
+{
+	struct gkEventListener* listeners;
+} gkDispatcher;
+
+typedef void* gkDispatcherHandle;
+typedef void* gkEventHandle;
+
 typedef GK_BOOL (*gkEventListenerFunc)(gkEvent* eventData, void* param);
 
-struct gkListenerListStruct{
-	void* ptr;
-};
-typedef struct gkListenerListStruct gkListenerList;
-
-typedef void* gkListenerListPointer;
-typedef void* gkEventPointer;
-
-void	gkInitListenerList(gkListenerList* listeners);
-void	gkCleanupListenerList(gkListenerList* listeners);
-void	gkAddListener(gkListenerListPointer listeners, int type, short priority, gkEventListenerFunc listener, void* param);
-void	gkRemoveListener(gkListenerListPointer listeners, int type, gkEventListenerFunc listener, void* param);
-GK_BOOL	gkHasListeners(gkListenerListPointer listeners, int type);
-GK_BOOL	gkDispatch(gkListenerListPointer listeners, gkEventPointer eventData);
+void	gkInitDispatcher(gkDispatcher* listeners);
+void	gkCleanupDispatcher(gkDispatcher* listeners);
+void	gkAddListener(gkDispatcherHandle listeners, int type, short priority, gkEventListenerFunc listener, void* param);
+void	gkRemoveListener(gkDispatcherHandle listeners, int type, gkEventListenerFunc listener, void* param);
+GK_BOOL	gkHasListeners(gkDispatcherHandle listeners, int type);
+GK_BOOL	gkDispatch(gkDispatcherHandle listeners, gkEventHandle eventData);
 
 
 /************************************
@@ -203,12 +202,12 @@ GK_BOOL	gkDispatch(gkListenerListPointer listeners, gkEventPointer eventData);
 
 #define GK_MAX_MOUSE_BUTTONS 3
 
-struct gkMouseStateStruct{
+typedef struct gkMouseState
+{
 	gkPoint position;
 	GK_BOOL buttons[GK_MAX_MOUSE_BUTTONS];
 	int32_t wheel;
-};
-typedef struct gkMouseStateStruct gkMouseState;
+} gkMouseState;
 
 GK_EVENT(gkMouseEvent)
 	uint8_t button;
@@ -216,7 +215,7 @@ GK_EVENT(gkMouseEvent)
 	gkPoint position;
 GK_EVENT_END()
 
-extern gkListenerList *gkMouse;
+extern gkDispatcher *gkMouse;
 
 void gkGetMouseState(gkMouseState* mouseState);
 void gkSetMousePosition(float x, float y);
@@ -232,23 +231,23 @@ void gkSetMousePosition(float x, float y);
 
 #define GK_MAX_KEYBOARD_KEYS 256
 
-struct gkKeyStruct{
+typedef struct gkKey
+{
 	uint16_t code;
 	uint16_t modifiers;
-};
-typedef struct gkKeyStruct gkKey;
+}gkKey;
 
-struct gkKeyboardStateStruct{
+typedef struct gkKeyboardState
+{
 	GK_BOOL keys[GK_MAX_KEYBOARD_KEYS];
-};
-typedef struct gkKeyboardStateStruct gkKeyboardState;
+}gkKeyboardState;
 
 GK_EVENT(gkKeyboardEvent)
 	gkKey key;
 	wchar_t character;
 GK_EVENT_END()
 
-extern gkListenerList* gkKeyboard;
+extern gkDispatcher* gkKeyboard;
 
 void gkGetKeyboardState(gkKeyboardState* keyboardState);
 
@@ -257,11 +256,11 @@ void gkGetKeyboardState(gkKeyboardState* keyboardState);
 
 #define GK_JOYSTICK_XBOX360		1
 
-struct gkJoystickStruct{
+typedef struct gkJoystick
+{
 	wchar_t* name;
 	uint8_t flags;
-};
-typedef struct gkJoystickStruct gkJoystick;
+}gkJoystick;
 
 extern gkJoystick** gkJoysticks;
 
@@ -280,25 +279,30 @@ uint32_t gkEnumJoysticks();
 #define GK_JOYSTICK_POV_LEFT	GK_JOYSTICK_POV_W
 #define GK_JOYSTICK_POV_RIGHT	GK_JOYSTICK_POV_E
 
-struct gkJoystickStateStruct{
-	struct{
+typedef struct gkJoystickState
+{
+	struct
+	{
 		float x,y,z;
 	}left;
-	struct{
+	struct
+	{
 		float x,y,z;
 	}right;
 	GK_BOOL	 buttons[32];
 	uint32_t pov[4];
 	float	 sliders[2];
-};
-typedef struct gkJoystickStateStruct gkJoystickState;
+}gkJoystickState;
 
-struct gkXBox360ControllerStateStruct{
-	struct{
+typedef struct gkXBox360ControllerState
+{
+	struct
+	{
 		float x,y;
 	}leftStick;
 	float triggerZ;
-	struct{
+	struct
+	{
 		float x,y,unused;
 	}rightStick;
 	GK_BOOL buttonA;
@@ -313,8 +317,7 @@ struct gkXBox360ControllerStateStruct{
 	uint32_t pov;
 	uint32_t unusedPov[3];
 	float unusedSliders[2];
-};
-typedef struct gkXBox360ControllerStateStruct gkXBox360ControllerState;
+}gkXBox360ControllerState;
 
 void gkGetJoystickState(gkJoystick* joystick, gkJoystickState* state);
 
@@ -324,10 +327,10 @@ void gkGetJoystickState(gkJoystick* joystick, gkJoystickState* state);
 	Types and functions for drawing graphics
 */
 
-struct gkColorStruct{
+typedef struct gkColor
+{
 	float r,g,b,a;
-};
-typedef struct gkColorStruct gkColor;
+}gkColor;
 
 gkColor GK_COLOR(float r, float g, float b, float a);
 
@@ -365,14 +368,15 @@ void gkDrawPath(gkPoint* points, int count, GK_BOOL polygon);
 #define GK_ON_PANEL_FOCUS_IN	(GK_PANEL_EVENT_BASE + 4)
 #define GK_ON_PANEL_FOCUS_OUT	(GK_PANEL_EVENT_BASE + 5)
 
-typedef struct gkPanelStruct gkPanel;
+typedef struct gkPanel gkPanel;
 
 typedef void (*gkPanelLayoutFunc)(gkPanel* panel, gkRect* clientRect);
 typedef void (*gkPanelUpdateFunc)(gkPanel* panel);
 typedef void (*gkPanelDrawFunc)(gkPanel* panel);
 
-struct gkPanelStruct{
-	gkListenerList listeners;
+struct gkPanel
+{
+	gkDispatcher dispatcher;
 	float x,y,width,height;
 	gkMatrix transform;
 	float anchorX, anchorY;
@@ -390,7 +394,8 @@ GK_READONLY gkPanel* parent;
 GK_READONLY int16_t numChildren;
 
 /* INTERNALS */
-    struct{
+    struct
+	{
         gkPanel *first, *last;
     }mChildren;
     gkPanel* mNext;
@@ -434,12 +439,12 @@ gkPanel* gkGetFocus();
 #define GK_BGRA		2
 #define GK_BGR		3
 
-struct gkImageStruct{
+typedef struct gkImage
+{
 	uint32_t id;
 	uint16_t width;
 	uint16_t height;
-};
-typedef struct gkImageStruct gkImage;
+}gkImage;
 
 gkImage* gkLoadImage(wchar_t* filaname);
 gkImage* gkCreateImage(int width, int height);
@@ -475,25 +480,26 @@ void gkDestroyImage(gkImage* image);
 #define	GK_FONT_BOLD		2
 #define	GK_FONT_BOLD_ITALIC	3
 
-struct gkFontFaceStruct{
-	const char* fontFamily;
-	const uint8_t style;
-};
-typedef struct gkFontFaceStruct gkFontFace;
+typedef struct gkFontFace
+{
+	GK_READONLY char* fontFamily;
+	GK_READONLY uint8_t style;
+}gkFontFace;
 
-struct gkFontResourceStruct{
-	const uint8_t numFaces;
-	gkFontFace **const faces;
-};
-typedef struct gkFontResourceStruct gkFontResource;
+typedef struct gkFontResource
+{
+	GK_READONLY uint8_t numFaces;
+	GK_READONLY gkFontFace **GK_READONLY faces;
+}gkFontResource;
 
-struct gkFontStruct{
-	gkFontFace *const face;
-	const uint16_t size;
-};
-typedef struct gkFontStruct gkFont;
+typedef struct gkFont
+{
+	GK_READONLY gkFontFace *GK_READONLY face;
+	GK_READONLY uint16_t size;
+}gkFont;
 
-struct gkTextFormatStruct{
+typedef struct gkTextFormat
+{
 	uint8_t align;
 	uint8_t valign;
 	GK_BOOL wordWrap;
@@ -506,8 +512,7 @@ struct gkTextFormatStruct{
 	gkColor textColor;
 	gkColor strokeColor;
 	GK_BOOL vertical;
-};
-typedef struct gkTextFormatStruct gkTextFormat;
+}gkTextFormat;
 
 extern gkTextFormat gkDefaultTextFormat;
 
@@ -531,23 +536,23 @@ void gkDrawText(gkFont* font, wchar_t* text, float x, float y, gkTextFormat* for
 #include "gkaudio.h"
 #endif
 
-struct gkSoundStruct{
+typedef struct gkSound
+{
     float length;
     GK_BOOL seekable;
 #ifdef GK_INTERNAL
     struct gkSoundInternal internal;
 #endif
-};
-typedef struct gkSoundStruct gkSound;
+}gkSound;
 
 
 #define GK_SOUND_STATE_IDLE         0
 #define GK_SOUND_STATE_PLAYING      1
 #define GK_SOUND_STATE_PAUSED       2
 
-struct gkSoundSourceStruct
+typedef struct gkSoundSource
 {
-    gkListenerList listeners;
+    gkDispatcher dispatcher;
 
 GK_READONLY int id;
 GK_READONLY uint8_t state;
@@ -555,9 +560,7 @@ GK_READONLY gkSound* sound;
 #ifdef GK_INTERNAL
     struct gkSoundSourceInternal internal;
 #endif
-};
-typedef struct gkSoundSourceStruct gkSoundSource;
-
+}gkSoundSource;
 
 
 #define GK_SOUND_EVENT_BASE    150
@@ -604,15 +607,15 @@ float gkGetMasterGain();
 
 uint64_t gkMilliseconds();
 
-struct gkTimerStruct{
-	gkListenerList listeners;
+typedef struct gkTimer
+{
+	gkDispatcher dispatcher;
 	uint64_t delay;
 	uint32_t repeats;
 	uint64_t interval;
 GK_READONLY GK_BOOL running;
 GK_READONLY GK_BOOL autoDestroy;
-};
-typedef struct gkTimerStruct gkTimer;
+}gkTimer;
 
 gkTimer* gkCreateTimer();
 void gkStartTimer(gkTimer* timer, GK_BOOL autoDestroy);
@@ -644,7 +647,7 @@ GK_EVENT_END()
 #define GK_TWEEN_EASE_IN_BOUNCE		7
 #define GK_TWEEN_EASE_OUT_BOUNCE	8
 
-typedef gkListenerList gkTween;
+typedef gkDispatcher gkTween;
 
 #ifdef GK_LINUX
 #define CDECL

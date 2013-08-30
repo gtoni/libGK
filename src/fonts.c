@@ -19,6 +19,8 @@
  * SOFTWARE.
  */
 
+#define GK_INTERNAL
+
 #include "gk.h"
 #include "gk_internal.h"
 
@@ -113,26 +115,14 @@ struct gkFontFaceStructEx{
 };
 typedef struct gkFontFaceStructEx gkFontFaceEx;
 
-typedef struct gkFontResourceStructEx gkFontResourceEx;
-struct gkFontResourceStructEx{
-	uint8_t numFaces;
-	gkFontFace **faces;
-};
-
 typedef struct gkFontRcRefStruct gkFontRcRef;
 struct gkFontRcRefStruct{
-	gkFontResourceEx* resource;
+	gkFontResource* resource;
 	gkFontRcRef* next;
 };
 gkFontRcRef* gkFontResources, *gkFontResourcesTop;
 
-struct gkFontStructEx{
-	gkFontFace *face;
-	uint16_t size;
-};
-typedef struct gkFontStructEx gkFontEx;
-
-void gkInitFont(gkFontEx* font);
+void gkInitFont(gkFont* font);
 void gkDestroyFace(gkFontFaceEx* face);
 
 gkGlyphCollection* gkGetGlyphCollection(gkFont* font, float strokeSize);
@@ -148,7 +138,7 @@ void gkDestroyGlyph(gkGlyph* glyph);
 void gkInitFonts(){
 	FT_Error err = FT_Init_FreeType(&ftlib);
 	if(err){
-		printf("FreeType2 could not be initializeed.");
+		printf("GK [ERROR]: FreeType2 could not be initializeed.\n");
 		gkExit();
 	}
 	gkFontResources = 0;
@@ -157,7 +147,7 @@ void gkInitFonts(){
 
 gkFontResource* gkAddFontResource(char* filename){
 	FT_Face face;
-	gkFontResourceEx *resource = 0;
+	gkFontResource *resource = 0;
 	gkFontRcRef* ref;
 	gkFontFaceEx* f;
 	int i = 0;
@@ -165,10 +155,11 @@ gkFontResource* gkAddFontResource(char* filename){
 	do{
 		error = FT_New_Face(ftlib, filename, i, &face);
 		if(error){
+			printf("GK [ERROR]: Could not load font resource %s\n", filename);
 			return 0;
 		}
 		if(resource == 0){
-			resource = (gkFontResourceEx*)malloc(sizeof(gkFontResourceEx));
+			resource = (gkFontResource*)malloc(sizeof(gkFontResource));
 			resource->numFaces = (uint8_t)face->num_faces;
 			resource->faces = (gkFontFace**)calloc(face->num_faces, sizeof(gkFontFaceEx*));
 			ref = (gkFontRcRef*)malloc(sizeof(gkFontRcRef));
@@ -188,7 +179,7 @@ gkFontResource* gkAddFontResource(char* filename){
 		f->collections = 0;
 		i++;
 	}while(i<resource->numFaces);
-	return (gkFontResource*)resource;
+	return resource;
 }
 
 void gkRemoveFontResource(gkFontResource* rc){
@@ -196,7 +187,7 @@ void gkRemoveFontResource(gkFontResource* rc){
 	gkFontFaceEx* face;
 	int i;
 	while(ref){
-		if(ref->resource == (gkFontResourceEx*)rc){
+		if(ref->resource == rc){
 			p = ref;
 			for(i = 0; i<rc->numFaces; i++){
 				face = (gkFontFaceEx*)rc->faces[i];
@@ -219,9 +210,9 @@ void gkRemoveFontResource(gkFontResource* rc){
 }
 
 gkFont* gkCreateFont(char* family, uint16_t size, uint8_t style){
-	gkFontEx* font;
+	gkFont* font;
 	gkFontRcRef* p = gkFontResources;
-	gkFontResourceEx* resource;
+	gkFontResource* resource;
 	gkFontFaceEx* face;
 	int i;
 	while(p){
@@ -229,11 +220,11 @@ gkFont* gkCreateFont(char* family, uint16_t size, uint8_t style){
 		for(i = 0; i<resource->numFaces; i++){
 			face = (gkFontFaceEx*)resource->faces[i];
 			if(stricmp(face->fontFamily, family) == 0 && face->style == style){
-				font = (gkFontEx*)malloc(sizeof(gkFontEx));
+				font = (gkFont*)malloc(sizeof(gkFont));
 				font->face = (gkFontFace*)face;
 				font->size = size;
 				gkInitFont(font);
-				return (gkFont*)font;
+				return font;
 			}
 		}
 		p = p->next;
@@ -266,7 +257,7 @@ void gkCleanupFonts(){
 	ftlib = 0;
 }
 
-void gkInitFont(gkFontEx* font){
+void gkInitFont(gkFont* font){
 }
 
 
@@ -277,7 +268,7 @@ void gkInitFont(gkFontEx* font){
 #define GK_MIN_FONT_TEX_SIZE	64
 #define GK_MAX_FONT_TEX_SIZE	1024
 
-void gkInitGlyphCollection(gkGlyphCollection* collection, gkFontEx* font, float strokeSize);
+void gkInitGlyphCollection(gkGlyphCollection* collection, gkFont* font, float strokeSize);
 GK_BOOL gkTestCollection(gkGlyphCollection* collection, int glyphW, int glyphH);
 gkGlyph* gkMakeGlyph(FT_Face face, gkGlyphCollection* collection, gkGlyphSet* glyphSet, int index);
 void gkGetCellPos(gkGlyphCollection* collection, int index, int *x, int *y);
@@ -302,7 +293,7 @@ gkGlyphCollection* gkGetGlyphCollection(gkFont* font, float strokeSize){
 		}
 	}
 	p = (gkGlyphCollection*)malloc(sizeof(gkGlyphCollection));
-	gkInitGlyphCollection(p, (gkFontEx*)font, strokeSize);
+	gkInitGlyphCollection(p, (gkFont*)font, strokeSize);
 	if(face->collections){
 		p->next = face->collections;
 	}
@@ -310,7 +301,7 @@ gkGlyphCollection* gkGetGlyphCollection(gkFont* font, float strokeSize){
 	return p;
 }
 
-void gkInitGlyphCollection(gkGlyphCollection* collection, gkFontEx* font, float strokeSize){
+void gkInitGlyphCollection(gkGlyphCollection* collection, gkFont* font, float strokeSize){
 	int Gw, Gh;
 	FT_Face face = ((gkFontFaceEx*)font->face)->ftface;
 	Gw = FT_MulFix(face->bbox.xMax - face->bbox.xMin, face->size->metrics.x_scale)/64 + (int)strokeSize;
@@ -335,7 +326,7 @@ void gkInitGlyphCollection(gkGlyphCollection* collection, gkFontEx* font, float 
 			collection->setBits--;
 			collection->texWidth = collection->texHeight = GK_MIN_FONT_TEX_SIZE;
 		}else{
-			printf("font error\n");
+			printf("GK [ERROR]: font error\n");
 		}
 	}
 }
@@ -768,12 +759,13 @@ void gkFreeSentenceElements(gkSentenceElement* elements){
 
 gkSentenceLine* gkParseSentenceLines(gkSentenceElement* elements, gkTextFormat* format){
 	gkSentenceElement* currentElement = elements;
-	gkSentenceLine *firstLine = (gkSentenceLine*)malloc(sizeof(gkSentenceLine)), *current = firstLine;
+	gkSentenceLine *firstLine = (gkSentenceLine*)malloc(sizeof(gkSentenceLine)), *current = firstLine, *newLine;
 	gkPoint advance = {0,0};
 	memset(firstLine, 0, sizeof(gkSentenceLine));
 	while(currentElement){
 		if(currentElement->type == GK_SE_NEWLINE){
-			gkSentenceLine* newLine = (gkSentenceLine*)malloc(sizeof(gkSentenceLine));
+wordWrap:
+			newLine = (gkSentenceLine*)malloc(sizeof(gkSentenceLine));
 			memset(newLine, 0, sizeof(gkSentenceLine));
 			current->next = newLine;
 			current = newLine;
@@ -793,6 +785,15 @@ gkSentenceLine* gkParseSentenceLines(gkSentenceElement* elements, gkTextFormat* 
 				current->last = currentElement;
 				advance.x += currentElement->advance.x;
 				advance.y += currentElement->advance.y;
+				if(format->wordWrap && currentElement->next)
+				{
+					if(advance.x + currentElement->next->advance.x > format->width)
+					{
+						if(currentElement->next->type != GK_SE_WORD)
+							currentElement = currentElement->next;
+						goto wordWrap;
+					}
+				}
 			}
 		}
 		currentElement = currentElement->next;

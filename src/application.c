@@ -124,7 +124,7 @@ wchar_t* gkGetAppDir()
     wchar_t* p;
 #ifdef GK_WIN
     GetModuleFileNameW(0, gkAppDirBuffer, GK_MAX_APP_DIR_BUFFER);
-    if((p = strrchr(gkAppDirBuffer, L'\\')) != 0) *p = 0;
+	if((p = wcsrchr(gkAppDirBuffer, L'\\')) != 0) *p = 0;
     wcsncat_s(gkAppDirBuffer, GK_MAX_APP_DIR_BUFFER, L"\\", 1);
 #else
     char buff[GK_MAX_APP_DIR_BUFFER];

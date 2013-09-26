@@ -174,6 +174,8 @@ void gkUpdateTweens(){
 		if(ref->tween == 0){
 			if(prev){
 				prev->next = ref->next;
+				if(prev->next == 0)
+					gkTweensLast = prev;
 			}else{
 				gkTweens = ref->next;
 			}

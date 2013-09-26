@@ -761,6 +761,7 @@ gkSentenceLine* gkParseSentenceLines(gkSentenceElement* elements, gkTextFormat* 
 	gkSentenceElement* currentElement = elements;
 	gkSentenceLine *firstLine = (gkSentenceLine*)malloc(sizeof(gkSentenceLine)), *current = firstLine, *newLine;
 	gkPoint advance = {0,0};
+	GK_BOOL wordWrap = format->wordWrap && format->width>0;
 	memset(firstLine, 0, sizeof(gkSentenceLine));
 	while(currentElement){
 		if(currentElement->type == GK_SE_NEWLINE){
@@ -785,9 +786,11 @@ wordWrap:
 				current->last = currentElement;
 				advance.x += currentElement->advance.x;
 				advance.y += currentElement->advance.y;
-				if(format->wordWrap && currentElement->next)
+				if(wordWrap && currentElement->next)
 				{
-					if(advance.x + currentElement->next->advance.x > format->width)
+					gkBBox* nextBox = &currentElement->next->bbox;
+					float nextW = (nextBox->maxX - nextBox->minX) + (current->bbox.maxX - current->bbox.minX);
+					if(nextW > format->width)
 					{
 						if(currentElement->next->type != GK_SE_WORD)
 							currentElement = currentElement->next;

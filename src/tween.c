@@ -91,8 +91,11 @@ void gkInitTweens(){
 
 void gkDestroyTween(gkTweenRef* tweenRef){
 	gkTweenEx* tween = tweenRef->tween;
-	gkCleanupDispatcher(&tween->listeners);
-	free(tween);
+	if(tween)
+	{
+		gkCleanupDispatcher(&tween->listeners);
+		free(tween);
+	}
 	tweenRef->tween = 0;
 }
 
@@ -271,8 +274,12 @@ float gkInterpolate(float start, float end, float time, int type){
 }
 
 GK_BOOL gkProcessTween(gkTweenEx* tween){
-	float t = (float)(gkLastTweenUpdate - tween->startTime)/(float)tween->transitionTime;
-	if(t > 1.0f) t = 1.0f;
+	float t = 0.0f;
+	if(gkLastTweenUpdate > tween->startTime)
+	{
+		t = (float)(gkLastTweenUpdate - tween->startTime)/(float)tween->transitionTime;
+		if(t > 1.0f) t = 1.0f;
+	}
 	switch(tween->varType){
 		case GK_UNSIGNED_BYTE:
 			*((uint8_t*)tween->var) = (uint8_t)gkInterpolate((float)tween->value.ub.start, (float)tween->value.ub.end, t, tween->transitionType);

@@ -36,90 +36,14 @@ extern "C"{
 #include <wchar.h>
 
 #ifdef _WIN32
-#define GK_WIN
+	#define GK_WIN
 #else
-#define GK_LINUX
+	#define GK_LINUX
 #endif
 
-#ifdef _MSC_VER
-	#if (_MSC_VER<1300)
-		typedef unsigned char uint8_t;
-		typedef unsigned short uint16_t;
-		typedef unsigned int uint32_t;
-		typedef unsigned long long int uint64_t;
-		typedef signed char int8_t;
-		typedef signed short int16_t;
-		typedef signed int	int32_t;
-		typedef signed long long int int64_t;
-	#else
-		typedef unsigned __int8 uint8_t;
-		typedef unsigned __int16 uint16_t;
-		typedef unsigned __int32 uint32_t;
-		typedef unsigned __int64 uint64_t;
-		typedef signed __int8 int8_t;
-		typedef signed __int16 int16_t;
-		typedef signed __int32 int32_t;
-		typedef signed __int64 int64_t;
-	#endif
-#else
-#include <stdint.h>
-#endif
+#include "gkTypes.h"
 
-#define GK_BOOL		int
-#define GK_TRUE		1
-#define GK_FALSE	0
-
-#define GK_BYTE		0
-#define GK_SHORT	1
-#define GK_INT		2
-#define GK_UNSIGNED_BYTE	3
-#define GK_UNSIGNED_SHORT	4
-#define GK_UNSIGNED_INT		5
-#define GK_FLOAT	6
-#define GK_DOUBLE	7
-
-/*************************
-	Geometry
-
-	Some useful geometric structures and functions
-*/
-typedef struct gkPoint
-{
-	float x,y;
-}gkPoint;
-
-typedef struct gkSize
-{
-	float width, height;
-}gkSize;
-
-typedef struct gkRect
-{
-	float x,y,width,height;
-}gkRect;
-
-typedef struct gkMatrix
-{
-	float data[9];
-}gkMatrix;
-
-gkPoint	GK_POINT(float x, float y);
-gkSize	GK_SIZE(float width, float height);
-gkRect	GK_RECT(float x, float y, float width, float height);
-
-void	gkMatrixMult(gkMatrix* dst, gkMatrix src);
-void	gkMatrixMultPtr(gkMatrix* dst, gkMatrix* src);
-float	gkMatrixDeterminant(gkMatrix* dst);
-void	gkMatrixInverse(gkMatrix* dst);
-void	gkMatrixTranspose(gkMatrix* dst);
-
-gkMatrix gkMatrixCreateIdentity();
-gkMatrix gkMatrixCreateTranslation(float x, float y);
-gkMatrix gkMatrixCreateRotation(float radians);
-gkMatrix gkMatrixCreateScale(float sx, float sy);
-
-gkPoint gkTransformPoint(gkPoint point, gkMatrix* matrix);	//performs Point * Matrix multiplication
-
+#include "gkGeometry.h"
 
 /**********************************
 	Application

@@ -30,6 +30,12 @@
     <ClInclude Include="..\..\src\gkaudio.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\gkTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\gkGeometry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\application.c">
@@ -69,6 +75,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\audiostream.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\list.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

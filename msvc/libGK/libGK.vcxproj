@@ -91,7 +91,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\gk.h" />
+    <ClInclude Include="..\..\include\gkGeometry.h" />
     <ClInclude Include="..\..\include\gkkeydefs.h" />
+    <ClInclude Include="..\..\include\gkTypes.h" />
     <ClInclude Include="..\..\src\gkaudio.h" />
     <ClInclude Include="..\..\src\gk_internal.h" />
     <ClInclude Include="..\..\src\GLee.h" />
@@ -107,6 +109,7 @@
     <ClCompile Include="..\..\src\graphics.c" />
     <ClCompile Include="..\..\src\image.c" />
     <ClCompile Include="..\..\src\input.c" />
+    <ClCompile Include="..\..\src\list.c" />
     <ClCompile Include="..\..\src\panel.c" />
     <ClCompile Include="..\..\src\timer.c" />
     <ClCompile Include="..\..\src\tween.c" />

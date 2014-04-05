@@ -113,6 +113,14 @@ void gkRun()
     free(gkMouse);
 }
 
+void gkMain(gkInitFunc init, gkCleanupFunc cleanup)
+{
+	if (gkInit() && init())	{
+		gkRun();
+		cleanup();
+	}
+}
+
 void gkExit()
 {
     gkActive = GK_FALSE;

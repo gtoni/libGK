@@ -22,6 +22,10 @@
 #ifndef _GK_H_
 #define _GK_H_
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 #ifdef GK_INTERNAL
 #define GK_READONLY
 #else
@@ -126,8 +130,10 @@ gkPoint gkTransformPoint(gkPoint point, gkMatrix* matrix);	//performs Point * Ma
 
 #define GK_VSYNC -1
 
-GK_BOOL	gkInit();
-void	gkRun();
+typedef GK_BOOL (*gkInitFunc)();
+typedef void (*gkCleanupFunc)();
+
+void	gkMain(gkInitFunc init, gkCleanupFunc cleanup);
 void	gkExit();
 
 wchar_t* gkGetAppDir();
@@ -656,5 +662,9 @@ typedef gkDispatcher gkTween;
 gkTween* CDECL gkAddTween(void* var, uint32_t transitionType, uint64_t transitionTime, uint32_t varType, /*startValue, endValue*/...);
 
 void gkRemoveTweens(void* memOffset, size_t size);	/* Removes all tweens for variables in the memory range between memOffset and (memOffset + size) */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

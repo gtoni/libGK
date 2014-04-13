@@ -98,4 +98,17 @@ void		gkListForEach(gkList* list, void (*iterator)(void* ));
 
 void	gkListSort(gkList* list, int (*less)(void*, void*));
 
+
+#include <string.h>
+
+size_t	gkUtf8Length(char* string);
+char*	gkUtf8CharCode(char* string, uint32_t* dstCharCode);
+char*	gkUtf8Char(char* dst, uint32_t charCode, size_t dstSize);
+
+size_t	gkUtf8ToWcs(wchar_t* dst, char* src, size_t dstSize);
+size_t	gkWcsToUtf8(char* dst, wchar_t* src, size_t dstSize);
+
+wchar_t* gkWcsFromUtf8(char* src);
+char*	 gkUtf8FromWcs(wchar_t* src);
+
 #endif

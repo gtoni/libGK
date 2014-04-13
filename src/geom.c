@@ -24,7 +24,7 @@
 
 #include <math.h>
 
-void sincosf(float a, float* s, float* c);
+void sincosf(const float a, float* s, float* c);
 
 gkMatrix GK_IDENTIY_MATRIX = {1,0,0,
 							  0,1,0,

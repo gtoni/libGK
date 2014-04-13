@@ -44,23 +44,25 @@ void gkInitImages(){
 void gkCleanupImages(){
 }
 
-gkImage* gkLoadImage(wchar_t* filename){
+gkImage* gkLoadImage(char* filename)
+{
 	gkImage* image = (gkImage*)malloc(sizeof(gkImage));
 	ILuint imageId = ilGenImage();
 	GLint oldTexId;
 
 #if defined(_UNICODE)
+	wchar_t* filenameWide = gkWcsFromUtf8(filename);
+	ILboolean loaded;
+
 	ilBindImage(imageId);
-	if(ilLoadImage(filename)){
+	loaded = ilLoadImage(filenameWide);
+	free(filenameWide);
+
+	if (loaded) {
 #else
-    char filenameMbs[1024];
-    setlocale(LC_CTYPE, "");
-    wcstombs(filenameMbs, filename, sizeof(filenameMbs));
-
-    ilBindImage(imageId);
-    if(ilLoadImage(filenameMbs)){
+	ilBindImage(imageId);
+	if (ilLoadImage(filename)) {
 #endif
-
 		glGenTextures(1, &image->id);
 		ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
 		image->width = ilGetInteger(IL_IMAGE_WIDTH);
@@ -77,7 +79,7 @@ gkImage* gkLoadImage(wchar_t* filename){
 		glBindTexture(GL_TEXTURE_2D, oldTexId);
 		glDisable(GL_TEXTURE_2D);
 		ilDeleteImage(imageId);
-	}else{
+	} else {
 		ilDeleteImage(imageId);
 		free(image);
 		return 0;
@@ -85,17 +87,15 @@ gkImage* gkLoadImage(wchar_t* filename){
 	return image;
 }
 
-GK_BOOL gkSaveImage(gkImage* image, wchar_t* filename){
+GK_BOOL gkSaveImage(gkImage* image, char* filename){
 	int img = ilGenImage();
 	GK_BOOL result;
 	uint8_t* buff = (uint8_t*)calloc(image->width*image->height*4, sizeof(uint8_t));
 
 #if defined(_UNICODE)
-    wchar_t* saveName = filename;
+	wchar_t* saveName = gkWcsFromUtf8(filename);
 #else
-    char saveName[1024];
-    setlocale(LC_CTYPE, "");
-    wcstombs(saveName, filename, sizeof(saveName));
+	char *saveName = filename;
 #endif // _UNICODE
 
 	gkGetImageData(image, GK_RGBA, buff);
@@ -105,6 +105,10 @@ GK_BOOL gkSaveImage(gkImage* image, wchar_t* filename){
 	result = ilSaveImage(saveName) == IL_TRUE;
 	ilDeleteImage(img);
 	free(buff);
+
+#if defined(_UNICODE)
+	free(saveName);
+#endif
 	return result;
 }
 

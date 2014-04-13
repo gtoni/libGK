@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Toni Georgiev
+/* Copyright (c) 2014 Toni Georgiev
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,6 @@ extern "C"{
 #endif
 
 #include <memory.h>
-#include <wchar.h>
 
 #ifdef _WIN32
 	#define GK_WIN
@@ -60,10 +59,10 @@ typedef void (*gkCleanupFunc)();
 void	gkMain(gkInitFunc init, gkCleanupFunc cleanup);
 void	gkExit();
 
-wchar_t* gkGetAppDir();
+char*	gkGetAppDir();
 void	gkSetTargetFps(int targetFps);
-int		gkGetTargetFps();
-int		gkGetFps();
+int	gkGetTargetFps();
+int	gkGetFps();
 
 void	gkSetScreenSize(gkSize size);
 gkSize	gkGetScreenSize();
@@ -71,8 +70,8 @@ void	gkSetFullscreen(GK_BOOL fullscreen);
 GK_BOOL	gkIsFullscreen();
 size_t	gkGetSupportedScreenSizes(gkSize* sizes);
 
-void	 gkSetWindowTitle(wchar_t* title);
-wchar_t* gkGetWindowTitle();
+void	gkSetWindowTitle(char* title);
+char*	gkGetWindowTitle();
 
 void	gkSetWindowResizable(GK_BOOL resizable);
 GK_BOOL	gkIsWindowResizable();
@@ -87,11 +86,11 @@ GK_BOOL	gkIsWindowResizable();
 	also they are given a data structure which describes the event (such as which mouse button was pressed).
 */
 
-#define GK_EVENT(T)		typedef struct T T;\
-						struct T{\
-							uint16_t type;\
-							void* target;\
-							void* currentTarget;
+#define GK_EVENT(T)	typedef struct T T;\
+			struct T{\
+				uint16_t type;\
+				void* target;\
+				void* currentTarget;
 #define GK_EVENT_END()	};
 
 GK_EVENT(gkEvent)
@@ -174,7 +173,7 @@ typedef struct gkKeyboardState
 
 GK_EVENT(gkKeyboardEvent)
 	gkKey key;
-	wchar_t character;
+	uint32_t charCode;
 GK_EVENT_END()
 
 extern gkDispatcher* gkKeyboard;
@@ -188,7 +187,7 @@ void gkGetKeyboardState(gkKeyboardState* keyboardState);
 
 typedef struct gkJoystick
 {
-	wchar_t* name;
+	char* name;
 	uint8_t flags;
 }gkJoystick;
 
@@ -376,9 +375,9 @@ typedef struct gkImage
 	uint16_t height;
 }gkImage;
 
-gkImage* gkLoadImage(wchar_t* filaname);
+gkImage* gkLoadImage(char* filaname);
 gkImage* gkCreateImage(int width, int height);
-GK_BOOL gkSaveImage(gkImage* image, wchar_t* filename);
+GK_BOOL gkSaveImage(gkImage* image, char* filename);
 
 void gkSetImageData(gkImage* image, int format, void* data);
 void gkGetImageData(gkImage* image, int format, void* data);
@@ -452,8 +451,8 @@ void gkRemoveFontResource(gkFontResource* rc);
 gkFont* gkCreateFont(char* family, uint16_t size, uint8_t style);
 void gkDestroyFont(gkFont* font);
 
-gkSize gkMeasureText(gkFont* font, wchar_t* text, gkTextFormat* format);
-void gkDrawText(gkFont* font, wchar_t* text, float x, float y, gkTextFormat* format);
+gkSize gkMeasureText(gkFont* font, char* text, gkTextFormat* format);
+void gkDrawText(gkFont* font, char* text, float x, float y, gkTextFormat* format);
 
 
 /************************************
@@ -503,7 +502,7 @@ gkSound* gkLoadSound(char* filename, int flags);
 void gkDestroySound(gkSound* sound);
 
 gkSoundSource* gkCreateSoundSource();
-void gkDestroySoundSource();
+void gkDestroySoundSource(gkSoundSource* source);
 
 gkSoundSource* gkPlaySound(gkSound* sound, gkSoundSource* source);
 void gkPauseSound(gkSoundSource* soundSource);

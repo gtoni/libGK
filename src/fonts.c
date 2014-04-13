@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Toni Georgiev
+/* Copyright (c) 2014 Toni Georgiev
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,19 +35,21 @@ FT_Library ftlib;
 
 #define GK_FONT_TOTAL_STYLES 4
 
+#define CHAR(x)	((uint32_t)x)
+
 gkTextFormat gkDefaultTextFormat = {
 	GK_TEXT_ALIGN_LEFT,		/*	align */
 	GK_TEXT_VALIGN_TOP,		/*	valign */
-	GK_FALSE,				/*	wordWrap */
-	4,						/*	tab space */
-	GK_FALSE,				/*	underline */
-	0,						/*	width */
-	0,						/*	height	*/
-	0,						/*	stroke size	*/
-	0,						/*	line spacing */
-	{1,1,1,1},				/*	text color	*/
-	{0,0,0,1},				/*	stroke color */
-	GK_FALSE				/*	vertical */
+	GK_FALSE,			/*	wordWrap */
+	4,				/*	tab space */
+	GK_FALSE,			/*	underline */
+	0,				/*	width */
+	0,				/*	height	*/
+	0,				/*	stroke size	*/
+	0,				/*	line spacing */
+	{1,1,1,1},			/*	text color	*/
+	{0,0,0,1},			/*	stroke color */
+	GK_FALSE			/*	vertical */
 };
 
 typedef struct gkBBoxStruct gkBBox;
@@ -58,17 +60,22 @@ struct gkBBoxStruct{
 	float maxY;
 };
 
-gkBBox gkCreateBBox(float minx, float miny, float maxx, float maxy){
+gkBBox gkCreateBBox(float minx, float miny, float maxx, float maxy)
+{
 	gkBBox r = {minx, miny, maxx, maxy};
 	return r;
 }
-void gkBBoxAdd(gkBBox* dst, gkBBox *src){
+
+void gkBBoxAdd(gkBBox* dst, gkBBox *src)
+{
 	if(dst->minX > src->minX) dst->minX = src->minX;
 	if(dst->minY > src->minY) dst->minY = src->minY;
 	if(dst->maxX < src->maxX) dst->maxX = src->maxX;
 	if(dst->maxY < src->maxY) dst->maxY = src->maxY;
 }
-void gkBBoxTranslate(gkBBox* dst, float tx, float ty){
+
+void gkBBoxTranslate(gkBBox* dst, float tx, float ty)
+{
 	dst->minX += tx;
 	dst->maxX += tx;
 	dst->minY += ty;
@@ -135,9 +142,10 @@ void gkDestroyGlyph(gkGlyph* glyph);
 
 /* functions */
 
-void gkInitFonts(){
+void gkInitFonts()
+{
 	FT_Error err = FT_Init_FreeType(&ftlib);
-	if(err){
+	if (err) {
 		printf("GK [ERROR]: FreeType2 could not be initializeed.\n");
 		gkExit();
 	}
@@ -145,30 +153,31 @@ void gkInitFonts(){
 	gkFontResourcesTop = 0;
 }
 
-gkFontResource* gkAddFontResource(char* filename){
+gkFontResource* gkAddFontResource(char* filename)
+{
 	FT_Face face;
 	gkFontResource *resource = 0;
 	gkFontRcRef* ref;
 	gkFontFaceEx* f;
 	int i = 0;
 	FT_Error error;
-	do{
+	do {
 		error = FT_New_Face(ftlib, filename, i, &face);
-		if(error){
+		if (error) {
 			printf("GK [ERROR]: Could not load font resource %s\n", filename);
 			return 0;
 		}
-		if(resource == 0){
+		if (resource == 0) {
 			resource = (gkFontResource*)malloc(sizeof(gkFontResource));
 			resource->numFaces = (uint8_t)face->num_faces;
 			resource->faces = (gkFontFace**)calloc(face->num_faces, sizeof(gkFontFaceEx*));
 			ref = (gkFontRcRef*)malloc(sizeof(gkFontRcRef));
 			ref->resource = resource;
 			ref->next = 0;
-			if(gkFontResources){
+			if (gkFontResources) {
 				gkFontResourcesTop->next = ref;
 				gkFontResourcesTop = ref;
-			}else{
+			} else {
 				gkFontResources = gkFontResourcesTop = ref;
 			}
 		}
@@ -178,48 +187,50 @@ gkFontResource* gkAddFontResource(char* filename){
 		f->ftface = face;
 		f->collections = 0;
 		i++;
-	}while(i<resource->numFaces);
+	} while (i < resource->numFaces);
 	return resource;
 }
 
-void gkRemoveFontResource(gkFontResource* rc){
+void gkRemoveFontResource(gkFontResource* rc)
+{
 	gkFontRcRef* ref = gkFontResources, *prev = 0, *p;
 	gkFontFaceEx* face;
 	int i;
-	while(ref){
-		if(ref->resource == rc){
+	while (ref) {
+		if (ref->resource == rc) {
 			p = ref;
-			for(i = 0; i<rc->numFaces; i++){
+			for (i = 0; i < rc->numFaces; i++) {
 				face = (gkFontFaceEx*)rc->faces[i];
 				gkDestroyFace(face);
 			}
 			free(rc->faces);
 			free(p->resource);
-			if(prev){
+			if (prev) {
 				prev->next = p->next;
-			}else{
+			} else {
 				gkFontResources = p->next;
 			}
 			ref = ref->next;
 			free(p);
-		}else{
+		} else {
 			prev = ref;
 			ref = ref->next;
 		}
 	}
 }
 
-gkFont* gkCreateFont(char* family, uint16_t size, uint8_t style){
+gkFont* gkCreateFont(char* family, uint16_t size, uint8_t style)
+{
 	gkFont* font;
 	gkFontRcRef* p = gkFontResources;
 	gkFontResource* resource;
 	gkFontFaceEx* face;
 	int i;
-	while(p){
+	while (p) {
 		resource = p->resource;
-		for(i = 0; i<resource->numFaces; i++){
+		for (i = 0; i < resource->numFaces; i++) {
 			face = (gkFontFaceEx*)resource->faces[i];
-			if(stricmp(face->fontFamily, family) == 0 && face->style == style){
+			if (stricmp(face->fontFamily, family) == 0 && face->style == style) {
 				font = (gkFont*)malloc(sizeof(gkFont));
 				font->face = (gkFontFace*)face;
 				font->size = size;
@@ -232,17 +243,19 @@ gkFont* gkCreateFont(char* family, uint16_t size, uint8_t style){
 	return 0;
 }
 
-void gkDestroyFont(gkFont* font){
+void gkDestroyFont(gkFont* font)
+{
 	free(font);
 }
 
-void gkCleanupFonts(){
+void gkCleanupFonts()
+{
 	gkFontRcRef* ref = gkFontResources, *p;
 	gkFontFaceEx* face;
 	int i;
-	while(ref){
+	while (ref) {
 		p = ref;
-		for(i = 0; i<p->resource->numFaces; i++){
+		for (i = 0; i < p->resource->numFaces; i++) {
 			face = (gkFontFaceEx*)p->resource->faces[i];
 			FT_Done_Face(face->ftface);
 			free(face);
@@ -257,7 +270,8 @@ void gkCleanupFonts(){
 	ftlib = 0;
 }
 
-void gkInitFont(gkFont* font){
+void gkInitFont(gkFont* font)
+{
 }
 
 
@@ -552,7 +566,7 @@ struct gkSentenceLineStruct{
 #define GK_SE_SPACE		2
 #define GK_SE_NEWLINE	3
 
-gkSentenceElement* gkParseSentenceElements(gkFont* font, wchar_t* text, gkTextFormat* format);
+gkSentenceElement* gkParseSentenceElements(gkFont* font, char* text, gkTextFormat* format);
 void gkFreeSentenceElements(gkSentenceElement* elements);
 gkSentenceLine* gkParseSentenceLines(gkSentenceElement* elements, gkTextFormat* format);
 void gkFreeSentenceLines(gkSentenceLine* lines);
@@ -560,7 +574,7 @@ gkBBox gkGetTextBBox(gkSentenceLine* lines, gkTextFormat* format, float leading)
 gkPoint gkAlignLine(gkSentenceLine* line, gkTextFormat* format, gkBBox* textBBox);
 gkPoint gkDrawSentenceLine(FT_Face face, gkSentenceLine* line, gkTextFormat* format);
 
-gkSize gkMeasureText(gkFont* font, wchar_t* text, gkTextFormat* format)
+gkSize gkMeasureText(gkFont* font, char* text, gkTextFormat* format)
 {
 	FT_Face face = ((gkFontFaceEx*)font->face)->ftface;
 	gkSentenceElement* elements;
@@ -587,7 +601,7 @@ gkSize gkMeasureText(gkFont* font, wchar_t* text, gkTextFormat* format)
 	return GK_SIZE(textBBox.maxX - textBBox.minX, textBBox.maxY - textBBox.minY);
 }
 
-void gkDrawText(gkFont* font, wchar_t* text, float x, float y, gkTextFormat* format){
+void gkDrawText(gkFont* font, char* text, float x, float y, gkTextFormat* format){
 	FT_Face face = ((gkFontFaceEx*)font->face)->ftface;
 	gkSentenceElement* elements;
 	gkSentenceLine* lines, *currentLine;
@@ -620,7 +634,7 @@ void gkDrawText(gkFont* font, wchar_t* text, float x, float y, gkTextFormat* for
 	format->width = oldTextFormatWidth;
 }
 
-gkSentenceElement* gkParseSentenceElements(gkFont* font, wchar_t* text, gkTextFormat* format){
+gkSentenceElement* gkParseSentenceElements(gkFont* font, char* text, gkTextFormat* format){
 	FT_Face face = ((gkFontFaceEx*)font->face)->ftface;
 	GK_BOOL hasKerning = FT_HAS_KERNING(face);
 
@@ -628,18 +642,22 @@ gkSentenceElement* gkParseSentenceElements(gkFont* font, wchar_t* text, gkTextFo
 	gkGlyph** glyphs, **strokes = 0;
 	gkGlyphCollection* collection, *strokeCollection;
 	gkSentenceElement* firstElement = 0, *lastElement = firstElement, *currentElement = 0;
-	wchar_t* c = text, lastChar;
 
-	while(*c){
-		if(*c != L' ' && *c != L'\t' && *c != L'\r' && *c != L'\n') totalGlyphs++;
-		c++;
+	char* str;
+	uint32_t c, lastChar;
+
+	str = gkUtf8CharCode(text, &c);
+	while (c) {
+		if(c != CHAR(' ') && c != CHAR('\t') && c != CHAR('\r') && c != CHAR('\n')) 
+			totalGlyphs++;
+		str = gkUtf8CharCode(str, &c);
 	}
+
 	if(totalGlyphs > 0){
 		int index, prevIndex = 0;
 		gkPoint spaceAdvance;
 		gkGlyph* glyph = 0;
 		glyphs = (gkGlyph**)calloc(totalGlyphs, sizeof(gkGlyph*));
-		c = text;
 		FT_Set_Char_Size(face, 0, font->size*64, 0, 96);
 		collection = gkGetGlyphCollection(font, 0);
 		if(format->strokeSize>0.0f){
@@ -650,10 +668,13 @@ gkSentenceElement* gkParseSentenceElements(gkFont* font, wchar_t* text, gkTextFo
 		spaceAdvance.x = ((float)face->glyph->advance.x)/64.0f;
 		spaceAdvance.y = ((float)face->glyph->advance.y)/64.0f;
 		if(spaceAdvance.y == 0) spaceAdvance.y = spaceAdvance.x;
-		lastChar = *c;
-		while(*c){
-			if(*c != L' ' && *c != L'\t' && *c != L'\r' && *c != L'\n'){
-				index = FT_Get_Char_Index(face, *c);
+
+		str = gkUtf8CharCode(text, &c);
+		lastChar = c;
+		while(c) {
+			if(c != CHAR(' ') && c != CHAR('\t') 
+					&& c != CHAR('\r') && c != CHAR('\n')) {
+				index = FT_Get_Char_Index(face, c);
 				if(strokes) strokes[currentGlyph] = gkGetGlyph(face, strokeCollection, gkGetGlyphSet(strokeCollection, index), index);
 				glyphs[currentGlyph] = glyph = gkGetGlyph(face, collection, gkGetGlyphSet(collection, index), index);
 				if(currentElement && currentElement->type != GK_SE_WORD){
@@ -699,7 +720,7 @@ gkSentenceElement* gkParseSentenceElements(gkFont* font, wchar_t* text, gkTextFo
 					lastElement = currentElement;
 				}
 				currentElement = 0;
-				if(*c == L'\t'){
+				if(c == CHAR('\t')){
 					currentElement = (gkSentenceElement*)malloc(sizeof(gkSentenceElement));
 					currentElement->type = GK_SE_TAB;
 					currentElement->advance = spaceAdvance;
@@ -709,7 +730,7 @@ gkSentenceElement* gkParseSentenceElements(gkFont* font, wchar_t* text, gkTextFo
 						currentElement->bbox = gkCreateBBox(0, 0, spaceAdvance.x, 0);
 					}
 					currentElement->next = 0;
-				}else if(*c == L' '){
+				}else if(c == CHAR(' ')) {
 					currentElement = (gkSentenceElement*)malloc(sizeof(gkSentenceElement));
 					currentElement->type = GK_SE_SPACE;
 					currentElement->advance = spaceAdvance;
@@ -719,7 +740,7 @@ gkSentenceElement* gkParseSentenceElements(gkFont* font, wchar_t* text, gkTextFo
 						currentElement->bbox = gkCreateBBox(0, 0, spaceAdvance.x, 0);
 					}
 					currentElement->next = 0;
-				}else if((*c == L'\n' && lastChar != '\r') || *c == L'\r'){
+				}else if((c == CHAR('\n') && lastChar != CHAR('\r')) || c == CHAR('\r')) {
 					currentElement = (gkSentenceElement*)malloc(sizeof(gkSentenceElement));
 					currentElement->type = GK_SE_NEWLINE;
 					currentElement->bbox = gkCreateBBox(0,0,0,0);
@@ -735,8 +756,8 @@ gkSentenceElement* gkParseSentenceElements(gkFont* font, wchar_t* text, gkTextFo
 			if(firstElement == 0 && currentElement){
 				firstElement = lastElement = currentElement;
 			}
-			lastChar = *c;
-			c++;
+			lastChar = c;
+			str = gkUtf8CharCode(str, &c);
 		}
 		if(currentElement && currentElement != lastElement){
 			lastElement->next = currentElement;

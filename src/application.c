@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Toni Georgiev
+﻿/* Copyright (c) 2012 Toni Georgiev
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -69,6 +69,7 @@ XF86VidModeModeInfo defaultVideoMode;
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <locale.h>
 
 #define GK_MAX_APP_DIR_BUFFER 512
 
@@ -92,6 +93,8 @@ void updateGLSize(gkSize sz);
 
 GK_BOOL gkInit()
 {
+    setlocale(LC_CTYPE, "");
+
     gkActive = GK_TRUE;
     gkFullscreen = GK_FALSE;
     gkMouse = (gkDispatcher*)malloc(sizeof(gkDispatcher));
@@ -99,8 +102,8 @@ GK_BOOL gkInit()
     gkInitDispatcher(gkMouse);
     gkInitDispatcher(gkKeyboard);
 	gkMainPanel = gkCreatePanel();
-    initGk();
-    return GK_TRUE;
+	initGk();
+	return GK_TRUE;
 }
 
 void gkRun()
@@ -126,21 +129,22 @@ void gkExit()
     gkActive = GK_FALSE;
 }
 
-wchar_t gkAppDirBuffer[GK_MAX_APP_DIR_BUFFER];
-wchar_t* gkGetAppDir()
+char gkAppDirBuffer[GK_MAX_APP_DIR_BUFFER];
+
+char* gkGetAppDir()
 {
-    wchar_t* p;
 #ifdef GK_WIN
-    GetModuleFileNameW(0, gkAppDirBuffer, GK_MAX_APP_DIR_BUFFER);
-	if((p = wcsrchr(gkAppDirBuffer, L'\\')) != 0) *p = 0;
-    wcsncat_s(gkAppDirBuffer, GK_MAX_APP_DIR_BUFFER, L"\\", 1);
+	wchar_t buff[GK_MAX_APP_DIR_BUFFER], *p;
+	GetModuleFileNameW(0, buff, GK_MAX_APP_DIR_BUFFER);
+	if((p = wcsrchr(buff, L'\\')) != 0) *p = 0;
+	wcsncat_s(buff, GK_MAX_APP_DIR_BUFFER, L"\\", 1);
+
+	gkWcsToUtf8(gkAppDirBuffer, buff, GK_MAX_APP_DIR_BUFFER);
 #else
-    char buff[GK_MAX_APP_DIR_BUFFER];
-    if(readlink("/proc/self/exe", buff, GK_MAX_APP_DIR_BUFFER*sizeof(char)))
+    if(readlink("/proc/self/exe", gkAppDirBuffer, GK_MAX_APP_DIR_BUFFER))
     {
-        dirname(buff);
-        strcat(buff, "/");
-        mbstowcs(gkAppDirBuffer, buff, sizeof(wchar_t)*GK_MAX_APP_DIR_BUFFER);
+        dirname(gkAppDirBuffer);
+        strcat(gkAppDirBuffer, "/");
     }
 #endif
     return gkAppDirBuffer;
@@ -412,35 +416,33 @@ size_t gkGetSupportedScreenSizes(gkSize* sizes)
 #endif
 }
 
-void gkSetWindowTitle(wchar_t* title)
+void gkSetWindowTitle(char* title)
 {
 #ifdef GK_WIN
-    SetWindowTextW(gkWindow, title);
+	wchar_t *titleBuffer = gkWcsFromUtf8(title);
+	SetWindowTextW(gkWindow, titleBuffer);
+	free(titleBuffer);
 #else
-    char titleBuffer[256];
-    size_t len;
-    setlocale(LC_CTYPE, "");
-    len = wcstombs(titleBuffer, title, sizeof(titleBuffer));
-    if(len == 256) titleBuffer[255] = 0;
-    XStoreName(display, gkWindow, titleBuffer);
+	XStoreName(display, gkWindow, title);
 #endif
 }
 
-wchar_t windowNameBuffer[256];
-wchar_t* gkGetWindowTitle()
+char windowNameBuffer[256];
+
+char* gkGetWindowTitle()
 {
 #ifdef GK_WIN
-    if(gkActive)
-        GetWindowTextW(gkWindow, windowNameBuffer, 256);
+	wchar_t titleBuffer[256];
+	if(gkActive)
+		GetWindowTextW(gkWindow, titleBuffer, 256);
+	gkWcsToUtf8(windowNameBuffer, titleBuffer, 256);
 #else
-    char titleBuffer[256];
-    size_t len;
     XTextProperty nm;
     if(gkActive)
     {
         XGetWMName(display, gkWindow, &nm);
-        len = mbstowcs(windowNameBuffer, nm.value, sizeof(windowNameBuffer));
-        if(len == 256) windowNameBuffer[255] = 0;
+	strncpy(windowNameBuffer, nm.value, 256);
+        windowNameBuffer[255] = 0;
     }
 #endif
     return windowNameBuffer;
@@ -726,12 +728,12 @@ void onWindowKeyUp(uint16_t keyCode, uint16_t scanCode)
         gkLastScanCode = 0;
     }
 }
-void onWindowCharacter(wchar_t character)
+void onWindowCharacter(uint32_t character)
 {
     gkKeyboardEvent evt;
     evt.type = GK_ON_CHARACTER;
     evt.currentTarget = evt.target = gkKeyboard;
-    evt.character = character;
+    evt.charCode = character;
     gkDispatch(gkKeyboard, &evt);
     gkProcessKeyboardEvent(&evt);
 }
@@ -973,8 +975,14 @@ LRESULT WndProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam)
         onWindowKeyUp(wParam, (lParam>>16)&0x7F);
         return 0;
         break;
+    case WM_UNICHAR:
+	    if(wParam == UNICODE_NOCHAR)
+		    return 1;
+        onWindowCharacter((uint32_t)wParam);
+	return 0;
+	break;
     case WM_CHAR:
-        onWindowCharacter((wchar_t)wParam);
+        onWindowCharacter((uint32_t)LOWORD(wParam));
         break;
     case WM_SIZE:
         if(wParam == SIZE_MAXIMIZED || (wParam == SIZE_RESTORED && wasMaximized))

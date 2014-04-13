@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Toni Georgiev
+/* Copyright (c) 2014 Toni Georgiev
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -63,7 +63,7 @@ uint32_t gkJoystickCount;
 
 #ifdef GK_WIN
 struct gkJoystickExtStruct{
-	wchar_t* name;
+	char* name;
 	uint8_t flags;
 	GUID guid;
 	LPDIRECTINPUTDEVICE8 device;
@@ -73,7 +73,7 @@ typedef struct gkJoystickExtStruct gkJoystickExt;
 struct gkJoystickList{
 	struct gkJoystickList* next;
 	GUID guid;
-	wchar_t* name;
+	char* name;
 };
 
 
@@ -136,13 +136,11 @@ void gkInitDI8Joystick(gkJoystickExt* j, LPDIRECTINPUTDEVICE8 joystick){
 }
 
 BOOL CALLBACK gkJoystickCallback(LPDIDEVICEINSTANCE device, LPVOID c){
-	size_t nameLength = wcslen(device->tszProductName) + 1;
 	struct gkJoystickList* lst = c, *n;
 	n = (struct gkJoystickList*)malloc(sizeof(struct gkJoystickList));
 	n->next = 0;
 	n->guid = device->guidInstance;
-	n->name = (wchar_t*)malloc(nameLength*sizeof(wchar_t));
-	wcscpy(n->name, device->tszProductName);
+	n->name = gkUtf8FromWcs((wchar_t*)device->tszProductName);
 	lst->next = n;
 	return DIENUM_CONTINUE;
 }
@@ -174,7 +172,7 @@ uint32_t gkEnumJoysticks(){
 				gkJoystickExt* j = (gkJoystickExt*)malloc(sizeof(gkJoystickExt));
 				j->name = p->name;
 				j->flags = 0;
-				if(wcscmp(j->name, L"XUSB Gamepad (Controller)") == 0){
+				if(strcmp(j->name, "XUSB Gamepad (Controller)") == 0){
 					j->flags |= GK_JOYSTICK_XBOX360;
 				}
 				j->guid = p->guid;
@@ -249,7 +247,7 @@ void gkCleanupJoystick(){
 #include <linux/joystick.h>
 
 struct gkJoystickExtStruct{
-	wchar_t* name;
+	char* name;
 	uint8_t flags;
 	int fd;
 	gkJoystickState state;
@@ -274,7 +272,7 @@ static void freeJoystick(gkJoystickExt* joystick)
 uint32_t gkEnumJoysticks()
 {
     int i, fd, total = 0;
-    char devPath[100], name[256];
+    char devPath[100];
     gkJoystickExt* current = 0, *first, *p;
 
     /*  if there are some joysticks in the list, check if they are still opened
@@ -316,11 +314,10 @@ uint32_t gkEnumJoysticks()
             joystick->fd = fd;
 
             /* get joystick name */
-            ioctl(fd, JSIOCGNAME(256), &name);
-            joystick->name = (wchar_t*)calloc(256, sizeof(wchar_t));
-            mbstowcs(joystick->name, name, 256);
+            joystick->name = (char*)calloc(256, sizeof(char));
+            ioctl(fd, JSIOCGNAME(256), &joystick->name);
 
-            if(wcscmp(joystick->name, L"Logitech Chillstream Controller") == 0)
+            if(strcmp(joystick->name, "Logitech Chillstream Controller") == 0)
             {
                 joystick->flags |= GK_JOYSTICK_XBOX360;
             }

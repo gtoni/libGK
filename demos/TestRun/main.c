@@ -1,12 +1,15 @@
-﻿#include <string.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#define _USE_MATH_DEFINES 1
+#include <math.h>
+
 #if !defined(WIN32) && !defined(_WIN32)
 #include <unistd.h>
 #endif
-#include <math.h>
-#include <gk.h>
 
+#include <gk.h>
 #include <GL/gl.h>
 
 
@@ -23,9 +26,6 @@ gkPoint lines[MAX_LINES];
 struct drawer{
 	GK_BOOL drawing;
 };
-
-#define _USE_MATH_DEFINES
-#include <math.h>
 
 gkPanel* ppp;
 gkImage* img, *img2, *img3;
@@ -84,7 +84,8 @@ void myDrawFunc(gkPanel* p){
 	gkDrawRoundRect(0, 0, p->width, p->height,15,15);
 	if(p->mouseOver && pdata->id == 0){
 		for(i = 0; i<STAR_COUNT; i++){
-			float vx = pdata->vel[i].x, vy = pdata->vel[i].y;
+	
+	float vx = pdata->vel[i].x, vy = pdata->vel[i].y;
 			float len = sqrtf(vx*vx + vy*vy);
 			gkSetLineWidth(0);
 			gkSetFillColor(1,0.8,0,(1.0f - len/2.0f)*0.8f);
@@ -95,7 +96,7 @@ void myDrawFunc(gkPanel* p){
 		gkDrawImage(img2, mx, my);
 	}
 	if(pdata->id == 0){
-		wchar_t* str = L"Изображение0382\nWA and a new line\nmfor\nfor\nVictory!!\nmore\nand\nmore";
+		char* str = "Изображение0382\nWA and a new line\nmfor\nfor\nVictory!!\nmore\nand\nmore";
 		gkTextFormat tf = gkDefaultTextFormat;
 		tf.textColor = GK_COLOR(1,1,1,1);
 		tf.strokeColor = GK_COLOR(0,0,0,1.0f);
@@ -312,11 +313,12 @@ GK_BOOL onMouseLeave(gkMouseEvent* evt, void* p){
 }
 
 void onKUp(gkKeyboardEvent* evt, void* p){
-	wchar_t msgBuff[2550], c[2];
-	c[1] =0;
-	wcscpy(msgBuff, gkGetWindowTitle());
-	c[0] = evt->character;
-	wcscat(msgBuff, c);
+	char msgBuff[2550], c[10];
+	*gkUtf8Char(c, evt->charCode, 10) = 0;
+
+	strcpy(msgBuff, gkGetWindowTitle());
+	strcat(msgBuff, c);
+	
 	gkSetWindowTitle(msgBuff);
 }
 
@@ -418,139 +420,139 @@ void onTimer1(gkEvent* evt, void* p){
     printf("\n");
 }
 
-int main(){
-	if(gkInit()){
-		gkTimer* timer1, *timer2;
-		int i;
-		struct drawer d;
-		PData d1, d2, d3;
-		gkPanel* p1 = gkCreatePanel(), *p2 = gkCreatePanel();
-		gkFontResource* rc;
+PData d1, d2, d3;
+gkTimer *timer1, *timer2;
+gkPanel *p1, *p2;
+gkFontResource *rc;
+struct drawer d;
 
-		vp = gkCreateViewportPanel();
+GK_BOOL init()
+{
+	int i;
+	p1 = gkCreatePanel();
+	p2 = gkCreatePanel();
 
-		timer1 = gkCreateTimer();
-		timer1->delay = 100;
-		timer1->interval = 1000;
-		gkAddListener(timer1, GK_ON_TIMER, 0, onTimer1, 0);
-		gkStartTimer(timer1, GK_TRUE);
+	vp = gkCreateViewportPanel();
 
-		timer2 = gkCreateTimer();
-		timer2->delay = 500;
-		timer2->interval = 1000;
-		gkAddListener(timer2, GK_ON_TIMER, 0, onTimer2, 0);
-		gkStartTimer(timer2, GK_FALSE);
+	timer1 = gkCreateTimer();
+	timer1->delay = 100;
+	timer1->interval = 1000;
+	gkAddListener(timer1, GK_ON_TIMER, 0, onTimer1, 0);
+	gkStartTimer(timer1, GK_TRUE);
 
-		d1.id = 0; d2.id = 1; d3.id = 2;
-		d.drawing = GK_FALSE;
-		for(i = 0; i<MAX_LINES; i++){
-			lines[i] = GK_POINT(0,0);
-		}
-		vp->width = 400;
-		vp->height = 300;
-		vp->x = 0;
-		vp->y = 0;
-		vp->drawFunc = drawGL;
-		ppp = p1;
-		p1->width = 200;
-		p1->height = 200;
-		p1->x = 100;
-		p1->y = 10;
-		p1->transform = gkMatrixCreateRotation(0.5);
-		p2->width = 100;
-		p2->height = 100;
-		p2->x = 100;
-		p2->y = 100;
-		p2->anchorX = 0.5f;
-		p2->anchorY = 0.5f;
-		p2->transform = gkMatrixCreateRotation(-0.5);
+	timer2 = gkCreateTimer();
+	timer2->delay = 500;
+	timer2->interval = 1000;
+	gkAddListener(timer2, GK_ON_TIMER, 0, onTimer2, 0);
+	gkStartTimer(timer2, GK_FALSE);
 
-		gkMainPanel->data = &d1;
-//		vp->layoutMethod = gkLayoutMethodAutosize(GK_END_LEFT|GK_END_RIGHT|GK_END_TOP|GK_END_BOTTOM);
-	//	p2->layoutMethod = gkLayoutMethodAutosize(GK_END_LEFT|GK_END_RIGHT|GK_END_TOP|GK_END_BOTTOM);
-	//	p1->layoutMethod = gkLayoutMethodAutosize(GK_START_LEFT|GK_END_RIGHT|GK_START_TOP|GK_START_BOTTOM);
-		gkMainPanel->layoutFunc = mresize1;
+	d1.id = 0; d2.id = 1; d3.id = 2;
+	d.drawing = GK_FALSE;
+	for(i = 0; i<MAX_LINES; i++){
+		lines[i] = GK_POINT(0,0);
+	}
+	vp->width = 400;
+	vp->height = 300;
+	vp->x = 0;
+	vp->y = 0;
+	vp->drawFunc = drawGL;
+	ppp = p1;
+	p1->width = 200;
+	p1->height = 200;
+	p1->x = 100;
+	p1->y = 10;
+	p1->transform = gkMatrixCreateRotation(0.5);
+	p2->width = 100;
+	p2->height = 100;
+	p2->x = 100;
+	p2->y = 100;
+	p2->anchorX = 0.5f;
+	p2->anchorY = 0.5f;
+	p2->transform = gkMatrixCreateRotation(-0.5);
 
-		gkAddChild(gkMainPanel, vp);
-		gkAddChild(gkMainPanel, p1);
-		gkAddChild(p1, p2);
-		p1->data = &d2;
-		p2->data = &d3;
-		p1->drawFunc = myDrawFunc;
-		p2->drawFunc = myDrawFunc;
-		gkMainPanel->drawFunc = myDrawFunc;
-		p1->updateFunc = updatePanel;
-		p2->updateFunc = updatePanel;
-		gkMainPanel->updateFunc = updatePanel;
-		gkAddListener(p1, GK_ON_MOUSE_ENTER, 0, onMouseEnter, 0);
-		gkAddListener(p1, GK_ON_MOUSE_LEAVE, 0, onMouseLeave, 0);
-		gkAddListener(p2, GK_ON_MOUSE_ENTER, 0, onMouseEnter, 0);
-		gkAddListener(p2, GK_ON_MOUSE_LEAVE, 0, onMouseLeave, 0);
-		gkAddListener(p2, GK_ON_PANEL_FOCUS_OUT, 0, onFocusOut, 0);
-		gkAddListener(p2, GK_ON_PANEL_FOCUS_IN, 0, onFocusIn, 0);
-//		gkAddListener(p1, GK_ON_KEY_DOWN, 0, onMouseDown, &d);
-		gkAddListener(gkMainPanel, GK_ON_CHARACTER, 0, onKUp, 0);
-		gkAddListener(p1, GK_ON_CHARACTER, 0, onKUp, 0);
-		gkAddListener(p2, GK_ON_CHARACTER, 0, onKUp, 0);
-//		gkAddListener(gkKeyboard, GK_ON_KEY_REPEAT, 0, onMouseDown, &d);
-//		gkAddListener(gkKeyboard, GK_ON_KEY_UP, 0, onMouseUp, &d);
-		gkAddListener(gkMainPanel, GK_ON_MOUSE_DOWN, 0, onMouseDown, &d);
-		gkAddListener(gkMainPanel, GK_ON_MOUSE_UP, 0, onMouseUp, &d);
-		gkAddListener(gkMainPanel, GK_ON_MOUSE_MOVE, 0, onMouseMove, &d);
-		gkAddListener(p1, GK_ON_MOUSE_MOVE, 0, onMouseMove, 0);
-		gkAddListener(p2, GK_ON_MOUSE_MOVE, 0, onMouseMove, 0);
-		gkAddListener(p1, MY_EVENT, 0, onMyEvent, 0);
-		gkAddListener(gkMainPanel, GK_ON_PANEL_RESIZED, 0, onPanelResize, 0);
-		gkSetWindowTitle(L"Simple panel");
-		gkSetWindowResizable(GK_TRUE);
-		gkSetScreenSize(GK_SIZE(1280,720));
-		gkSetTargetFps(GK_VSYNC);
-//		gkSetFullscreen(GK_TRUE);
+	gkMainPanel->data = &d1;
+	gkMainPanel->layoutFunc = mresize1;
+
+	gkAddChild(gkMainPanel, vp);
+	gkAddChild(gkMainPanel, p1);
+	gkAddChild(p1, p2);
+	p1->data = &d2;
+	p2->data = &d3;
+	p1->drawFunc = myDrawFunc;
+	p2->drawFunc = myDrawFunc;
+	gkMainPanel->drawFunc = myDrawFunc;
+	p1->updateFunc = updatePanel;
+	p2->updateFunc = updatePanel;
+	gkMainPanel->updateFunc = updatePanel;
+	gkAddListener(p1, GK_ON_MOUSE_ENTER, 0, onMouseEnter, 0);
+	gkAddListener(p1, GK_ON_MOUSE_LEAVE, 0, onMouseLeave, 0);
+	gkAddListener(p2, GK_ON_MOUSE_ENTER, 0, onMouseEnter, 0);
+	gkAddListener(p2, GK_ON_MOUSE_LEAVE, 0, onMouseLeave, 0);
+	gkAddListener(p2, GK_ON_PANEL_FOCUS_OUT, 0, onFocusOut, 0);
+	gkAddListener(p2, GK_ON_PANEL_FOCUS_IN, 0, onFocusIn, 0);
+//	gkAddListener(p1, GK_ON_KEY_DOWN, 0, onMouseDown, &d);
+	gkAddListener(gkMainPanel, GK_ON_CHARACTER, 0, onKUp, 0);
+	gkAddListener(p1, GK_ON_CHARACTER, 0, onKUp, 0);
+	gkAddListener(p2, GK_ON_CHARACTER, 0, onKUp, 0);
+//	gkAddListener(gkKeyboard, GK_ON_KEY_REPEAT, 0, onMouseDown, &d);
+//	gkAddListener(gkKeyboard, GK_ON_KEY_UP, 0, onMouseUp, &d);
+	gkAddListener(gkMainPanel, GK_ON_MOUSE_DOWN, 0, onMouseDown, &d);
+	gkAddListener(gkMainPanel, GK_ON_MOUSE_UP, 0, onMouseUp, &d);
+	gkAddListener(gkMainPanel, GK_ON_MOUSE_MOVE, 0, onMouseMove, &d);
+	gkAddListener(p1, GK_ON_MOUSE_MOVE, 0, onMouseMove, 0);
+	gkAddListener(p2, GK_ON_MOUSE_MOVE, 0, onMouseMove, 0);
+	gkAddListener(p1, MY_EVENT, 0, onMyEvent, 0);
+	gkAddListener(gkMainPanel, GK_ON_PANEL_RESIZED, 0, onPanelResize, 0);
+	gkSetWindowTitle("Simple panel");
+	gkSetWindowResizable(GK_TRUE);
+	gkSetScreenSize(GK_SIZE(1280,720));
+	gkSetTargetFps(GK_VSYNC);
+//	gkSetFullscreen(GK_TRUE);
         if(gkEnumJoysticks()){
             if((gkJoysticks[0]->flags & GK_JOYSTICK_XBOX360) > 0)
             {
                 printf("\tXBox360 controlled found\n");
             }
         }
-		gkSetMousePosition(1280/2, 720/2);
-		{
-			img = gkCreateImage(200,200);
-			if(gkBeginDrawToImage(img, GK_TRUE)){
-				gkSetLineColor(1,1,1,1);
-				gkSetLineWidth(2);
-				gkSetLineStipple(2, 0xff00);
-				gkSetFillColor(0,0,0,0.5f);
-				gkDrawCircle(100,100,50);
-				gkEndDrawToImage();
-			}
-			img2 = gkLoadImage(L"../demos/TestRun/ball.png");
-			mx = 0;
-			my = 0;
+	gkSetMousePosition(1280/2, 720/2);
+	{
+		img = gkCreateImage(200,200);
+		if(gkBeginDrawToImage(img, GK_TRUE)){
+			gkSetLineColor(1,1,1,1);
+			gkSetLineWidth(2);
+			gkSetLineStipple(2, 0xff00);
+			gkSetFillColor(0,0,0,0.5f);
+			gkDrawCircle(100,100,50);
+			gkEndDrawToImage();
 		}
-		rc = gkAddFontResource("../demos/TestRun/meiryo.ttc");
-		printResource(rc);
-		font = gkCreateFont("meiryo", 50, GK_FONT_NORMAL);
-//		printResource(gkAddFontResource("../fonts/arial.ttf"));
-//		printResource(gkAddFontResource("../fonts/arialbd.ttf"));
-//		printResource(rc);
-//		printResource(gkAddFontResource("../fonts/ariali.ttf"));
-//		gkRemoveFontResource(rc);
-//		rc = gkAddFontResource("../fonts/meiryo.ttc");
-//		if(font = gkCreateFont("ArIaL", 10, GK_FONT_BOLD)){
-//			printf("Font created\n");
-//			gkDestroyFont(font);
-//		}
-//		printResource(rc);
-//		gkRemoveFontResource(rc);
+		img2 = gkLoadImage("../demos/TestRun/ball.png");
+		mx = 0;
+		my = 0;
+	}
+	rc = gkAddFontResource("../demos/TestRun/meiryo.ttc");
+	printResource(rc);
+	font = gkCreateFont("meiryo", 50, GK_FONT_NORMAL);
+//	printResource(gkAddFontResource("../fonts/arial.ttf"));
+//	printResource(gkAddFontResource("../fonts/arialbd.ttf"));
+//	printResource(rc);
+//	printResource(gkAddFontResource("../fonts/ariali.ttf"));
+//	gkRemoveFontResource(rc);
+//	rc = gkAddFontResource("../fonts/meiryo.ttc");
+//	if(font = gkCreateFont("ArIaL", 10, GK_FONT_BOLD)){
+//		printf("Font created\n");
+//		gkDestroyFont(font);
+//	}
+//	printResource(rc);
+//	gkRemoveFontResource(rc);
         snd = gkLoadSound("../demos/TestRun/Adrenaline.wav", GK_SOUND_STATIC);
-//        snd = gkLoadSound("/media/DATA/mp3/WoW OST/World of Warcraft - Mists of Pandaria OST/01 - Heart of Pandaria.mp3", GK_SOUND_STREAM);
+//      snd = gkLoadSound("/media/DATA/mp3/WoW OST/World of Warcraft - Mists of Pandaria OST/01 - Heart of Pandaria.mp3", GK_SOUND_STREAM);
         sndInstance = gkCreateSoundSource();
 
         gkSetSoundGain(sndInstance, 1.0f);
         gkSetSoundLooping(sndInstance, GK_TRUE);
 
-        gkPlaySound(snd, sndInstance);
-//        gkSetSoundOffset(sndInstance, 15.0f);
+//        gkPlaySound(snd, sndInstance);
+//      gkSetSoundOffset(sndInstance, 15.0f);
         gkSetMasterGain(1.0f);
         gkAddListener(gkMainPanel, GK_ON_MOUSE_DOWN, 0, onMouseStopSound, 0);
         gkAddListener(gkMainPanel, GK_ON_MOUSE_WHEEL, 0, onMouseVolumeSound, 0);
@@ -559,7 +561,7 @@ int main(){
             gkTextFormat tf = gkDefaultTextFormat;
             gkSize textSize;
             gkFont* tmpFont = gkCreateFont("meiryo", 30, GK_FONT_ITALIC);
-            wchar_t* text = L"This text is an image\nMultilined :D\nand right aligned";
+            char* text = "This text is an image\nMultilined :D\nand right aligned";
             tf.textColor = GK_COLOR(1,1,1,1);
             tf.strokeColor = GK_COLOR(0,0,0,1.0f);
             tf.strokeSize = 3;
@@ -575,17 +577,24 @@ int main(){
             }
             gkDestroyFont(tmpFont);
         }
-		gkRun();
-		gkDestroySoundSource(sndInstance);
-		gkDestroySound(snd);
-		gkRemoveFontResource(rc);
-		gkDestroyImage(img2);
-		gkDestroyImage(img);
-		gkDestroyPanel(p1);
-		gkDestroyPanel(p2);
-		gkDestroyPanel(vp);
-	}
-	return 0;
+	return GK_TRUE;
+}
+
+void cleanup()
+{
+	gkDestroySoundSource(sndInstance);
+	gkDestroySound(snd);
+	gkRemoveFontResource(rc);
+	gkDestroyImage(img2);
+	gkDestroyImage(img);
+	gkDestroyPanel(p1);
+	gkDestroyPanel(p2);
+	gkDestroyPanel(vp);
+}
+
+void main()
+{
+	gkMain(init, cleanup);
 }
 
 /*

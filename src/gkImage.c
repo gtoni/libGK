@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Toni Georgiev
+/* Copyright (c) 2014 Toni Georgiev
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,16 +20,13 @@
  */
 
 
-#include "gk.h"
+#include <gk.h>
+#include "gkImageInternal.h"
+
 #include "gk_internal.h"
-
-#ifdef GK_WIN
-#define _UNICODE
-#endif
-
-#include "IL/il.h"
 #include "GLee.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <GL/gl.h>
 
@@ -38,7 +35,6 @@
 gkColor gkGetFilteredColor(gkColor c);	//implemented in graphics.c
 
 void gkInitImages(){
-	ilInit();
 }
 
 void gkCleanupImages(){
@@ -46,69 +42,48 @@ void gkCleanupImages(){
 
 gkImage* gkLoadImage(char* filename)
 {
-	gkImage* image = (gkImage*)malloc(sizeof(gkImage));
-	ILuint imageId = ilGenImage();
 	GLint oldTexId;
+	gkImage* image;
+	gkImageData* imageData = gkDecodeImage(filename);
 
-#if defined(_UNICODE)
-	wchar_t* filenameWide = gkWcsFromUtf8(filename);
-	ILboolean loaded;
-
-	ilBindImage(imageId);
-	loaded = ilLoadImage(filenameWide);
-	free(filenameWide);
-
-	if (loaded) {
-#else
-	ilBindImage(imageId);
-	if (ilLoadImage(filename)) {
-#endif
-		glGenTextures(1, &image->id);
-		ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
-		image->width = ilGetInteger(IL_IMAGE_WIDTH);
-		image->height = ilGetInteger(IL_IMAGE_HEIGHT);
-
-		glEnable(GL_TEXTURE_2D);
-		glGetIntegerv(GL_TEXTURE_BINDING_2D, &oldTexId);
-		glBindTexture(GL_TEXTURE_2D, image->id);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, ilGetData());
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-		glBindTexture(GL_TEXTURE_2D, oldTexId);
-		glDisable(GL_TEXTURE_2D);
-		ilDeleteImage(imageId);
-	} else {
-		ilDeleteImage(imageId);
-		free(image);
+	if (!imageData)
 		return 0;
+
+	image = (gkImage*)malloc(sizeof(gkImage));
+	image->width = imageData->width;
+	image->height = imageData->height;
+
+	glGenTextures(1, &image->id);
+
+	glEnable(GL_TEXTURE_2D);
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &oldTexId);
+	glBindTexture(GL_TEXTURE_2D, image->id);
+
+	if (imageData->pixelFormat == GK_PIXELFORMAT_RGBA) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height, 
+			0, GL_RGBA, GL_UNSIGNED_BYTE, imageData->data);
+	} else if (imageData->pixelFormat == GK_PIXELFORMAT_RGB) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height, 
+			0, GL_RGB, GL_UNSIGNED_BYTE, imageData->data);
 	}
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glBindTexture(GL_TEXTURE_2D, oldTexId);
+	glDisable(GL_TEXTURE_2D);
+
 	return image;
 }
 
-GK_BOOL gkSaveImage(gkImage* image, char* filename){
-	int img = ilGenImage();
+GK_BOOL gkSaveImage(gkImage* image, char* filename)
+{
 	GK_BOOL result;
-	uint8_t* buff = (uint8_t*)calloc(image->width*image->height*4, sizeof(uint8_t));
-
-#if defined(_UNICODE)
-	wchar_t* saveName = gkWcsFromUtf8(filename);
-#else
-	char *saveName = filename;
-#endif // _UNICODE
-
-	gkGetImageData(image, GK_RGBA, buff);
-	ilBindImage(img);
-	ilEnable(IL_FILE_OVERWRITE);
-	ilTexImage(image->width, image->height, 0, 4, IL_RGBA, IL_UNSIGNED_BYTE, buff);
-	result = ilSaveImage(saveName) == IL_TRUE;
-	ilDeleteImage(img);
-	free(buff);
-
-#if defined(_UNICODE)
-	free(saveName);
-#endif
+	gkImageData *imageData = gkCreateImageData(image->width, image->height, GK_PIXELFORMAT_RGBA);
+	gkGetImageData(image, GK_PIXELFORMAT_RGBA, imageData->data);
+	result = gkEncodeImage(filename, imageData);
+	gkDestroyImageData(imageData);
 	return result;
 }
 
@@ -134,7 +109,8 @@ gkImage* gkCreateImage(int width, int height){
 	return image;
 }
 
-void gkSetImageData(gkImage* image, int format, void* data){
+void gkSetImageData(gkImage* image, gkPixelFormat format, void* data)
+{
 	GLint oldId;
 	GLint oldUnPackAlignment;
 	glGetIntegerv(GL_UNPACK_ALIGNMENT, &oldUnPackAlignment);
@@ -142,36 +118,33 @@ void gkSetImageData(gkImage* image, int format, void* data){
 	glEnable(GL_TEXTURE_2D);
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &oldId);
 	glBindTexture(GL_TEXTURE_2D, image->id);
-	if(format == GK_RGBA){
+
+	if (format == GK_PIXELFORMAT_RGBA) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height,0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	}else if(format == GK_RGB){
+	} else if (format == GK_PIXELFORMAT_RGB) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height,0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	}else if(format == GK_BGRA){
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height,0, GL_BGRA, GL_UNSIGNED_BYTE, data);
-	}else if(format == GK_BGR){
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height,0, GL_BGR, GL_UNSIGNED_BYTE, data);
 	}
+
 	glBindTexture(GL_TEXTURE_2D, oldId);
 	glDisable(GL_TEXTURE_2D);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, oldUnPackAlignment);
 }
 
-void gkGetImageData(gkImage* image, int format, void* data){
+void gkGetImageData(gkImage* image, gkPixelFormat format, void* data)
+{
 	GLint oldId;
 	GLint oldPackAlignment;
 	glGetIntegerv(GL_PACK_ALIGNMENT, &oldPackAlignment);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &oldId);
 	glBindTexture(GL_TEXTURE_2D, image->id);
-	if(format == GK_RGBA){
+
+	if (format == GK_PIXELFORMAT_RGBA) {
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	}else if(format == GK_RGB){
+	}else if (format == GK_PIXELFORMAT_RGB) {
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	}else if(format == GK_BGRA){
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
-	}else if(format == GK_BGR){
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, data);
 	}
+
 	glBindTexture(GL_TEXTURE_2D, oldId);
 	glPixelStorei(GL_PACK_ALIGNMENT, oldPackAlignment);
 }

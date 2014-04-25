@@ -56,7 +56,7 @@
       <AdditionalDependencies>OpenGL32.lib;DevIL.lib;freetype2411MT.lib;libmpg123.lib;libvorbisfile.lib;OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <AdditionalDependencies>OpenGL32.lib;OpenAL32.lib;DevIL.lib;freetype2411MT.lib;dinput8.lib;libmpg123.lib;libvorbisfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpenGL32.lib;OpenAL32.lib;libpng16.lib;jpeg.lib;freetype2411MT.lib;dinput8.lib;libmpg123.lib;libvorbisfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>..\..\libs\</AdditionalLibraryDirectories>
@@ -80,7 +80,7 @@
       <AdditionalLibraryDirectories>..\libs\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalDependencies>OpenGL32.lib;OpenAL32.lib;DevIL.lib;freetype2411MT.lib;dinput8.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpenGL32.lib;OpenAL32.lib;libpng16.lib;jpeg.lib;freetype2411MT.lib;dinput8.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>..\..\libs\</AdditionalLibraryDirectories>
@@ -92,9 +92,11 @@
   <ItemGroup>
     <ClInclude Include="..\..\include\gk.h" />
     <ClInclude Include="..\..\include\gkGeometry.h" />
+    <ClInclude Include="..\..\include\gkImage.h" />
     <ClInclude Include="..\..\include\gkkeydefs.h" />
     <ClInclude Include="..\..\include\gkTypes.h" />
     <ClInclude Include="..\..\src\gkaudio.h" />
+    <ClInclude Include="..\..\src\gkImageInternal.h" />
     <ClInclude Include="..\..\src\gk_internal.h" />
     <ClInclude Include="..\..\src\GLee.h" />
   </ItemGroup>
@@ -104,16 +106,19 @@
     <ClCompile Include="..\..\src\audiostream.c" />
     <ClCompile Include="..\..\src\event.c" />
     <ClCompile Include="..\..\src\fonts.c" />
-    <ClCompile Include="..\..\src\geom.c" />
+    <ClCompile Include="..\..\src\gkGeometry.c" />
+    <ClCompile Include="..\..\src\gkImageDecoder.c" />
+    <ClCompile Include="..\..\src\gkImageEncoder.c" />
+    <ClCompile Include="..\..\src\gkImageType.c" />
     <ClCompile Include="..\..\src\GLee.c" />
     <ClCompile Include="..\..\src\graphics.c" />
-    <ClCompile Include="..\..\src\image.c" />
+    <ClCompile Include="..\..\src\gkImage.c" />
     <ClCompile Include="..\..\src\input.c" />
-    <ClCompile Include="..\..\src\list.c" />
+    <ClCompile Include="..\..\src\gkList.c" />
     <ClCompile Include="..\..\src\panel.c" />
     <ClCompile Include="..\..\src\timer.c" />
     <ClCompile Include="..\..\src\tween.c" />
-    <ClCompile Include="..\..\src\utf8.c" />
+    <ClCompile Include="..\..\src\gkUtf8.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

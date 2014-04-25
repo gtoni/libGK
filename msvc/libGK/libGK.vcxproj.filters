@@ -13,13 +13,13 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\image">
+      <UniqueIdentifier>{3ba7a076-ed94-4fdc-98c1-85ad29c2bc93}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\gk.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\gk_internal.h">
-      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\GLee.h">
       <Filter>Source Files</Filter>
@@ -27,14 +27,23 @@
     <ClInclude Include="..\..\include\gkkeydefs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\gkaudio.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\gkTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\gkGeometry.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\gkImage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gkImageInternal.h">
+      <Filter>Source Files\image</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gkaudio.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gk_internal.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -47,16 +56,10 @@
     <ClCompile Include="..\..\src\fonts.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\geom.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\GLee.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\graphics.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\image.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\input.c">
@@ -77,10 +80,25 @@
     <ClCompile Include="..\..\src\audiostream.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\list.c">
+    <ClCompile Include="..\..\src\gkImageDecoder.c">
+      <Filter>Source Files\image</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkImageEncoder.c">
+      <Filter>Source Files\image</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkImageType.c">
+      <Filter>Source Files\image</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkImage.c">
+      <Filter>Source Files\image</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkGeometry.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\utf8.c">
+    <ClCompile Include="..\..\src\gkList.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkUtf8.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

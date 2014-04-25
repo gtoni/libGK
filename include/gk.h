@@ -40,9 +40,9 @@ extern "C"{
 	#define GK_LINUX
 #endif
 
-#include "gkTypes.h"
-
-#include "gkGeometry.h"
+#include <gkTypes.h>
+#include <gkGeometry.h>
+#include <gkImage.h>
 
 /**********************************
 	Application
@@ -356,40 +356,6 @@ gkMatrix gkGlobalToLocal(gkPanel* panel);
 
 void gkSetFocus(gkPanel* panel);
 gkPanel* gkGetFocus();
-
-/************************************
-	Images
-
-	The image structure and functions for working with images.
-*/
-
-#define GK_RGBA		0
-#define GK_RGB		1
-#define GK_BGRA		2
-#define GK_BGR		3
-
-typedef struct gkImage
-{
-	uint32_t id;
-	uint16_t width;
-	uint16_t height;
-}gkImage;
-
-gkImage* gkLoadImage(char* filaname);
-gkImage* gkCreateImage(int width, int height);
-GK_BOOL gkSaveImage(gkImage* image, char* filename);
-
-void gkSetImageData(gkImage* image, int format, void* data);
-void gkGetImageData(gkImage* image, int format, void* data);
-
-GK_BOOL gkBeginDrawToImage(gkImage* image, GK_BOOL clear);
-void gkEndDrawToImage();
-
-void gkDrawImage(gkImage* image, float x, float y);
-void gkDrawImageEx(gkImage* image, float x, float y, gkRect srcRect);
-
-void gkDestroyImage(gkImage* image);
-
 
 /************************************
 	Fonts

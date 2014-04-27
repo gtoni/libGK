@@ -42,6 +42,7 @@ extern "C"{
 
 #include <gkTypes.h>
 #include <gkGeometry.h>
+#include <gkGraphics.h>
 #include <gkImage.h>
 
 /**********************************
@@ -249,39 +250,6 @@ typedef struct gkXBox360ControllerState
 }gkXBox360ControllerState;
 
 void gkGetJoystickState(gkJoystick* joystick, gkJoystickState* state);
-
-/************************************
-	Graphics
-
-	Types and functions for drawing graphics
-*/
-
-typedef struct gkColor
-{
-	float r,g,b,a;
-}gkColor;
-
-gkColor GK_COLOR(float r, float g, float b, float a);
-
-void gkPushColorFilter(float r, float g, float b, float a);
-void gkPopColorFilter();
-
-void gkPushTransform(gkMatrix* matrix);
-void gkPopTransform();
-
-void gkSetFillColor(float r, float g, float b, float a);
-void gkSetLineColor(float r, float g, float b, float a);
-void gkSetLineWidth(float width);
-
-void gkSetClipRect(float x, float y, float w, float h);
-
-void gkDrawPoint(float x, float y, float size);
-void gkDrawLine(float x1, float y1, float x2, float y2);
-void gkDrawRect(float x, float y, float width, float height);
-void gkDrawRoundRect(float x, float y, float width, float height, float a, float b);
-void gkDrawCircle(float x, float y, float radius);
-void gkDrawPath(gkPoint* points, int count, GK_BOOL polygon);
-
 
 /************************************
 	Panels

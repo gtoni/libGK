@@ -92,6 +92,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\include\gk.h" />
     <ClInclude Include="..\..\include\gkGeometry.h" />
+    <ClInclude Include="..\..\include\gkGraphics.h" />
     <ClInclude Include="..\..\include\gkImage.h" />
     <ClInclude Include="..\..\include\gkkeydefs.h" />
     <ClInclude Include="..\..\include\gkTypes.h" />

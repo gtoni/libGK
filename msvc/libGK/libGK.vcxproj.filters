@@ -45,6 +45,9 @@
     <ClInclude Include="..\..\src\gk_internal.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\gkGraphics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\application.c">

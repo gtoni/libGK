@@ -272,7 +272,6 @@ void gkPopTransform();
 void gkSetFillColor(float r, float g, float b, float a);
 void gkSetLineColor(float r, float g, float b, float a);
 void gkSetLineWidth(float width);
-void gkSetLineStipple(int factor, short pattern);
 
 void gkSetClipRect(float x, float y, float w, float h);
 

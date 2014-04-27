@@ -111,7 +111,7 @@
     <ClCompile Include="..\..\src\gkImageEncoder.c" />
     <ClCompile Include="..\..\src\gkImageType.c" />
     <ClCompile Include="..\..\src\GLee.c" />
-    <ClCompile Include="..\..\src\graphics.c" />
+    <ClCompile Include="..\..\src\gkGraphics.c" />
     <ClCompile Include="..\..\src\gkImage.c" />
     <ClCompile Include="..\..\src\input.c" />
     <ClCompile Include="..\..\src\gkList.c" />

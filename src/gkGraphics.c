@@ -124,8 +124,6 @@ void gkPopTransform(){
 gkColor gkFillColor = {0.0f,0.0f,0.0f,1.0f};
 gkColor gkLineColor = {1.0f,1.0f,1.0f,1.0f};
 float gkLineWidth = 0;
-int gkLineStippleFactor = 1;
-short gkLineStipplePattern = 0xFFFF;
 
 gkColor GK_COLOR(float r, float g, float b, float a){
 	gkColor c = {r,g,b,a};
@@ -150,17 +148,11 @@ void gkSetLineWidth(float w){
 	gkLineWidth = w;
 }
 
-void gkSetLineStipple(int factor, short pattern){
-	gkLineStippleFactor = factor;
-	gkLineStipplePattern = pattern;
-}
-
 GK_BOOL gkCheckLineProperties(){
 	if(gkLineWidth > 0){
 		gkColor lineColor = gkGetFilteredColor(gkLineColor);
 		glColor4f(lineColor.r, lineColor.g, lineColor.b, lineColor.a);
 		glLineWidth(gkLineWidth);
-		glLineStipple(gkLineStippleFactor, gkLineStipplePattern);
 		return GK_TRUE;
 	}
 	return GK_FALSE;
@@ -314,16 +306,95 @@ void gkDrawCircle(float x, float y, float r){
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
+void drawPolyInternal(gkPoint* path, int length);
+
 void gkDrawPath(gkPoint* path, int length, int polygon){
 	gkColor fillColor = gkGetFilteredColor(gkFillColor);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(2, GL_FLOAT, 0, path);
 	if(polygon){
 		glColor4f(fillColor.r, fillColor.g, fillColor.b, fillColor.a);
-		glDrawArrays(GL_POLYGON, 0, length);
+		drawPolyInternal(path, length);
 	}
 	if(gkCheckLineProperties()){
 		glDrawArrays(polygon?GL_LINE_LOOP:GL_LINE_STRIP, 0, length);
 	}
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
+
+
+#ifdef GK_CONCAVE_POLYGONS
+/* 
+ *	This one works with many concave polygons as well
+ */
+
+#define MAX_INDICES 1000
+
+static void drawPolyInternal(gkPoint* path, int length)
+{
+	int r;
+	int maxCount = 0;
+	int minBrk = 1000;
+	int ind[MAX_INDICES];
+
+	if (length>256) {
+		glDrawArrays(GL_TRIANGLE_FAN, 0, length);
+	}
+
+	//	rotate points order to find the best match. 
+	//	This algorithm has O(N*N) complexity. May be slow.
+
+	for (r = 0; r<length; r++) {
+		//	Simple triangulation 
+		//	works for a lot of polygons (even concave)
+		int i, i2, p;
+		int indices[MAX_INDICES];
+		int pathStack[MAX_INDICES], cur, pathTop = length-1;
+		float c;
+		int center = r, brk = 0, count = 0;
+		gkPoint v1, v2;
+
+		for (i = 0; i<pathTop; i++) {
+			pathStack[i] = (i + 1 + r)%length;
+		}
+
+		for (cur = 0; cur < pathTop-1; cur++) {
+			i = pathStack[cur];
+			i2 = pathStack[cur+1];
+			v1.x = (path[i].x - path[center].x);
+			v1.y = (path[i].y - path[center].y);
+			v2.x = (path[i2].x - path[center].x);
+			v2.y = (path[i2].y - path[center].y);
+			c = v1.x*v2.y - v1.y*v2.x;
+			if (c<0) {
+				p = count*3;
+				indices[p] = center;
+				indices[p+1] = i;
+				indices[p+2] = i2;
+				count++;
+			} else {
+				if (cur>length-1) 
+					continue;
+				brk++;
+				pathStack[pathTop] = center;
+				pathTop++;
+				center = i;
+			}
+		}
+		if (brk < minBrk) {
+			maxCount = count;
+			minBrk = brk;
+			memcpy(ind, indices, sizeof(int)*count*3);
+		}
+		if (length>16)
+			break;
+	}
+
+	glDrawElements(GL_TRIANGLES, maxCount*3, GL_UNSIGNED_INT, ind);
+}
+#else
+static void drawPolyInternal(gkPoint* path, int length)
+{
+	glDrawArrays(GL_TRIANGLE_FAN, 0, length);
+}
+#endif

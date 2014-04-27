@@ -921,7 +921,6 @@ draw:
 			float lw = format->strokeSize/3.0f;
 			underlineThickness += lw;
 			gkSetLineWidth(lw);
-			gkSetLineStipple(1,0xffff);
 			gkSetLineColor(tmpColor.r, tmpColor.g, tmpColor.b, tmpColor.a);
 			gkSetFillColor(0,0,0,0);
 		}else{

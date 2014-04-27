@@ -43,6 +43,9 @@ typedef struct{
 	float rad[STAR_COUNT];
 }PData;
 
+#define POLY_VCOUNT 7
+gkPoint poly[POLY_VCOUNT];
+
 void myDrawFunc(gkPanel* p){
 	int i = 1;
 	gkMatrix m;
@@ -58,7 +61,6 @@ void myDrawFunc(gkPanel* p){
 	}else{
 		gkSetLineColor(1,1,1,1);
 	}
-	gkSetLineStipple(1,0xffff);
 	gkSetFillColor(0,0,1,1);
 	m = gkMatrixCreateIdentity();
 	gkDrawPath(lines, MAX_LINES, GK_FALSE);
@@ -79,7 +81,6 @@ void myDrawFunc(gkPanel* p){
 	if(p->mouseOver){
 		gkSetLineWidth(1);
 		gkSetLineColor(1,1,1,1);
-		gkSetLineStipple(1,0xf0f0);
 	}
 	gkDrawRoundRect(0, 0, p->width, p->height,15,15);
 	if(p->mouseOver && pdata->id == 0){
@@ -111,6 +112,13 @@ void myDrawFunc(gkPanel* p){
 	}
 
 	gkDrawImage(img3, 0, 0);
+
+	gkSetLineWidth(1);
+	gkSetLineColor(0,0,0,1.0);
+	gkSetFillColor(1.0f, 1.0f,1.0f,0.5f);
+	gkDrawPoint(poly[0].x, poly[0].y, 10);
+	gkDrawPath(poly, POLY_VCOUNT, GK_TRUE);
+	gkSetLineWidth(0);
 }
 
 #include <GL/gl.h>
@@ -221,7 +229,6 @@ void updatePanel(gkPanel* panel){
 			rd += 0.1f*pitch*pitch;
 			gkSetLineColor(1,1,1,1);
 			gkSetLineWidth(2);
-			gkSetLineStipple(1, 0xf0f0);
 			gkSetFillColor(0,0,0,0.5f);
 			gkPushTransform(&mat);
 			gkDrawCircle(100,100,50);
@@ -232,6 +239,8 @@ void updatePanel(gkPanel* panel){
 }
 
 gkPanel*vp;
+int cpoly = 0;
+
 GK_BOOL onMouseDown(gkEvent* evtPtr, void* p){
 	gkPanel* c;
 	gkMouseState ms;
@@ -244,6 +253,9 @@ GK_BOOL onMouseDown(gkEvent* evtPtr, void* p){
 	gkGetMouseState(&ms);
 	gkAddTween(&mx, GK_TWEEN_EASE_OUT_ELASTIC, 1000, GK_FLOAT, mx, ms.position.x);
 	gkAddTween(&my, GK_TWEEN_EASE_OUT_ELASTIC, 1000, GK_FLOAT, my, ms.position.y);
+	poly[cpoly].x = ms.position.x;
+	poly[cpoly].y = ms.position.y;
+	cpoly = (cpoly + 1)%POLY_VCOUNT;
 	return GK_TRUE;
 }
 GK_BOOL onMouseUp(gkEvent* evtPtr, void* p){
@@ -446,6 +458,14 @@ GK_BOOL init()
 	gkAddListener(timer2, GK_ON_TIMER, 0, onTimer2, 0);
 	gkStartTimer(timer2, GK_FALSE);
 
+	poly[0] = GK_POINT(50,  50);
+    poly[1] = GK_POINT(100,  25);
+    poly[2] = GK_POINT(200,   5);
+    poly[3] = GK_POINT(250,  50);
+    poly[4] = GK_POINT(300, 100);
+    poly[5] = GK_POINT(350, 200);
+    poly[6] = GK_POINT(250, 250);
+
 	d1.id = 0; d2.id = 1; d3.id = 2;
 	d.drawing = GK_FALSE;
 	for(i = 0; i<MAX_LINES; i++){
@@ -520,7 +540,6 @@ GK_BOOL init()
 		if(gkBeginDrawToImage(img, GK_TRUE)){
 			gkSetLineColor(1,1,1,1);
 			gkSetLineWidth(2);
-			gkSetLineStipple(2, 0xff00);
 			gkSetFillColor(0,0,0,0.5f);
 			gkDrawCircle(100,100,50);
 			gkEndDrawToImage();

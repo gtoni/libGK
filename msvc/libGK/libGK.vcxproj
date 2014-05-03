@@ -107,6 +107,7 @@
     <ClCompile Include="..\..\src\audiostream.c" />
     <ClCompile Include="..\..\src\event.c" />
     <ClCompile Include="..\..\src\fonts.c" />
+    <ClCompile Include="..\..\src\gkDrawToImage.c" />
     <ClCompile Include="..\..\src\gkGeometry.c" />
     <ClCompile Include="..\..\src\gkImageDecoder.c" />
     <ClCompile Include="..\..\src\gkImageEncoder.c" />

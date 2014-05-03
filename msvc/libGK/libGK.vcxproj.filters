@@ -104,5 +104,8 @@
     <ClCompile Include="..\..\src\gkGraphics.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\gkDrawToImage.c">
+      <Filter>Source Files\image</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

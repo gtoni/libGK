@@ -171,6 +171,7 @@ void DestroyUpdatePanel()
 gkPanel* drawPanel;
 gkImage* drawImage;
 
+
 void DrawDrawPanel(gkPanel* p)
 {
 	if (gkBeginDrawToImage(drawImage, GK_TRUE)) {

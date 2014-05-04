@@ -45,6 +45,7 @@
 gkImage* gkImageToDraw = 0;
 gkColorNode* gkOldColorFilterTop;
 gkTransformNode* gkOldTransformTop;
+GLint gkOldViewport[4];
 
 struct gkDrawToImageImplementation
 {
@@ -77,7 +78,9 @@ GK_BOOL gkBeginDrawToImage(gkImage* img, GK_BOOL clear)
 
 	gkImageToDraw = img;
 
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	/* Save the current graphics state before drawing begins */
+
+	glGetIntegerv(GL_VIEWPORT, gkOldViewport);
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glMatrixMode(GL_MODELVIEW);
@@ -100,7 +103,6 @@ GK_BOOL gkBeginDrawToImage(gkImage* img, GK_BOOL clear)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 	glEnable(GL_BLEND);
-	glEnable(GL_LINE_STIPPLE);
 
 
 	gkOldColorFilterTop = gkColorFilterTop;
@@ -136,12 +138,12 @@ void gkEndDrawToImage()
 	glBindTexture(GL_TEXTURE_2D, gkImageToDraw->id);
 	glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, (int)gkImageToDraw->width, (int)gkImageToDraw->height);
 
+	/* Restore graphics state */
+	glViewport(gkOldViewport[0], gkOldViewport[1], gkOldViewport[2], gkOldViewport[3]);
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
-
-	glPopAttrib();
 
 	/* Reset render target to default frame buffer */
 	gkDTI->endDraw();

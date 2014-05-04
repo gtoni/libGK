@@ -131,29 +131,29 @@ void gkGetImageData(gkImage* image, gkPixelFormat format, void* data)
 {
 	GLint oldId;
 	GLint oldPackAlignment;
+	GLuint fmt;
 	glGetIntegerv(GL_PACK_ALIGNMENT, &oldPackAlignment);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &oldId);
 	glBindTexture(GL_TEXTURE_2D, image->id);
 
 	if (format == GK_PIXELFORMAT_RGBA) {
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		fmt = GL_RGBA;
 	}else if (format == GK_PIXELFORMAT_RGB) {
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		fmt = GL_RGB;
 	}
-	/*
-		If glGetTexImage is not supported:
-			Use the same method as in draw to image.
-			Set render target to draw to image buffer.
-			Draw image.
-			ReadPixels from the buffer.
-			Reset render target to framebuffer.
 
-			May directly hack it: 
-				beginDrawToImage(thisImage, false);
-				readPixels
-				endDrawToImage();
-	*/
+#if 1
+	/* If glGetTexImage is available */
+	glGetTexImage(GL_TEXTURE_2D, 0, fmt, GL_UNSIGNED_BYTE, data);
+#else 
+	if (gkBeginDrawToImage(image, GK_FALSE)) {
+		glFlush();
+		glReadPixels(0,0, image->width, image->height, 
+			fmt, GL_UNSIGNED_BYTE, data);
+		gkEndDrawToImage();
+	}
+#endif
 
 	glBindTexture(GL_TEXTURE_2D, oldId);
 	glPixelStorei(GL_PACK_ALIGNMENT, oldPackAlignment);

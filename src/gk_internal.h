@@ -94,6 +94,4 @@ void gkCleanupJoystick();
 void gkInitAudio();
 void gkCleanupAudio();
 
-#include "gkaudio.h"
-
 #endif

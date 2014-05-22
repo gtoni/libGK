@@ -16,6 +16,9 @@
     <Filter Include="Source Files\image">
       <UniqueIdentifier>{3ba7a076-ed94-4fdc-98c1-85ad29c2bc93}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\audio">
+      <UniqueIdentifier>{c9de1827-30c6-43f4-8421-e9b34bebd808}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\gk.h">
@@ -39,14 +42,23 @@
     <ClInclude Include="..\..\src\gkImageInternal.h">
       <Filter>Source Files\image</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\gkaudio.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\gk_internal.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\gkGraphics.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gkAudioInternal.h">
+      <Filter>Source Files\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\gkAudio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\gkEvent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gkAudioSystem.h">
+      <Filter>Source Files\audio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -72,12 +84,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\tween.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\audio.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\audiostream.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\gkImageDecoder.c">
@@ -106,6 +112,18 @@
     </ClCompile>
     <ClCompile Include="..\..\src\gkDrawToImage.c">
       <Filter>Source Files\image</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkAudioStream.c">
+      <Filter>Source Files\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkAudioSystemOpenAL.c">
+      <Filter>Source Files\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkAudioSystemDSound.cpp">
+      <Filter>Source Files\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkAudio.c">
+      <Filter>Source Files\audio</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

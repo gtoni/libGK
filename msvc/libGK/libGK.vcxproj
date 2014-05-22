@@ -91,22 +91,27 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\gk.h" />
+    <ClInclude Include="..\..\include\gkAudio.h" />
+    <ClInclude Include="..\..\include\gkEvent.h" />
     <ClInclude Include="..\..\include\gkGeometry.h" />
     <ClInclude Include="..\..\include\gkGraphics.h" />
     <ClInclude Include="..\..\include\gkImage.h" />
     <ClInclude Include="..\..\include\gkkeydefs.h" />
     <ClInclude Include="..\..\include\gkTypes.h" />
-    <ClInclude Include="..\..\src\gkaudio.h" />
+    <ClInclude Include="..\..\src\gkAudioInternal.h" />
+    <ClInclude Include="..\..\src\gkAudioSystem.h" />
     <ClInclude Include="..\..\src\gkImageInternal.h" />
     <ClInclude Include="..\..\src\gk_internal.h" />
     <ClInclude Include="..\..\src\GLee.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\application.c" />
-    <ClCompile Include="..\..\src\audio.c" />
-    <ClCompile Include="..\..\src\audiostream.c" />
+    <ClCompile Include="..\..\src\gkAudio.c" />
+    <ClCompile Include="..\..\src\gkAudioStream.c" />
     <ClCompile Include="..\..\src\event.c" />
     <ClCompile Include="..\..\src\fonts.c" />
+    <ClCompile Include="..\..\src\gkAudioSystemOpenAL.c" />
+    <ClCompile Include="..\..\src\gkAudioSystemDSound.cpp" />
     <ClCompile Include="..\..\src\gkDrawToImage.c" />
     <ClCompile Include="..\..\src\gkGeometry.c" />
     <ClCompile Include="..\..\src\gkImageDecoder.c" />

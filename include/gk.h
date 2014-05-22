@@ -26,12 +26,6 @@
 extern "C"{
 #endif
 
-#ifdef GK_INTERNAL
-#define GK_READONLY
-#else
-#define GK_READONLY /*const*/
-#endif
-
 #include <memory.h>
 
 #ifdef _WIN32
@@ -41,9 +35,11 @@ extern "C"{
 #endif
 
 #include <gkTypes.h>
+#include <gkEvent.h>
 #include <gkGeometry.h>
 #include <gkGraphics.h>
 #include <gkImage.h>
+#include <gkAudio.h>
 
 /**********************************
 	Application
@@ -76,44 +72,6 @@ char*	gkGetWindowTitle();
 
 void	gkSetWindowResizable(GK_BOOL resizable);
 GK_BOOL	gkIsWindowResizable();
-
-
-/************************************
-	Event model
-
-	Types and functions used for dispatching and handling events.
-	Events can be dispatched for various reasons, such as mouse clicks or key pressed. Objects that dispatch events
-	are usually called event dispatchers. Listener functions are called when the event they listen for is dispatched,
-	also they are given a data structure which describes the event (such as which mouse button was pressed).
-*/
-
-#define GK_EVENT(T)	typedef struct T T;\
-			struct T{\
-				uint16_t type;\
-				void* target;\
-				void* currentTarget;
-#define GK_EVENT_END()	};
-
-GK_EVENT(gkEvent)
-GK_EVENT_END()
-
-typedef struct gkDispatcher
-{
-	struct gkEventListener* listeners;
-} gkDispatcher;
-
-typedef void* gkDispatcherHandle;
-typedef void* gkEventHandle;
-
-typedef GK_BOOL (*gkEventListenerFunc)(gkEvent* eventData, void* param);
-
-void	gkInitDispatcher(gkDispatcher* listeners);
-void	gkCleanupDispatcher(gkDispatcher* listeners);
-void	gkAddListener(gkDispatcherHandle listeners, int type, short priority, gkEventListenerFunc listener, void* param);
-void	gkRemoveListener(gkDispatcherHandle listeners, int type, gkEventListenerFunc listener, void* param);
-GK_BOOL	gkHasListeners(gkDispatcherHandle listeners, int type);
-GK_BOOL	gkDispatch(gkDispatcherHandle listeners, gkEventHandle eventData);
-
 
 /************************************
 	Input
@@ -386,76 +344,6 @@ void gkDestroyFont(gkFont* font);
 
 gkSize gkMeasureText(gkFont* font, char* text, gkTextFormat* format);
 void gkDrawText(gkFont* font, char* text, float x, float y, gkTextFormat* format);
-
-
-/************************************
-	Audio
-
-	Types and functions for audio and sounds.
-*/
-
-#ifdef GK_INTERNAL
-#include "gkaudio.h"
-#endif
-
-typedef struct gkSound
-{
-    float length;
-    GK_BOOL seekable;
-#ifdef GK_INTERNAL
-    struct gkSoundInternal internal;
-#endif
-}gkSound;
-
-
-#define GK_SOUND_STATE_IDLE         0
-#define GK_SOUND_STATE_PLAYING      1
-#define GK_SOUND_STATE_PAUSED       2
-
-typedef struct gkSoundSource
-{
-    gkDispatcher dispatcher;
-
-GK_READONLY int id;
-GK_READONLY uint8_t state;
-GK_READONLY gkSound* sound;
-#ifdef GK_INTERNAL
-    struct gkSoundSourceInternal internal;
-#endif
-}gkSoundSource;
-
-
-#define GK_SOUND_EVENT_BASE    150
-#define GK_ON_SOUND_STOPPED     (GK_SOUND_EVENT_BASE + 1)
-
-#define GK_SOUND_STATIC     0x01
-#define GK_SOUND_STREAM     0x02
-
-gkSound* gkLoadSound(char* filename, int flags);
-void gkDestroySound(gkSound* sound);
-
-gkSoundSource* gkCreateSoundSource();
-void gkDestroySoundSource(gkSoundSource* source);
-
-gkSoundSource* gkPlaySound(gkSound* sound, gkSoundSource* source);
-void gkPauseSound(gkSoundSource* soundSource);
-void gkResumeSound(gkSoundSource* soundSource);
-void gkStopSound(gkSoundSource* soundSource, GK_BOOL dispatchStopEvent);
-
-void gkSetSoundGain(gkSoundSource* soundSource, float gain);
-float gkGetSoundGain(gkSoundSource* soundSource);
-
-void gkSetSoundPitch(gkSoundSource* soundSource, float pitch);
-float gkGetSoundPitch(gkSoundSource* soundSource);
-
-void gkSetSoundLooping(gkSoundSource* soundSource, GK_BOOL looping);
-GK_BOOL gkIsSoundLooping(gkSoundSource* soundSource);
-
-void gkSetSoundOffset(gkSoundSource* soundSource, float seconds);
-float gkGetSoundOffset(gkSoundSource* soundSource);
-
-void gkSetMasterGain(float gain);
-float gkGetMasterGain();
 
 /************************************
 	Timers

@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Toni Georgiev
+/* Copyright (c) 2014 Toni Georgiev
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "gk_internal.h"
+#include "gkAudioInternal.h"
 
 static int getAudioFormat(int channels, int bitsPerSample)
 {

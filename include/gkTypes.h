@@ -111,4 +111,10 @@ size_t	gkWcsToUtf8(char* dst, wchar_t* src, size_t dstSize);
 wchar_t* gkWcsFromUtf8(char* src);
 char*	 gkUtf8FromWcs(wchar_t* src);
 
+#ifdef GK_INTERNAL
+#define GK_READONLY
+#else
+#define GK_READONLY /*const*/
+#endif
+
 #endif

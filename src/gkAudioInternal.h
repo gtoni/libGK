@@ -19,8 +19,10 @@
  * SOFTWARE.
  */
 
-#ifndef _GK_AUDIO_H_
-#define _GK_AUDIO_H_
+#ifndef _GK_AUDIO_INTERNAL_H_
+#define _GK_AUDIO_INTERNAL_H_
+
+#include <gkTypes.h>
 
 #define GK_AUDIO_FORMAT_UNSUPPORTED 0xffff
 #define GK_AUDIO_FORMAT_MONO8       0x1100
@@ -30,25 +32,23 @@
 #define GK_AUDIO_FORMAT_STEREO16    0x1103
 #define GK_AUDIO_FORMAT_STEREO32    GK_AUDIO_FORMAT_UNSUPPORTED
 
-typedef struct _gkAudioStreamInfo gkAudioStreamInfo;
-struct _gkAudioStreamInfo{
+typedef struct gkAudioStreamInfo{
     int format;
     int sampleRate;
     int channels;
     int bitsPerSample;
     size_t streamSize;
     float length;
-};
+}gkAudioStreamInfo;
 
-typedef struct _gkAudioStream gkAudioStream;
-struct _gkAudioStream{
-    int (*read)(gkAudioStream* stream, void* buffer, size_t bytes);
-    int (*seek)(gkAudioStream* stream, size_t sampleOffset, int origin);
-    int (*eof)(gkAudioStream* stream);
-    int (*getError)(gkAudioStream* stream);
-    void (*getInfo)(gkAudioStream* stream, gkAudioStreamInfo* info);
-    void (*destroy)(gkAudioStream* stream);
-};
+typedef struct gkAudioStream{
+    int (*read)(struct gkAudioStream* stream, void* buffer, size_t bytes);
+    int (*seek)(struct gkAudioStream* stream, size_t sampleOffset, int origin);
+    int (*eof)(struct gkAudioStream* stream);
+    int (*getError)(struct gkAudioStream* stream);
+    void (*getInfo)(struct gkAudioStream* stream, gkAudioStreamInfo* info);
+    void (*destroy)(struct gkAudioStream* stream);
+}gkAudioStream;
 
 void gkInitAudioStream();
 void gkCleanupAudioStream();
@@ -59,20 +59,23 @@ void gkAudioStreamClose(gkAudioStream* stream);
 #define GK_NUM_STREAM_BUFFERS 10
 #define GK_STREAM_BUFFER_SIZE 1024*8
 
+#include "gkAudioSystem.h"
+
 struct gkSoundInternal
 {
-    int flags;
-    int alBuffers[GK_NUM_STREAM_BUFFERS];
-    gkAudioStream* stream;
-    gkAudioStreamInfo streamInfo;
+	int flags;
+	gkAudioBuffer buffers[GK_NUM_STREAM_BUFFERS];
+	gkAudioStream* stream;
+	gkAudioStreamInfo streamInfo;
 };
 
 struct gkSoundSourceInternal
 {
-    uint64_t currentOffset;
-    uint64_t lastOffset;
-    GK_BOOL looping;
-    GK_BOOL autoDestroy;
+	gkAudioPlayer player;
+	uint64_t currentOffset;
+	uint64_t lastOffset;
+	GK_BOOL looping;
+	GK_BOOL autoDestroy;
 };
 
 #endif //

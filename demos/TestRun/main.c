@@ -425,11 +425,22 @@ void printTime(float sec)
 }
 
 void onTimer1(gkEvent* evt, void* p){
+	return;
     printf("sound \t");
     printTime(gkGetSoundOffset(sndInstance));
     printf(" / ");
     printTime(snd->length);
     printf("\n");
+}
+
+GK_BOOL onMouseVolume(gkEvent* e, void* p)
+{
+    gkMouseEvent* evt = (gkMouseEvent*)e;
+    float v = (evt->position.x / gkMainPanel->width);
+//    gkSetSoundGain(sndInstance, v);
+    gkSetMasterGain(v);
+    printf("volume: %d%\t%d%\n", (int)(v*100.0f), (int)(gkGetMasterGain()*100.0f));
+    return GK_TRUE;
 }
 
 PData d1, d2, d3;
@@ -563,18 +574,20 @@ GK_BOOL init()
 //	}
 //	printResource(rc);
 //	gkRemoveFontResource(rc);
-        snd = gkLoadSound("../demos/TestRun/Adrenaline.wav", GK_SOUND_STATIC);
+//	snd = gkLoadSound("../demos/TestRun/Adrenaline.wav", GK_SOUND_STATIC);
+	snd = gkLoadSound("D:\\games\\Torchlight II\\music\\CampDayTown.ogg", GK_SOUND_STREAM);
 //      snd = gkLoadSound("/media/DATA/mp3/WoW OST/World of Warcraft - Mists of Pandaria OST/01 - Heart of Pandaria.mp3", GK_SOUND_STREAM);
         sndInstance = gkCreateSoundSource();
 
         gkSetSoundGain(sndInstance, 1.0f);
         gkSetSoundLooping(sndInstance, GK_TRUE);
 
-//        gkPlaySound(snd, sndInstance);
+        gkPlaySound(snd, sndInstance);
+
 //      gkSetSoundOffset(sndInstance, 15.0f);
-        gkSetMasterGain(1.0f);
-        gkAddListener(gkMainPanel, GK_ON_MOUSE_DOWN, 0, onMouseStopSound, 0);
-        gkAddListener(gkMainPanel, GK_ON_MOUSE_WHEEL, 0, onMouseVolumeSound, 0);
+	gkAddListener(gkMainPanel, GK_ON_MOUSE_MOVE, 0, onMouseVolume, 0);
+	gkAddListener(gkMainPanel, GK_ON_MOUSE_DOWN, 0, onMouseStopSound, 0);
+//        gkAddListener(gkMainPanel, GK_ON_MOUSE_WHEEL, 0, onMouseVolumeSound, 0);
 
         {
             gkTextFormat tf = gkDefaultTextFormat;

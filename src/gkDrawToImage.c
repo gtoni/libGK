@@ -140,6 +140,7 @@ void gkEndDrawToImage()
 
 	/* Restore graphics state */
 	glViewport(gkOldViewport[0], gkOldViewport[1], gkOldViewport[2], gkOldViewport[3]);
+	glEnable(GL_BLEND);
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 	glMatrixMode(GL_PROJECTION);

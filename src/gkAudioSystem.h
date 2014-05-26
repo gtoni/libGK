@@ -24,7 +24,7 @@
 
 #include <gkTypes.h>
 
-#define GK_USE_OPENAL
+#define GK_USE_XAUDIO2
 
 #define GK_METHOD(result, name, params) result (*name)params
 

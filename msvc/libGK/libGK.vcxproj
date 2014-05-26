@@ -40,6 +40,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>..\..\bin\</OutDir>
+    <IncludePath>$(DXSDK_DIR)include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(DXSDK_DIR)lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>..\..\bin\</OutDir>
@@ -56,7 +58,7 @@
       <AdditionalDependencies>OpenGL32.lib;DevIL.lib;freetype2411MT.lib;libmpg123.lib;libvorbisfile.lib;OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <AdditionalDependencies>OpenGL32.lib;OpenAL32.lib;libpng16.lib;jpeg.lib;freetype2411MT.lib;dinput8.lib;libmpg123.lib;libvorbisfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpenGL32.lib;libpng16.lib;jpeg.lib;freetype2411MT.lib;dinput8.lib;libmpg123.lib;libvorbisfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>..\..\libs\</AdditionalLibraryDirectories>
@@ -80,7 +82,7 @@
       <AdditionalLibraryDirectories>..\libs\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalDependencies>OpenGL32.lib;OpenAL32.lib;libpng16.lib;jpeg.lib;freetype2411MT.lib;dinput8.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpenGL32.lib;libpng16.lib;jpeg.lib;freetype2411MT.lib;dinput8.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>..\..\libs\</AdditionalLibraryDirectories>
@@ -110,8 +112,10 @@
     <ClCompile Include="..\..\src\gkAudioStream.c" />
     <ClCompile Include="..\..\src\event.c" />
     <ClCompile Include="..\..\src\fonts.c" />
+    <ClCompile Include="..\..\src\gkAudioSystemNull.c" />
     <ClCompile Include="..\..\src\gkAudioSystemOpenAL.c" />
     <ClCompile Include="..\..\src\gkAudioSystemDSound.cpp" />
+    <ClCompile Include="..\..\src\gkAudioSystemXAudio2.cpp" />
     <ClCompile Include="..\..\src\gkDrawToImage.c" />
     <ClCompile Include="..\..\src\gkGeometry.c" />
     <ClCompile Include="..\..\src\gkImageDecoder.c" />

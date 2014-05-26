@@ -341,7 +341,10 @@ void gkSetSoundOffset(gkSoundSource* source, float seconds)
         fillQueue(source, GK_NUM_STREAM_BUFFERS, source->sound->internal.buffers);
 	Audio.Player.Play(source->internal.player);
 
-        source->internal.currentOffset = (int)seconds*1000.0f;
+	if (source->state == GK_SOUND_STATE_PAUSED) 
+		Audio.Player.Pause(source->internal.player);
+
+        source->internal.currentOffset = (int)(seconds*1000.0f);
         source->internal.lastOffset = gkMilliseconds();
     }
 }
@@ -383,8 +386,8 @@ gkSoundSource* gkPlaySound(gkSound* sound, gkSoundSource* source)
 	}
 
 	source->sound = sound;
-	source->internal.currentOffset = gkMilliseconds();
-	source->internal.lastOffset = source->internal.currentOffset;
+	source->internal.currentOffset = 0;
+	source->internal.lastOffset = gkMilliseconds();
 
 	if (sound->internal.flags & GK_SOUND_STREAM) {
 		gkAudioStream* stream = sound->internal.stream;
@@ -392,8 +395,8 @@ gkSoundSource* gkPlaySound(gkSound* sound, gkSoundSource* source)
 		Audio.Player.SetLooping(source->internal.player, GK_FALSE);
 		fillQueue(source, GK_NUM_STREAM_BUFFERS, sound->internal.buffers);
 	} else {
-		Audio.Player.SetBuffer(source->internal.player, sound->internal.buffers[0]);
 		Audio.Player.SetLooping(source->internal.player, source->internal.looping);
+		Audio.Player.SetBuffer(source->internal.player, sound->internal.buffers[0]);
 	}
 	Audio.Player.Play(source->internal.player);
 
@@ -425,11 +428,14 @@ void gkStopSound(gkSoundSource* source, GK_BOOL dispatchStopEvent)
 
 	if(state != GK_AUDIOPLAYER_STOPPED)
 		Audio.Player.Stop(source->internal.player);
+	else
+		return;
 
 	while (node) {
 		if(node->source == source) break;
 		node = node->next;
 	}
+
 	soundSourceStopped(node, dispatchStopEvent);
 }
 

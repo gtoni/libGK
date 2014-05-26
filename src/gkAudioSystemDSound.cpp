@@ -180,8 +180,12 @@ static void SetPlayerPitch(gkAudioPlayer player, float pitch)
 static float GetPlayerPitch(gkAudioPlayer player)
 {
 	DWORD freq;
-	player->playBuffer->GetFrequency(&freq);
-	return ((float)freq)/((float)player->sampleRate);
+	if (player->playBuffer) {
+		player->playBuffer->GetFrequency(&freq);
+		return ((float)freq)/((float)player->sampleRate);
+	} else {
+		return 1.0f;
+	}
 }
 static void SetPlayerVolume(gkAudioPlayer player, int vol)
 {

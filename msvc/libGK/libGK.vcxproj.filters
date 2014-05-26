@@ -19,6 +19,9 @@
     <Filter Include="Source Files\audio">
       <UniqueIdentifier>{c9de1827-30c6-43f4-8421-e9b34bebd808}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\audio\backends">
+      <UniqueIdentifier>{8052f14c-971d-4015-b611-d85e31695d8f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\gk.h">
@@ -116,14 +119,20 @@
     <ClCompile Include="..\..\src\gkAudioStream.c">
       <Filter>Source Files\audio</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\gkAudioSystemOpenAL.c">
+    <ClCompile Include="..\..\src\gkAudio.c">
       <Filter>Source Files\audio</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\gkAudioSystemDSound.cpp">
-      <Filter>Source Files\audio</Filter>
+      <Filter>Source Files\audio\backends</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\gkAudio.c">
-      <Filter>Source Files\audio</Filter>
+    <ClCompile Include="..\..\src\gkAudioSystemNull.c">
+      <Filter>Source Files\audio\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkAudioSystemOpenAL.c">
+      <Filter>Source Files\audio\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkAudioSystemXAudio2.cpp">
+      <Filter>Source Files\audio\backends</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

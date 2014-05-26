@@ -26,6 +26,7 @@
 
 #ifdef GK_WIN
 #include <windows.h>
+#include <objbase.h>
 
 #include "GLee.h"
 #include <GL/gl.h>
@@ -749,6 +750,8 @@ void initGk()
     PIXELFORMATDESCRIPTOR pfd;
     int p;
 
+    CoInitialize(0);
+
     hinstance = GetModuleHandle(0);
     wc.cbClsExtra = 0;
     wc.cbWndExtra = 0;
@@ -1233,6 +1236,7 @@ void runGk()
     wglDeleteContext(hglrc);
     DestroyWindow(gkWindow);
     UnregisterClass(L"GKApp", hinstance);
+    CoUninitialize();
 #else
     XDestroyWindow(display, gkWindow);
     glXMakeCurrent(display, None, NULL);

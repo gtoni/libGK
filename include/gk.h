@@ -40,38 +40,7 @@ extern "C"{
 #include <gkGraphics.h>
 #include <gkImage.h>
 #include <gkAudio.h>
-
-/**********************************
-	Application
-
-	Types and functions used for initializing and run the application, work with underlying windowing system
-	and setting screen properties. There are also some useful general purpose functions.
-*/
-
-#define GK_VSYNC -1
-
-typedef GK_BOOL (*gkInitFunc)();
-typedef void (*gkCleanupFunc)();
-
-void	gkMain(gkInitFunc init, gkCleanupFunc cleanup);
-void	gkExit();
-
-char*	gkGetAppDir();
-void	gkSetTargetFps(int targetFps);
-int	gkGetTargetFps();
-int	gkGetFps();
-
-void	gkSetScreenSize(gkSize size);
-gkSize	gkGetScreenSize();
-void	gkSetFullscreen(GK_BOOL fullscreen);
-GK_BOOL	gkIsFullscreen();
-size_t	gkGetSupportedScreenSizes(gkSize* sizes);
-
-void	gkSetWindowTitle(char* title);
-char*	gkGetWindowTitle();
-
-void	gkSetWindowResizable(GK_BOOL resizable);
-GK_BOOL	gkIsWindowResizable();
+#include <gkApplication.h>
 
 /************************************
 	Input

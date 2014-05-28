@@ -19,6 +19,8 @@
  * SOFTWARE.
  */
 
+/* THIS FILE IS BAD! */
+
 #ifndef _GK_INTERNAL_H_
 #define _GK_INTERNAL_H_
 

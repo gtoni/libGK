@@ -93,6 +93,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\gk.h" />
+    <ClInclude Include="..\..\include\gkApplication.h" />
     <ClInclude Include="..\..\include\gkAudio.h" />
     <ClInclude Include="..\..\include\gkEvent.h" />
     <ClInclude Include="..\..\include\gkGeometry.h" />
@@ -103,11 +104,12 @@
     <ClInclude Include="..\..\src\gkAudioInternal.h" />
     <ClInclude Include="..\..\src\gkAudioSystem.h" />
     <ClInclude Include="..\..\src\gkImageInternal.h" />
+    <ClInclude Include="..\..\src\gkPlatform.h" />
     <ClInclude Include="..\..\src\gk_internal.h" />
     <ClInclude Include="..\..\src\GLee.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\application.c" />
+    <ClCompile Include="..\..\src\gkApplication.c" />
     <ClCompile Include="..\..\src\gkAudio.c" />
     <ClCompile Include="..\..\src\gkAudioStream.c" />
     <ClCompile Include="..\..\src\event.c" />
@@ -121,6 +123,8 @@
     <ClCompile Include="..\..\src\gkImageDecoder.c" />
     <ClCompile Include="..\..\src\gkImageEncoder.c" />
     <ClCompile Include="..\..\src\gkImageType.c" />
+    <ClCompile Include="..\..\src\gkPlatformLinux.c" />
+    <ClCompile Include="..\..\src\gkPlatformWin.c" />
     <ClCompile Include="..\..\src\GLee.c" />
     <ClCompile Include="..\..\src\gkGraphics.c" />
     <ClCompile Include="..\..\src\gkImage.c" />

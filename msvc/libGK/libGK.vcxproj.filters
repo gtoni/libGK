@@ -22,6 +22,9 @@
     <Filter Include="Source Files\audio\backends">
       <UniqueIdentifier>{8052f14c-971d-4015-b611-d85e31695d8f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\application">
+      <UniqueIdentifier>{c0cb8bb4-9d27-46ff-a0cc-547c4c952277}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\gk.h">
@@ -63,11 +66,14 @@
     <ClInclude Include="..\..\src\gkAudioSystem.h">
       <Filter>Source Files\audio</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\gkApplication.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gkPlatform.h">
+      <Filter>Source Files\application</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\application.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\event.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -133,6 +139,15 @@
     </ClCompile>
     <ClCompile Include="..\..\src\gkAudioSystemXAudio2.cpp">
       <Filter>Source Files\audio\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkApplication.c">
+      <Filter>Source Files\application</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkPlatformWin.c">
+      <Filter>Source Files\application</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkPlatformLinux.c">
+      <Filter>Source Files\application</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

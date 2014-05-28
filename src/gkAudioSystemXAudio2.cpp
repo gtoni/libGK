@@ -65,7 +65,7 @@ static void init()
 		return;
 	}
 
-	engine->CreateMasteringVoice(&master, XAUDIO2_DEFAULT_CHANNELS, XAUDIO2_DEFAULT_SAMPLERATE, 0, 0, 0);
+	hr = engine->CreateMasteringVoice(&master, XAUDIO2_DEFAULT_CHANNELS, XAUDIO2_DEFAULT_SAMPLERATE, 0, 0, 0);
 
 	if (FAILED(hr)) {
 		printf("Couldn't create mastering voice\n");

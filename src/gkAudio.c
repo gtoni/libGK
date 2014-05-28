@@ -79,6 +79,16 @@ static void addSoundNode(gkSoundSource* source)
 	lastSoundNode = node;
 }
 
+static struct gkSoundNode* findSoundNode(gkSoundSource* source)
+{
+	struct gkSoundNode* node;
+	for (node = soundNodes; node; node = node->next) {
+		if(node->source == source)
+			return node;
+	}
+	return 0;
+}
+
 static void removeSoundNode(struct gkSoundNode* node)
 {
 	if (node->next == 0) 
@@ -281,9 +291,14 @@ gkSoundSource* gkCreateSoundSource()
 
 void gkDestroySoundSource(gkSoundSource* source)
 {
-    gkCleanupDispatcher(&source->dispatcher);
-    Audio.DestroyPlayer(source->internal.player);
-    free(source);
+	if (source->state != GK_SOUND_STATE_IDLE) {
+		struct gkSoundNode* node = findSoundNode(source);
+		if (node)
+			removeSoundNode(node);
+	}
+	gkCleanupDispatcher(&source->dispatcher);
+	Audio.DestroyPlayer(source->internal.player);
+	free(source);
 }
 
 /***

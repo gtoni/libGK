@@ -439,7 +439,7 @@ GK_BOOL onMouseVolume(gkEvent* e, void* p)
     float v = (evt->position.x / gkMainPanel->width);
 //    gkSetSoundGain(sndInstance, v);
     gkSetMasterGain(v);
-    printf("volume: %d%\t%d%\n", (int)(v*100.0f), (int)(gkGetMasterGain()*100.0f));
+//    printf("volume: %d%\t%d%\n", (int)(v*100.0f), (int)(gkGetMasterGain()*100.0f));
     return GK_TRUE;
 }
 
@@ -449,11 +449,29 @@ gkPanel *p1, *p2;
 gkFontResource *rc;
 struct drawer d;
 
+void printRes()
+{
+	gkSize resolutions[100];
+	int num = gkGetSupportedScreenSizes(resolutions), i;
+	for (i = 0; i<num; i++) {
+		printf("Res: %d x %d\n", (int)resolutions[i].width, (int)resolutions[i].height);
+	}
+}
+
+
+GK_BOOL toggleFullscreen(gkEvent* evt, void* param)
+{
+    gkSetFullscreen(!gkIsFullscreen());
+    return GK_TRUE;
+}
+
 GK_BOOL init()
 {
 	int i;
 	p1 = gkCreatePanel();
 	p2 = gkCreatePanel();
+
+	printRes();
 
 	vp = gkCreateViewportPanel();
 
@@ -586,7 +604,7 @@ GK_BOOL init()
 
 //      gkSetSoundOffset(sndInstance, 15.0f);
 	gkAddListener(gkMainPanel, GK_ON_MOUSE_MOVE, 0, onMouseVolume, 0);
-	gkAddListener(gkMainPanel, GK_ON_MOUSE_DOWN, 0, onMouseStopSound, 0);
+	gkAddListener(gkMainPanel, GK_ON_MOUSE_UP, 0, toggleFullscreen, 0);
 //        gkAddListener(gkMainPanel, GK_ON_MOUSE_WHEEL, 0, onMouseVolumeSound, 0);
 
         {

@@ -33,6 +33,11 @@
 *
 ***************************************************************************/
 
+#include <gkConfig.h>
+#if !defined(GK_PLATFORM_WIN) && !defined(GK_PLATFORM_LINUX)
+#define __glee_h_
+#endif
+
 #ifndef __glee_h_
 #define __glee_h_
 

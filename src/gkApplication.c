@@ -362,9 +362,10 @@ void updateGLSize(gkSize sz)
     	glMatrixMode(GL_PROJECTION);
     	glLoadIdentity();
     	glOrtho(0,sz.width,sz.height,0, -1, 1);
+
     	glMatrixMode(GL_MODELVIEW);
     	glLoadIdentity();
-    	glClearColor(0,0,0,0);
+    	glClearColor(0,0,0,1.0f);
     	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     	glEnable(GL_BLEND);
 
@@ -462,8 +463,21 @@ void gkCleanup()
 
 #ifdef GK_PLATFORM_TEST
 
+static void testDraw(gkPanel* p)
+{
+	gkSetFillColor(1.0f,0.0f,0.0f,0.5f);
+	gkSetLineWidth(1.0f);
+	gkSetLineColor(1.0f,1.0f,1.0f,1.0f);
+	gkDrawCircle(p->width*0.5f, p->height*0.5f, p->width*0.5f);
+	
+	gkSetFillColor(0.0f,1.0f,0.0f,0.5f);
+	gkDrawCircle(p->mouseX, p->mouseY, 30.0f);
+}
+
 static GK_BOOL testInit()
 {
+	gkMainPanel->drawFunc = testDraw;
+	return GK_TRUE;
 }
 static void testCleanup()
 {

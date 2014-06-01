@@ -126,8 +126,10 @@
     <ClCompile Include="..\..\src\gkImageDecoder.c" />
     <ClCompile Include="..\..\src\gkImageEncoder.c" />
     <ClCompile Include="..\..\src\gkImageType.c" />
+    <ClCompile Include="..\..\src\gkPlatformAndroid.c" />
     <ClCompile Include="..\..\src\gkPlatformLinux.c" />
     <ClCompile Include="..\..\src\gkPlatformNull.c" />
+    <ClCompile Include="..\..\src\gkPlatformTizen.cpp" />
     <ClCompile Include="..\..\src\gkPlatformWin.c" />
     <ClCompile Include="..\..\src\GLee.c" />
     <ClCompile Include="..\..\src\gkGraphics.c" />

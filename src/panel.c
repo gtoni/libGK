@@ -291,6 +291,8 @@ void gkProcessDrawPanel(gkPanel* panel)
 		glPushMatrix();
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
+/*
+ * 	TODO: glPushAttrib is not supported in GLES
 		glPushAttrib(GL_ALL_ATTRIB_BITS);
 		glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);
 		glViewport((GLint)topLeft.x, (GLint)gkGetScreenSize().height - topLeft.y - h, FABS(bottomRight.x - topLeft.x), h);
@@ -299,6 +301,7 @@ void gkProcessDrawPanel(gkPanel* panel)
 		}
 		glPopClientAttrib();
 		glPopAttrib();
+*/
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);

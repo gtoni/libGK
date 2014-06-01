@@ -27,7 +27,7 @@
 #include <stdio.h>
 
 #include "gk_internal.h"
-#include "GLee.h"
+#include "gkGL.h"
 
 /* 
 	The idea behind this code is to draw anything to
@@ -97,11 +97,7 @@ GK_BOOL gkBeginDrawToImage(gkImage* img, GK_BOOL clear)
 	glLoadIdentity();
 
 	glClearColor(0,0,0,0);
-	if (GLEE_VERSION_1_4) {
-		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
-	} else {
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 
 
@@ -180,64 +176,58 @@ GLuint imgRenderbuffers[2];
 void gkDTIInitBufferFBO(gkSize size)
 {
 	GLuint status;
-	glGenFramebuffersEXT(1, &imgFramebufferId);
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, imgFramebufferId);
+	glGenFramebuffers(1, &imgFramebufferId);
+	glBindFramebuffer(GL_FRAMEBUFFER, imgFramebufferId);
 
-	glGenRenderbuffersEXT(2, imgRenderbuffers);
-	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, imgRenderbuffers[0]);
-	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA, (int)size.width, (int)size.height);
-	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, imgRenderbuffers[0]);
+	glGenRenderbuffers(2, imgRenderbuffers);
+	glBindRenderbuffer(GL_RENDERBUFFER, imgRenderbuffers[0]);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, (int)size.width, (int)size.height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, imgRenderbuffers[0]);
 
-	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, imgRenderbuffers[1]);
-	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT16, (int)size.width, (int)size.height);
-	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, imgRenderbuffers[1]);
+	glBindRenderbuffer(GL_RENDERBUFFER, imgRenderbuffers[1]);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, (int)size.width, (int)size.height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, imgRenderbuffers[1]);
 		
-	status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-	if(status != GL_FRAMEBUFFER_COMPLETE_EXT){
+	status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if(status != GL_FRAMEBUFFER_COMPLETE){
 		switch(status){
-			case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
+			case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
 				printf("GK [ERROR]: InitDrawToImageBuffer GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT\n");
 				break;
-			case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:
+			case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
 				printf("GK [ERROR]: InitDrawToImageBuffer GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT\n");
 				break;
-			case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:
-				printf("GK [ERROR]: InitDrawToImageBuffer GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT\n");
-				break;
-			case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:
-				printf("GK [ERROR]: InitDrawToImageBuffer GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT\n");
-				break;
-			case GL_FRAMEBUFFER_UNSUPPORTED_EXT:
+			case GL_FRAMEBUFFER_UNSUPPORTED:
 				printf("GK [ERROR]: InitDrawToImageBuffer GL_FRAMEBUFFER_UNSUPPORTED_EXT\n");
 				break;
 		}
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-		glDeleteRenderbuffersEXT(2, imgRenderbuffers);
-		glDeleteFramebuffersEXT(1, &imgFramebufferId);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDeleteRenderbuffers(2, imgRenderbuffers);
+		glDeleteFramebuffers(1, &imgFramebufferId);
 		imgFramebufferId = 0;
 
 		printf("GK [INFO]: FBO initialization failed\n");
 	}
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void gkDTICleanBufferFBO()
 {
 	if(imgFramebufferId){
-		glDeleteRenderbuffersEXT(2, imgRenderbuffers);
-		glDeleteFramebuffersEXT(1, &imgFramebufferId);
+		glDeleteRenderbuffers(2, imgRenderbuffers);
+		glDeleteFramebuffers(1, &imgFramebufferId);
 	}
 }
 
 void gkDTIBeginDrawFBO()
 {
 	if(imgFramebufferId)
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, imgFramebufferId);
+		glBindFramebuffer(GL_FRAMEBUFFER, imgFramebufferId);
 }
 
 void gkDTIEndDrawFBO()
 {
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 struct gkDrawToImageImplementation gkDTIFBO = {
@@ -246,6 +236,7 @@ struct gkDrawToImageImplementation gkDTIFBO = {
 };
 
 
+#ifdef GK_USE_GLAUXBUFFERS
 /*
 	AUX Buffer Draw to image implementation
 */
@@ -277,6 +268,8 @@ struct gkDrawToImageImplementation gkDTIAUX = {
 	gkDTIBeginDrawAUX, gkDTIEndDrawAUX
 };
 
+#endif
+
 /*
 	TexCopy DTI implementation 
 */
@@ -291,7 +284,7 @@ void gkDTIInitBufferTex(gkSize size)
 	screenDepthBufferImg = (gkImage*)malloc(sizeof(gkImage));
 	glGenTextures(1, &screenDepthBufferImg->id);
 	glBindTexture(GL_TEXTURE_2D, screenDepthBufferImg->id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, (int)size.width, (int)size.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, (int)size.width, (int)size.height, 0, GL_DEPTH_COMPONENT16, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	screenDepthBufferImg->width = (uint16_t)size.width;
@@ -316,7 +309,7 @@ void gkDTIBeginDrawTex()
 	glCopyTexSubImage2D(GL_TEXTURE_2D, 0,0,0,0,0, viewportDimmension[2], viewportDimmension[3]);
 
 	glBindTexture(GL_TEXTURE_2D, screenDepthBufferImg->id);
-	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 0, 0, viewportDimmension[2], viewportDimmension[3], 0);
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 0, 0, viewportDimmension[2], viewportDimmension[3], 0);
 }
 
 void gkDTIEndDrawTex()
@@ -364,6 +357,7 @@ void gkInitDTI()
 		gkDTI = &gkDTIFBO;
 		printf("GK [INFO]: Using FBO\n");
 	} else {
+#ifdef GK_USE_GLAUXBUFFERS
 		GLint auxBuffers = 0;
 		glGetIntegerv(GL_AUX_BUFFERS, &auxBuffers);
 		if (auxBuffers > 0) {
@@ -373,5 +367,9 @@ void gkInitDTI()
 			gkDTI = &gkDTITex;
 			printf("GK [INFO]: Using TexCopy\n");
 		}
+#else
+		gkDTI = &gkDTITex;
+		printf("GK [INFO]: Using TexCopy\n");
+#endif
 	}
 }

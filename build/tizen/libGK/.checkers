@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<checkers>
+    <checklaunch>
+        <build>false</build>
+        <editing>true</editing>
+    </checklaunch>
+    <acheck>
+        <private>false</private>
+        <partner>false</partner>
+        <incompatible>false</incompatible>
+        <version>true</version>
+        <deprecated>false</deprecated>
+    </acheck>
+    <pcheck>
+        <violation>true</violation>
+        <unused>false</unused>
+    </pcheck>
+</checkers>

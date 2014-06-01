@@ -23,9 +23,9 @@
 #include "gkImageInternal.h"
 #include <stdio.h>
 
-gkImageData* gkDecodeImageBMP(void* buffer, size_t size);
-gkImageData* gkDecodeImageJPEG(void* buffer, size_t size);
-gkImageData* gkDecodeImagePNG(void* buffer, size_t size);
+static gkImageData* gkDecodeImageBMP(void* buffer, size_t size);
+static gkImageData* gkDecodeImageJPEG(void* buffer, size_t size);
+static gkImageData* gkDecodeImagePNG(void* buffer, size_t size);
 
 gkImageData* gkDecodeImage(char* filename)
 {

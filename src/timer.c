@@ -23,36 +23,54 @@
 #include "gk.h"
 #include "gk_internal.h"
 
-#ifdef GK_PLATFORM_WIN
-#include <windows.h>
-#elif GK_PLATFORM_LINUX
-#include <unistd.h>
-#include <time.h>
-#endif
 #include <stdlib.h>
 
 uint64_t gkAppStartTime = 0;
 
-uint64_t gkMilliseconds(){
 #ifdef GK_PLATFORM_WIN
+#include <windows.h>
+
+uint64_t gkMilliseconds(){
 	LARGE_INTEGER count, freq;
 	if(!QueryPerformanceCounter(&count)){
 		return GetTickCount() - gkAppStartTime;
 	}
 	QueryPerformanceFrequency(&freq);
 	return (count.QuadPart/(freq.QuadPart/1000)) - gkAppStartTime;
+}
+
 #elif defined(GK_PLATFORM_LINUX)
-        struct timespec tv;
-        clock_gettime(CLOCK_MONOTONIC, &tv);
-        return (tv.tv_sec*1000 + tv.tv_nsec/1000000) - gkAppStartTime;
+#include <unistd.h>
+#include <time.h>
+
+uint64_t gkMilliseconds(){
+    struct timespec tv;
+    clock_gettime(CLOCK_MONOTONIC, &tv);
+    return (tv.tv_sec*1000 + tv.tv_nsec/1000000) - gkAppStartTime;
+}
+
+#elif defined(GK_PLATFORM_TIZEN)
+	// implemented in gkPlatformTizen.cpp
+#elif defined(GK_PLATFORM_ANDROID)
+#include <unistd.h>
+#include <time.h>
+
+uint64_t gkMilliseconds(){
+    struct timespec tv;
+    clock_gettime(CLOCK_MONOTONIC, &tv);
+    return (tv.tv_sec*1000 + tv.tv_nsec/1000000) - gkAppStartTime;
+}
 #else
+
+uint64_t gkMilliseconds(){
 #ifdef GK_SHOW_PLATFORM_ERRORS
 #error gkMilliseconds not implemented
 #else
 	return 0;
 #endif
-#endif
 }
+
+#endif
 
 typedef struct gkTimerRefStruct gkTimerRef;
 struct gkTimerRefStruct{

@@ -24,6 +24,10 @@
 #ifndef _GK_INTERNAL_H_
 #define _GK_INTERNAL_H_
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 extern uint64_t gkAppStartTime;
 extern gkMouseState gkGlobalMouseState;
 extern gkKeyboardState gkGlobalKeyboardState;
@@ -84,5 +88,9 @@ void gkCleanupJoystick();
 
 void gkInitAudio();
 void gkCleanupAudio();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

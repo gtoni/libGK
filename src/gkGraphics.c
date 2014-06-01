@@ -156,14 +156,14 @@ GK_BOOL gkCheckLineProperties(){
 
 void gkSetClipRect(float x, float y, float w, float h){
 	if(w != 0 && h != 0){
-		double tClip[] = {0, 1, 0, -y};
-		double bClip[] = {0, -1, 0, (y + h)};
-		double lClip[] = {1, 0, 0, -x};
-		double rClip[] = {-1, 0, 0, (x + w)};
-		glClipPlane(GL_CLIP_PLANE0, tClip);
-		glClipPlane(GL_CLIP_PLANE1, bClip);
-		glClipPlane(GL_CLIP_PLANE2, lClip);
-		glClipPlane(GL_CLIP_PLANE3, rClip);
+		glClipPlaneVarType tClip[] = {0, 1, 0, -y};
+		glClipPlaneVarType bClip[] = {0, -1, 0, (y + h)};
+		glClipPlaneVarType lClip[] = {1, 0, 0, -x};
+		glClipPlaneVarType rClip[] = {-1, 0, 0, (x + w)};
+		glClipPlanef(GL_CLIP_PLANE0, tClip);
+		glClipPlanef(GL_CLIP_PLANE1, bClip);
+		glClipPlanef(GL_CLIP_PLANE2, lClip);
+		glClipPlanef(GL_CLIP_PLANE3, rClip);
 		glEnable(GL_CLIP_PLANE0);
 		glEnable(GL_CLIP_PLANE1);
 		glEnable(GL_CLIP_PLANE2);
@@ -302,7 +302,7 @@ void gkDrawCircle(float x, float y, float r){
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-void drawPolyInternal(gkPoint* path, int length);
+static void drawPolyInternal(gkPoint* path, int length);
 
 void gkDrawPath(gkPoint* path, int length, int polygon){
 	gkColor fillColor = gkGetFilteredColor(gkFillColor);

@@ -158,5 +158,11 @@
     <ClCompile Include="..\..\src\gkPlatformNull.c">
       <Filter>Source Files\application</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\gkPlatformTizen.cpp">
+      <Filter>Source Files\application</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkPlatformAndroid.c">
+      <Filter>Source Files\application</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

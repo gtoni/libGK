@@ -33,7 +33,7 @@
 *
 ***************************************************************************/
 
-#include "gkConfig.h"
+#include <gkConfig.h>
 #if defined(GK_PLATFORM_WIN) || defined(GK_PLATFORM_LINUX)
 
 #ifdef _MSC_VER

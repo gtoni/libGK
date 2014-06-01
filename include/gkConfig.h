@@ -5,6 +5,10 @@
 #define GK_PLATFORM_WIN
 #elif defined(LINUX)
 #define GK_PLATFORM_LINUX
+#elif defined(TIZEN)
+#define GK_PLATFORM_TIZEN
+#elif defined(ANDROID)
+#define GK_PLATFORM_ANDROID
 #endif
 
 
@@ -43,11 +47,23 @@
 #define GK_USE_FONTS
 #define GK_USE_JOYSTICK
 
+#elif defined(GK_PLATFORM_TIZEN)
+
+#define GK_USE_NOAUDIO
+#define GK_SHOW_PLATFORM_ERRORS
+#define GK_PLATFORM_TEST
+
+#elif defined(GK_PLATFORM_ANDROID)
+
+#define GK_USE_NOAUDIO
+#define GK_SHOW_PLATFORM_ERRORS
+#define GK_PLATFORM_TEST
+
 #else
 /* Unknown platform */
 
 #define GK_USE_NOAUDIO
-//#define GK_SHOW_PLATFORM_ERRORS
+#define GK_SHOW_PLATFORM_ERRORS
 #define GK_PLATFORM_TEST
 
 #endif

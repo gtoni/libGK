@@ -19,10 +19,11 @@
  * SOFTWARE.
  */
 
+#include <gkConfig.h>
 #include "gkImageInternal.h"
 #include <stdio.h>
 
-void* gkEncodeImageJPEG(gkImageData* img, size_t* bufferSize);
+static void* gkEncodeImageJPEG(gkImageData* img, size_t* bufferSize);
 
 
 static gkImageType getImageTypeByFilename(char *filename)
@@ -71,6 +72,8 @@ void* gkEncodeImageMem(gkImageType type, gkImageData* img, size_t* bufferSize)
 	return 0;
 }
 
+
+#ifdef GK_USE_LIBJPEG
 
 /* JPEG encoder (libjpeg) */
 
@@ -155,3 +158,10 @@ static void* gkEncodeImageJPEG(gkImageData* img, size_t* bufferSize)
 
 	return buffer;
 }
+
+#else
+static void* gkEncodeImageJPEG(gkImageData* img, size_t* bufferSize)
+{
+	return 0;
+}
+#endif

@@ -199,6 +199,7 @@ void gkCleanupAudio()
     {
         c = p;
         p = p->next;
+	c->source->state = GK_SOUND_STATE_IDLE;	//Workaround-ish !
         if(c->source->internal.autoDestroy)
             gkDestroySoundSource(c->source);
         removeSoundNode(c);

@@ -1,4 +1,4 @@
-﻿/* Copyright (c) 2012 Toni Georgiev
+﻿/* Copyright (c) 2014 Toni Georgiev
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 
 #include "gkPlatform.h"
 
-#include <GL/gl.h>
+#include "gkGL.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,28 +49,41 @@ GK_BOOL gkFpsLimitEnabled;
 char gkAppDirBuffer[GK_MAX_APPDIR_SIZE];
 char windowNameBuffer[GK_MAX_TITLE_SIZE];
 
+gkInitFunc initFunc;
 gkCleanupFunc cleanupFunc;
 
 GK_BOOL gkInit();
-void gkRun();
+void loop();
 void gkCleanup();
 
 void updateGLSize(gkSize sz);
 
-void gkMain(gkInitFunc init, gkCleanupFunc cleanup)
+void onPlatformInit()
 {
-	Platform = gkGetPlatform();
-
-	if (!gkInit())
+	if (!gkInit()) {
+		gkExit();
 		return;
+	}
 
-	if (init()) {
-		cleanupFunc = cleanup;
-		gkRun();
-	} else {
+	if (!initFunc()) {
 		cleanupFunc = 0;
 		gkCleanup();
+		gkExit();
+		return;
 	}
+
+	Platform.Run(loop, gkCleanup);
+}
+
+void gkMain(gkInitFunc init, gkCleanupFunc cleanup)
+{
+	initFunc = init;
+	cleanupFunc = cleanup;
+
+	setlocale(LC_CTYPE, "");
+
+	Platform = gkGetPlatform();
+	Platform.Init(onPlatformInit);
 }
 
 void gkExit()
@@ -312,10 +325,6 @@ void onWindowCharacter(uint32_t character)
 
 GK_BOOL gkInit()
 {
-	setlocale(LC_CTYPE, "");
-
-	Platform.Init();	
-
 	gkFullscreen = GK_FALSE;
 
 	gkMouse = (gkDispatcher*)malloc(sizeof(gkDispatcher));
@@ -334,10 +343,14 @@ GK_BOOL gkInit()
 
 	gkGlobalMouseState.wheel = 0;
 	gkInitImages();
+#ifdef GK_USE_FONTS
    	gkInitFonts();
+#endif
 	gkInitTimers();
 	gkInitTweens();
+#ifdef GK_USE_JOYSTICK
 	gkInitJoystick();
+#endif
 	gkInitAudio();
 
 	return GK_TRUE;
@@ -354,7 +367,6 @@ void updateGLSize(gkSize sz)
     	glClearColor(0,0,0,0);
     	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     	glEnable(GL_BLEND);
-    	glEnable(GL_LINE_STIPPLE);
 
     	gkCleanupDrawToImageBuffer();
     	gkInitDrawToImageBuffer(sz);
@@ -423,11 +435,6 @@ void loop()
 		Platform.Sleep(rest);
 }
 
-void gkRun()
-{
-	Platform.Run(loop, gkCleanup);
-}
-
 void gkCleanup()
 {
 	if (cleanupFunc)
@@ -435,10 +442,14 @@ void gkCleanup()
 
 	gkCleanupAudio();
 	gkCleanupImages();
+#ifdef GK_USE_FONTS
    	gkCleanupFonts();
+#endif
 	gkCleanupTimers();
 	gkCleanupTweens();
+#ifdef GK_USE_JOYSTICK
 	gkCleanupJoystick();
+#endif
 
 	gkDestroyPanel(gkMainPanel);
 	gkCleanupDispatcher(gkKeyboard);
@@ -448,3 +459,16 @@ void gkCleanup()
 
 	Platform.Cleanup();
 }
+
+#ifdef GK_PLATFORM_TEST
+
+static GK_BOOL testInit()
+{
+}
+static void testCleanup()
+{
+}
+
+GK_APP(testInit, testCleanup);
+
+#endif

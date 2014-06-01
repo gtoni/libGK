@@ -22,13 +22,9 @@
 
 #include "gk.h"
 
-#include <stdlib.h>
-#ifdef GK_WIN
-	#define WIN32_LEAN_AND_MEAN
-	#include <windows.h>
+#include "gkGL.h"
 
-#endif
-#include <GL/gl.h>
+#include <stdlib.h>
 
 #define M_PI_OVER_180 0.017453292519943295769f
 #define M_180_OVER_PI 57.29577951308232087684f

@@ -50,7 +50,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\libs\;..\..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include\;..\..\external\png\include\win;..\..\external\jpeg\include\win;..\..\external\libmpg123\include\win;..\..\external\libvorbis\include\win;..\..\external\freetype2\include\win;..\..\external\openal\include\win;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -58,10 +58,11 @@
       <AdditionalDependencies>OpenGL32.lib;DevIL.lib;freetype2411MT.lib;libmpg123.lib;libvorbisfile.lib;OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <AdditionalDependencies>OpenGL32.lib;libpng16.lib;jpeg.lib;freetype2411MT.lib;dinput8.lib;libmpg123.lib;libvorbisfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpenGL32.lib;freetype2411MT.lib;libpng16.lib;zlib.lib;jpeg.lib;dinput8.lib;libmpg123.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
-      <AdditionalLibraryDirectories>..\..\libs\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\external\jpeg\lib\win;..\..\external\png\lib\win;..\..\external\zlib\lib\win;..\..\external\libmpg123\lib\win;..\..\external\libvorbis\lib\win;..\..\external\freetype2\lib\win;..\..\external\openal\lib\win;..\..\external\win_specific\lib</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -95,6 +96,7 @@
     <ClInclude Include="..\..\include\gk.h" />
     <ClInclude Include="..\..\include\gkApplication.h" />
     <ClInclude Include="..\..\include\gkAudio.h" />
+    <ClInclude Include="..\..\include\gkConfig.h" />
     <ClInclude Include="..\..\include\gkEvent.h" />
     <ClInclude Include="..\..\include\gkGeometry.h" />
     <ClInclude Include="..\..\include\gkGraphics.h" />
@@ -103,6 +105,7 @@
     <ClInclude Include="..\..\include\gkTypes.h" />
     <ClInclude Include="..\..\src\gkAudioInternal.h" />
     <ClInclude Include="..\..\src\gkAudioSystem.h" />
+    <ClInclude Include="..\..\src\gkGL.h" />
     <ClInclude Include="..\..\src\gkImageInternal.h" />
     <ClInclude Include="..\..\src\gkPlatform.h" />
     <ClInclude Include="..\..\src\gk_internal.h" />
@@ -124,6 +127,7 @@
     <ClCompile Include="..\..\src\gkImageEncoder.c" />
     <ClCompile Include="..\..\src\gkImageType.c" />
     <ClCompile Include="..\..\src\gkPlatformLinux.c" />
+    <ClCompile Include="..\..\src\gkPlatformNull.c" />
     <ClCompile Include="..\..\src\gkPlatformWin.c" />
     <ClCompile Include="..\..\src\GLee.c" />
     <ClCompile Include="..\..\src\gkGraphics.c" />

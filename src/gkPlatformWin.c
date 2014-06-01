@@ -26,31 +26,45 @@ RECT oldRect;
 LRESULT WndProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 
+void main()
+{
+	gkAppMain();
+}
+
+int CALLBACK WinMain(
+  _In_  HINSTANCE hInstance,
+  _In_  HINSTANCE hPrevInstance,
+  _In_  LPSTR lpCmdLine,
+  _In_  int nCmdShow
+  ){
+	  gkAppMain();
+}
+
 static GK_BOOL gkActive;
 
-static GK_BOOL initWin()
+static GK_BOOL initWin(onInitCallback onInit)
 {
-    WNDCLASS wc;
-    PIXELFORMATDESCRIPTOR pfd;
-    int p;
+	WNDCLASS wc;
+	PIXELFORMATDESCRIPTOR pfd;
+	int p;
 
-    CoInitialize(0);
+	CoInitialize(0);
 
-    hinstance = GetModuleHandle(0);
-    wc.cbClsExtra = 0;
-    wc.cbWndExtra = 0;
-    wc.hbrBackground = 0;
-    wc.hCursor = LoadCursor(0, IDC_ARROW);
-    wc.hIcon = LoadIcon(0, IDI_APPLICATION);
-    wc.hInstance = hinstance;
-    wc.lpfnWndProc = (WNDPROC)WndProc;
-    wc.lpszClassName = L"GKApp";
-    wc.lpszMenuName = 0;
-    wc.style = CS_OWNDC|CS_HREDRAW|CS_VREDRAW;
-    RegisterClass(&wc);
-    gkWindow = CreateWindowEx(WS_EX_APPWINDOW, L"GKApp", L"GKApp", WS_OVERLAPPEDWINDOW, 0, 0, (int)gkScreenSize.width, (int)gkScreenSize.height, 0, 0, hinstance, 0);
+	hinstance = GetModuleHandle(0);
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hbrBackground = 0;
+	wc.hCursor = LoadCursor(0, IDC_ARROW);
+	wc.hIcon = LoadIcon(0, IDI_APPLICATION);
+	wc.hInstance = hinstance;
+	wc.lpfnWndProc = (WNDPROC)WndProc;
+	wc.lpszClassName = L"GKApp";
+	wc.lpszMenuName = 0;
+	wc.style = CS_OWNDC|CS_HREDRAW|CS_VREDRAW;
+	RegisterClass(&wc);
+	gkWindow = CreateWindowEx(WS_EX_APPWINDOW, L"GKApp", L"GKApp", WS_OVERLAPPEDWINDOW, 0, 0, (int)gkScreenSize.width, (int)gkScreenSize.height, 0, 0, hinstance, 0);
 
-    hdc = GetDC(gkWindow);
+	hdc = GetDC(gkWindow);
 
 	pfd.nVersion = 1;
 	pfd.iPixelType = PFD_TYPE_RGBA;
@@ -68,32 +82,33 @@ static GK_BOOL initWin()
 		printf("GK [ERROR]: Could not set pixel format\n");
 	}
 
-    if(!(hglrc = wglCreateContext(hdc)))
-    {
-        printf("GK [ERROR]: Could not create context\n");
-    }
-    if(!wglMakeCurrent(hdc, hglrc))
-    {
-        printf("GK [ERROR]: Could not set current context\n");
-    }
+	if(!(hglrc = wglCreateContext(hdc)))
+	{
+		printf("GK [ERROR]: Could not create context\n");
+	}
+	if(!wglMakeCurrent(hdc, hglrc))
+	{
+		printf("GK [ERROR]: Could not set current context\n");
+	}
 
-    if(GLEE_WGL_ARB_pixel_format)
-    {
-        UINT numFormats, pixelFormat;
-        float fAttributes[] = {0,0};
-        int iAttributes[] = { WGL_DRAW_TO_WINDOW_ARB,GL_TRUE,
-                              WGL_SUPPORT_OPENGL_ARB,GL_TRUE,
-                              WGL_ACCELERATION_ARB,WGL_FULL_ACCELERATION_ARB,
-                              WGL_COLOR_BITS_ARB,24,
-                              WGL_ALPHA_BITS_ARB,8,
-                              WGL_DEPTH_BITS_ARB,16,
-                              WGL_STENCIL_BITS_ARB,0,
-                              WGL_DOUBLE_BUFFER_ARB,GL_TRUE,
-                              WGL_SAMPLE_BUFFERS_ARB,GL_TRUE,
-                              WGL_SAMPLES_ARB, 2 ,						// Check For 2x Multisampling
-                              0,0
-                            };
-        if(wglChoosePixelFormatARB(hdc, iAttributes, fAttributes, 1, &pixelFormat, &numFormats))
+	if(GLEE_WGL_ARB_pixel_format)
+	{
+		UINT numFormats, pixelFormat;
+		float fAttributes[] = {0,0};
+		int iAttributes[] = { 
+				WGL_DRAW_TO_WINDOW_ARB,GL_TRUE,
+				WGL_SUPPORT_OPENGL_ARB,GL_TRUE,
+				WGL_ACCELERATION_ARB,WGL_FULL_ACCELERATION_ARB,
+				WGL_COLOR_BITS_ARB,24,
+				WGL_ALPHA_BITS_ARB,8,
+				WGL_DEPTH_BITS_ARB,16,
+				WGL_STENCIL_BITS_ARB,0,
+				WGL_DOUBLE_BUFFER_ARB,GL_TRUE,
+				WGL_SAMPLE_BUFFERS_ARB,GL_TRUE,
+				WGL_SAMPLES_ARB, 2 ,	// Check For 2x Multisampling
+				0,0
+			};
+		if(wglChoosePixelFormatARB(hdc, iAttributes, fAttributes, 1, &pixelFormat, &numFormats))
 		{
 			wglMakeCurrent(NULL, NULL);
 			wglDeleteContext(hglrc);
@@ -128,6 +143,8 @@ static GK_BOOL initWin()
 	}
 
 	gkActive = GK_TRUE;
+
+	onInit();
 
 	return GK_TRUE;
 }

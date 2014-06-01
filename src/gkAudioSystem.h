@@ -22,9 +22,8 @@
 #ifndef _GK_AUDIO_SYSTEM_H_
 #define _GK_AUDIO_SYSTEM_H_
 
+#include <gkConfig.h>
 #include <gkTypes.h>
-
-#define GK_USE_XAUDIO2
 
 #define GK_METHOD(result, name, params) result (*name)params
 

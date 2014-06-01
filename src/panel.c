@@ -23,12 +23,9 @@
 
 #include "gk.h"
 
-#ifdef GK_WIN
-#include <windows.h>
-#endif
+#include "gkGL.h"
 
 #include <stdlib.h>
-#include <GL/gl.h>
 
 void gkProcessChildrenLayout(gkPanel* panel);
 void gkProcessLayoutPanel(gkPanel* panel, gkRect* clientRect);

@@ -22,10 +22,11 @@
 
 #include <gk.h>
 #include "gkImageInternal.h"
+#include "gkGL.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <GL/gl.h>
+
 
 #include <locale.h>
 

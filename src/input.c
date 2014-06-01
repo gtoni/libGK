@@ -21,13 +21,15 @@
 
 #include "gk.h"
 #include "gk_internal.h"
-#ifdef GK_WIN
-#define CINTERFACE
-#define INITGUID
-#include <windows.h>
-#include <dinput.h>
-#else
+
+#ifdef GK_PLATFORM_WIN
+#include <Windows.h>
+extern HWND gkWindow;
+#elif GK_PLATFORM_LINUX
 #include <X11/Xlib.h>
+extern Display* display;
+extern Window gkWindow;
+#else
 #endif
 
 gkDispatcher *gkMouse = 0;
@@ -40,12 +42,12 @@ void gkGetMouseState(gkMouseState* mouseState){
 
 
 void gkSetMousePosition(float x, float y){
-#ifdef GK_WIN
+#ifdef GK_PLATFORM_WIN
 	RECT rect;
 	GetWindowRect(gkWindow, &rect);
 	SetCursorPos((int)(rect.left + x),(int)(rect.top + y));
-#else
-    XWarpPointer(display, None, gkWindow, 0,0,0,0, (int)x, (int)y);
+#elif GK_PLATFORM_LINUX
+	XWarpPointer(display, None, gkWindow, 0,0,0,0, (int)x, (int)y);
 #endif
 }
 
@@ -61,7 +63,15 @@ void gkGetKeyboardState(gkKeyboardState* keyboardState){
 gkJoystick** gkJoysticks;
 uint32_t gkJoystickCount;
 
-#ifdef GK_WIN
+#ifdef GK_USE_JOYSTICK
+
+#ifdef GK_PLATFORM_WIN
+
+#define CINTERFACE
+#define INITGUID
+#include <windows.h>
+#include <dinput.h>
+
 struct gkJoystickExtStruct{
 	char* name;
 	uint8_t flags;
@@ -239,6 +249,7 @@ void gkCleanupJoystick(){
 
 #else
 
+#include <X11/Xlib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -388,3 +399,5 @@ void gkCleanupJoystick()
     }
 }
 #endif
+
+#endif	//GK_USE_JOYSTICK

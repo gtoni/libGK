@@ -23,7 +23,7 @@
 #define _GKKEYDEFS_H_
 
 
-#ifdef GK_WIN
+#ifdef GK_PLATFORM_WIN
 
 /*
 	Key codes and modifiers begin

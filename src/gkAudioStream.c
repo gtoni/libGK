@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "gkConfig.h"
 #include "gkAudioInternal.h"
 
 static int getAudioFormat(int channels, int bitsPerSample)
@@ -150,11 +151,11 @@ static int eofWavStream(gkAudioStream* s)
 
 /* MP3 stream through libmpg123 */
 
-#ifdef GK_WIN
-#include <mpg123/mpg123_win.h>
-#else
+#ifdef GK_USE_MPG123
+
+#define GK_MP3_SUPPORT
+
 #include <mpg123.h>
-#endif
 
 typedef struct _gkMp3AudioStream gkMp3AudioStream;
 struct _gkMp3AudioStream{
@@ -239,8 +240,14 @@ static int eofMp3Stream(gkAudioStream* s)
     return stream->eof;
 }
 
+#endif
+
 /**/
 /* OGG stream through libvorbisfile */
+
+#ifdef GK_USE_OGGVORBIS
+
+#define GK_OGG_SUPPORT
 
 #include <vorbis/vorbisfile.h>
 
@@ -341,28 +348,39 @@ static int eofOggStream(gkAudioStream* s)
     gkOggAudioStream* stream = (gkOggAudioStream*)s;
     return stream->eof;
 }
+
+#endif
+
 /* End of stream types */
 
 
 void gkInitAudioStream()
 {
+#ifdef GK_USE_MPG123
     mpg123_init();
+#endif
 }
 
 void gkCleanupAudioStream()
 {
+#ifdef GK_USE_MPG123
     mpg123_exit();
+#endif
 }
 
 gkAudioStream* gkAudioStreamOpen(char* location)
 {
-    char* ext = location + (strlen(location) - 3);
-    if(stricmp(ext,"wav") == 0)
-        return createWavAudioStream(location);
-    else if(stricmp(ext, "mp3") == 0)
-        return createMp3AudioStream(location);
-    else if(stricmp(ext, "ogg") == 0)
-        return createOggAudioStream(location);
+	char* ext = location + (strlen(location) - 3);
+	if(stricmp(ext,"wav") == 0)
+		return createWavAudioStream(location);
+#ifdef GK_MP3_SUPPORT
+	else if(stricmp(ext, "mp3") == 0)
+		return createMp3AudioStream(location);
+#endif
+#ifdef GK_OGG_SUPPORT
+	else if(stricmp(ext, "ogg") == 0)
+		return createOggAudioStream(location);
+#endif
 	return 0;
 }
 

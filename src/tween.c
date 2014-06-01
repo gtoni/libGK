@@ -99,7 +99,7 @@ void gkDestroyTween(gkTweenRef* tweenRef){
 	tweenRef->tween = 0;
 }
 
-gkTween* CDECL gkAddTween(void* var, uint32_t transitionType, uint64_t transitionTime, uint32_t varType, ...){
+gkTween* gkAddTween(void* var, uint32_t transitionType, uint64_t transitionTime, uint32_t varType, ...){
 	va_list arglist;
 	gkTweenEx* tween = (gkTweenEx*)malloc(sizeof(gkTweenEx));
 	gkTweenRef* tweenRef = (gkTweenRef*)malloc(sizeof(gkTweenRef));

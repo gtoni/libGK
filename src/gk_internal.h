@@ -24,17 +24,6 @@
 #ifndef _GK_INTERNAL_H_
 #define _GK_INTERNAL_H_
 
-#ifdef GK_WIN
-#include <windows.h>
-extern HWND gkWindow;
-#define stricmp _stricmp
-#else
-#include <X11/Xlib.h>
-extern Display* display;
-extern Window gkWindow;
-#define stricmp strcasecmp
-#endif
-
 extern uint64_t gkAppStartTime;
 extern gkMouseState gkGlobalMouseState;
 extern gkKeyboardState gkGlobalKeyboardState;

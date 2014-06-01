@@ -415,7 +415,4 @@ void clean()
 	CleanupAudioControl();
 }
 
-void main()
-{
-	gkMain(init, clean);
-}
+GK_APP(init, clean)

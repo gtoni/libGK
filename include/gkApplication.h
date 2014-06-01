@@ -57,4 +57,8 @@ char*	gkGetWindowTitle();
 void	gkSetWindowResizable(GK_BOOL resizable);
 GK_BOOL	gkIsWindowResizable();
 
+
+#define GK_APP(init, cleanup)	void gkAppMain(){ gkMain(init, cleanup); }
+extern void gkAppMain();
+
 #endif

@@ -25,9 +25,14 @@ XF86VidModeModeInfo defaultVideoMode;
 
 #include "X11/imKStoUCS.c"
 
+void main()
+{
+	gkAppMain();
+}
+
 static GK_BOOL gkActive;
 
-static GK_BOOL initLinux()
+static GK_BOOL initLinux(onInitCallback onInit)
 {
     int glAttribs[] = { GLX_RGBA, GLX_DEPTH_SIZE, 16, GLX_DOUBLEBUFFER, GLX_ALPHA_SIZE, 8, GLX_SAMPLE_BUFFERS, 1, GLX_SAMPLES, 2, None };
     XSetWindowAttributes winAttribs;
@@ -77,6 +82,8 @@ static GK_BOOL initLinux()
     XFlush(display);
 
 	gkActive = GK_TRUE;
+
+	onInit();
 
 	return GK_TRUE;
 }

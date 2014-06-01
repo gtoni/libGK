@@ -33,6 +33,9 @@
 *
 ***************************************************************************/
 
+#include "gkConfig.h"
+#if defined(GK_PLATFORM_WIN) || defined(GK_PLATFORM_LINUX)
+
 #ifdef _MSC_VER
 	#pragma optimize( "g", off )
 #endif
@@ -18168,3 +18171,5 @@ GLEE_EXTERN GLboolean GLeeInit( void )
     __GLeeExtList_clean(&extensionNames);
     return GL_TRUE;
 }
+
+#endif /* end gkConfig */

@@ -24,7 +24,9 @@
 #include "gk.h"
 #include "gk_internal.h"
 
-#include <GL/gl.h>
+#ifdef GK_USE_FONTS
+
+#include "gkGL.h"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -1008,3 +1010,5 @@ draw:
 	}
 	return GK_POINT(0,0);
 }
+
+#endif	//GK_USE_FONTS

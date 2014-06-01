@@ -23,9 +23,9 @@
 #include "gk.h"
 #include "gk_internal.h"
 
-#ifdef GK_WIN
+#ifdef GK_PLATFORM_WIN
 #include <windows.h>
-#else
+#elif GK_PLATFORM_LINUX
 #include <unistd.h>
 #include <time.h>
 #endif
@@ -34,17 +34,23 @@
 uint64_t gkAppStartTime = 0;
 
 uint64_t gkMilliseconds(){
-#ifdef GK_WIN
+#ifdef GK_PLATFORM_WIN
 	LARGE_INTEGER count, freq;
 	if(!QueryPerformanceCounter(&count)){
 		return GetTickCount() - gkAppStartTime;
 	}
 	QueryPerformanceFrequency(&freq);
 	return (count.QuadPart/(freq.QuadPart/1000)) - gkAppStartTime;
-#else
+#elif defined(GK_PLATFORM_LINUX)
         struct timespec tv;
         clock_gettime(CLOCK_MONOTONIC, &tv);
         return (tv.tv_sec*1000 + tv.tv_nsec/1000000) - gkAppStartTime;
+#else
+#ifdef GK_SHOW_PLATFORM_ERRORS
+#error gkMilliseconds not implemented
+#else
+	return 0;
+#endif
 #endif
 }
 

@@ -19,6 +19,7 @@
  * SOFTWARE.
  */
 
+#include "gkConfig.h"
 #include "gkImageInternal.h"
 #include <stdio.h>
 
@@ -82,16 +83,13 @@ void gkDestroyImageData(gkImageData* imgData)
 }
 
 
-
-static gkImageData* gkDecodeImageBMP(void* buffer, size_t size)
-{
-	return 0;
-}
-
-
 /*
  * Decode JPEG images (libjpeg)
  */
+
+#ifdef GK_USE_LIBJPEG
+
+#define GK_JPEG_SUPPORT
 
 #include <jpeglib.h>
 
@@ -132,10 +130,15 @@ static gkImageData* gkDecodeImageJPEG(void* inbuffer, size_t insize)
 	return imgData;
 }
 
+#endif
 
 /*
  * Decode PNG images (libpng 1.6)
  */
+
+#ifdef GK_USE_LIBPNG
+
+#define GK_PNG_SUPPORT
 
 #include <png.h>
 
@@ -220,3 +223,33 @@ static gkImageData* gkDecodeImagePNG(void* buffer, size_t size)
 	png_destroy_read_struct(&pread, &pinfo, 0);
 	return img;
 }
+
+#endif
+
+
+#ifndef GK_BMP_SUPPORT
+
+static gkImageData* gkDecodeImageBMP(void* buffer, size_t size)
+{
+	return 0;
+}
+
+#endif
+
+#ifndef GK_JPEG_SUPPORT
+
+static gkImageData* gkDecodeImageJPEG(void* buffer, size_t size)
+{
+	return 0;
+}
+
+#endif
+
+#ifndef GK_PNG_SUPPORT
+
+static gkImageData* gkDecodeImagePNG(void* buffer, size_t size)
+{
+	return 0;
+}
+
+#endif

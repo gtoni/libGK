@@ -642,10 +642,13 @@ void cleanup()
 	gkDestroyPanel(vp);
 }
 
-void main()
-{
-	gkMain(init, cleanup);
-}
+#define GK_APP(init, cleanup)	\
+void main()\
+{\
+	gkMain(init, cleanup);\
+}\
+
+GK_APP(init, cleanup)
 
 /*
 

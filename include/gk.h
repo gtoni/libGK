@@ -28,12 +28,7 @@ extern "C"{
 
 #include <memory.h>
 
-#ifdef _WIN32
-	#define GK_WIN
-#else
-	#define GK_LINUX
-#endif
-
+#include <gkConfig.h>
 #include <gkTypes.h>
 #include <gkEvent.h>
 #include <gkGeometry.h>
@@ -368,11 +363,7 @@ GK_EVENT_END()
 
 typedef gkDispatcher gkTween;
 
-#ifdef GK_LINUX
-#define CDECL
-#endif
-
-gkTween* CDECL gkAddTween(void* var, uint32_t transitionType, uint64_t transitionTime, uint32_t varType, /*startValue, endValue*/...);
+gkTween* gkAddTween(void* var, uint32_t transitionType, uint64_t transitionTime, uint32_t varType, /*startValue, endValue*/...);
 
 void gkRemoveTweens(void* memOffset, size_t size);	/* Removes all tweens for variables in the memory range between memOffset and (memOffset + size) */
 

@@ -55,7 +55,7 @@ gkMatrix gkMatrixCreateScale(float sx, float sy){
 }
 
 void sincosf(const float a, float* s, float* c){
-#ifdef GK_WIN
+#ifdef GK_PLATFORM_WIN
 	_asm{
 		mov eax, c
 		mov esi, s

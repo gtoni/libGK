@@ -396,6 +396,10 @@ GlesCube11::OnKeyPressed(const Control& source, Tizen::Ui::KeyCode keyCode)
 void
 GlesCube11::OnKeyReleased(const Control& source, Tizen::Ui::KeyCode keyCode)
 {
+	if(keyCode == KEY_BACK)
+	{
+		onWindowKeyUp(GK_KEY_ESCAPE, 0);
+	}
 }
 
 void

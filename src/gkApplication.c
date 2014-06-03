@@ -464,6 +464,7 @@ void gkCleanup()
 #ifdef GK_PLATFORM_TEST
 
 gkImage* bg;
+gkImage* img;
 
 static void testDraw(gkPanel* p)
 {
@@ -474,18 +475,20 @@ static void testDraw(gkPanel* p)
 	gkSetLineColor(1.0f,1.0f,1.0f,1.0f);
 	gkDrawCircle(p->width*0.5f, p->height*0.5f, p->width*0.5f);
 	
-	gkSetFillColor(0.0f,1.0f,0.0f,0.5f);
-	gkDrawCircle(p->mouseX, p->mouseY, 30.0f);
+	gkDrawImage(img, p->mouseX - img->width*0.5f, p->mouseY - img->height*0.5f);
 }
 
 static GK_BOOL testInit()
 {
 	bg = gkLoadImage("assets/testOut.jpg");
+	img = gkLoadImage("assets/test.png");
 	gkMainPanel->drawFunc = testDraw;
 	return GK_TRUE;
 }
 static void testCleanup()
 {
+	gkDestroyImage(img);
+	gkDestroyImage(bg);
 }
 
 GK_APP(testInit, testCleanup);

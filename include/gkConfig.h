@@ -60,6 +60,7 @@
 #define GK_PLATFORM_TEST
 
 #define GK_USE_LIBJPEG
+#define GK_USE_LIBPNG
 
 #else
 /* Unknown platform */

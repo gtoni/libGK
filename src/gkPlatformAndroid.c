@@ -16,6 +16,7 @@
 
 #include <android/sensor.h>
 #include <android/log.h>
+#include <android/window.h>
 #include <android_native_app_glue.h>
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "GK", __VA_ARGS__))
@@ -33,7 +34,7 @@ struct engine {
     EGLDisplay display;
     EGLSurface surface;
     EGLContext context;
-	
+	EGLConfig config;
 }engine;
 
 struct android_app* gkAndroidApp;
@@ -46,9 +47,9 @@ int GLEE_EXT_framebuffer_object = 0;
 /**
  * Initialize an EGL context for the current display.
  */
-static int engine_init_display(struct engine* engine) {
-    // initialize OpenGL ES and EGL
-
+ 
+static void initDisplay(struct engine* engine)
+{
     /*
      * Here specify the attributes of the desired configuration.
      * Below, we select an EGLConfig with at least 8 bits per color
@@ -76,41 +77,84 @@ static int engine_init_display(struct engine* engine) {
      * sample, we have a very simplified selection process, where we pick
      * the first EGLConfig that matches our criteria */
     eglChooseConfig(display, attribs, &config, 1, &numConfigs);
+	
+	engine->display = display;
+	engine->config = config;
+}
 
+static void createSurface(struct engine* engine)
+{
+	EGLint format;
+    EGLSurface surface;
+	
     /* EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
      * guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
      * As soon as we picked a EGLConfig, we can safely reconfigure the
      * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
-    eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
 
-    ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
+	eglGetConfigAttrib(engine->display, engine->config, EGL_NATIVE_VISUAL_ID, &format);
+	
+	ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
 
-    surface = eglCreateWindowSurface(display, config, engine->app->window, NULL);
-    context = eglCreateContext(display, config, NULL, NULL);
+	__android_log_print(ANDROID_LOG_INFO, "GK", "Choose format is %d", format);	
+		
+    surface = eglCreateWindowSurface(engine->display, engine->config, engine->app->window, NULL);
+	
+	engine->surface = surface;
+}
 
-    if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
-        LOGW("Unable to eglMakeCurrent");
-        return -1;
-    }
+static int bindContext(struct engine* engine, GK_BOOL bind)
+{
+	if (eglMakeCurrent(engine->display, engine->surface, engine->surface, engine->context) == EGL_FALSE) {
+		LOGW("Unable to eglMakeCurrent");
+		return 0;
+	}
+	return 1;
+}
+ 
+static int updateGL(struct engine* engine) {
+	GK_BOOL init = engine->context == EGL_NO_CONTEXT;
+    EGLint w, h;
+	
+	if (init) {
+		initDisplay(engine);
+		createSurface(engine);
+		engine->context = eglCreateContext(engine->display, engine->config, NULL, NULL);
+	}else {
+		createSurface(engine);
+	}
+
+	if (!bindContext(engine, GK_TRUE))
+		return -1;
 	
 	GLEE_EXT_framebuffer_object = (strstr((const char*)glGetString(GL_EXTENSIONS), "OES_framebuffer_object")?GK_TRUE:GK_FALSE);
 
-    eglQuerySurface(display, surface, EGL_WIDTH, &w);
-    eglQuerySurface(display, surface, EGL_HEIGHT, &h);
+    eglQuerySurface(engine->display, engine->surface, EGL_WIDTH, &w);
+    eglQuerySurface(engine->display, engine->surface, EGL_HEIGHT, &h);
 
-	__android_log_print(ANDROID_LOG_INFO, "GK", "screen is %d x %d", w, h);
-	
-    engine->display = display;
-    engine->context = context;
-    engine->surface = surface;
-	
-	gkScreenSize.width = w;
-	gkScreenSize.height = h;
+	if (init) {
+		gkScreenSize.width = w;
+		gkScreenSize.height = h;
+	} else {
+		onWindowSizeChanged(GK_SIZE(w, h));
+	}
 	
 	engine->initialized = GK_TRUE;
 	engine->animating = GK_TRUE;
 	
     return 0;
+}
+
+static void destroySurface(struct engine* engine)
+{
+    if (engine->display != EGL_NO_DISPLAY) {
+        eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        if (engine->surface != EGL_NO_SURFACE) {
+            eglDestroySurface(engine->display, engine->surface);
+        }
+	}
+    engine->animating = GK_FALSE;
+	engine->surface = EGL_NO_SURFACE;
 }
 
 /**
@@ -178,34 +222,23 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
             // The window is being shown, get it ready.
 			LOGI("APP_CMD_INIT_WINDOW");
             if (engine->app->window != NULL) {
-                engine_init_display(engine);
+                updateGL(engine);
             }
             break;
-	case APP_CMD_CONTENT_RECT_CHANGED:
-	case APP_CMD_WINDOW_REDRAW_NEEDED:
-	case APP_CMD_WINDOW_RESIZED:
-		{
-			ARect cr = engine->app->contentRect;
-			float w = (float)(cr.right - cr.left);
-			float h = (float)(cr.bottom - cr.top);
-			LOGI("APP_CMD_WINDOW_RESIZED");
-			onWindowSizeChanged(GK_SIZE(w, h));
-		}
-	break;
         case APP_CMD_TERM_WINDOW:
             // The window is being hidden or closed, clean it up.
 			LOGI("APP_CMD_TERM_WINDOW");
-			gkActive = GK_FALSE;			
+			destroySurface(engine);
             break;
         case APP_CMD_GAINED_FOCUS:
             // When our app gains focus, we start monitoring the accelerometer.
 			LOGI("APP_CMD_GAINED_FOCUS");
-			engine->animating = 1;
+			engine->animating = engine->surface != EGL_NO_SURFACE;
             break;
         case APP_CMD_LOST_FOCUS:
             // Also stop animating.
 			LOGI("APP_CMD_LOST_FOCUS");
-            engine->animating = 0;
+            engine->animating = GK_FALSE;
             break;
     }
 }
@@ -234,8 +267,7 @@ static GK_BOOL initAndroid(onInitCallback onInit)
 	
 	gkActive = GK_TRUE;
 	
-	LOGI("initAndroid");
-	
+	ANativeActivity_setWindowFlags(engine.app->activity, AWINDOW_FLAG_FULLSCREEN, AWINDOW_FLAG_SHOW_WALLPAPER);
 		
 	while (gkActive && !engine.initialized) {
 		if(ALooper_pollAll(-1, 0, &events, (void**)&source) >= 0) {
@@ -244,8 +276,6 @@ static GK_BOOL initAndroid(onInitCallback onInit)
             }
 		}
 	}
-		
-	LOGI("GL should be ok now");
 	
 	if(gkActive)
 		onInit();
@@ -364,6 +394,20 @@ static void ProcessEventsAndroid()
     int events;
     struct android_poll_source* source;
 
+	if (engine.surface != EGL_NO_SURFACE) {
+		GLint w;
+		GLint h;
+		gkSize s;
+		eglQuerySurface(engine.display, engine.surface, EGL_WIDTH, &w);
+		eglQuerySurface(engine.display, engine.surface, EGL_HEIGHT, &h);
+		s.width = (float)w;
+		s.height = (float)h;
+		if ( s.width != gkScreenSize.width || s.height != gkScreenSize.height) {
+			onWindowSizeChanged(s);
+		}
+	}
+
+	
 	while (maxMsgPerFrame-->0 && (ident=ALooper_pollAll(0, NULL, &events, (void**)&source)) >= 0) {
 		// Process this event.
 		if (source != NULL) {

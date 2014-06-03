@@ -15,6 +15,7 @@
              This will take care of integrating with our NDK code. -->
         <activity android:name="android.app.NativeActivity"
                 android:label="TestLibGK"
+				android:background="#FF000000"
                 android:configChanges="orientation|keyboardHidden">
             <!-- Tell NativeActivity the name of or .so -->
             <meta-data android:name="android.app.lib_name"

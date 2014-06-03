@@ -22,17 +22,23 @@ LOCAL_SRC_FILES := 	src/event.c\
 					src/input.c\
 					src/panel.c\
 					src/timer.c\
-					src/tween.c
+					src/tween.c\
+					src/gkStream.c\
+					src/gkFileStream.c\
+					src/gkFileStreamAndroid.c
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/src/ 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/include/
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/external/jpeg/include/android/
 
 LOCAL_LDLIBS := -llog -landroid -lEGL -lGLESv1_CM
 
 LOCAL_EXPORT_LDLIBS := -llog -landroid -lEGL -lGLESv1_CM
 
 LOCAL_STATIC_LIBRARIES := android_native_app_glue
+LOCAL_STATIC_LIBRARIES += JPEG
 					
 include $(BUILD_SHARED_LIBRARY)
 
+$(call import-module,android/libjpeg)
 $(call import-module,android/native_app_glue)

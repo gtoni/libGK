@@ -64,6 +64,7 @@
 #define GK_FLOAT		6
 #define GK_DOUBLE		7
 
+#define GK_METHOD(result, name, params) result (*name)params
 
 typedef struct gkListNode{
 	struct gkListNode *next, *prev;

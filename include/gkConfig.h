@@ -59,6 +59,8 @@
 #define GK_SHOW_PLATFORM_ERRORS
 #define GK_PLATFORM_TEST
 
+#define GK_USE_LIBJPEG
+
 #else
 /* Unknown platform */
 

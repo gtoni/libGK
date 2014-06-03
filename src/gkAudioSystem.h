@@ -25,8 +25,6 @@
 #include <gkConfig.h>
 #include <gkTypes.h>
 
-#define GK_METHOD(result, name, params) result (*name)params
-
 typedef struct gkAudioBufferData *gkAudioBuffer;
 
 typedef struct gkAudioPlayerData *gkAudioPlayer;

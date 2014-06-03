@@ -463,8 +463,12 @@ void gkCleanup()
 
 #ifdef GK_PLATFORM_TEST
 
+gkImage* bg;
+
 static void testDraw(gkPanel* p)
 {
+	gkDrawImage(bg,0,0);
+
 	gkSetFillColor(1.0f,0.0f,0.0f,0.5f);
 	gkSetLineWidth(1.0f);
 	gkSetLineColor(1.0f,1.0f,1.0f,1.0f);
@@ -476,6 +480,7 @@ static void testDraw(gkPanel* p)
 
 static GK_BOOL testInit()
 {
+	bg = gkLoadImage("assets/testOut.jpg");
 	gkMainPanel->drawFunc = testDraw;
 	return GK_TRUE;
 }

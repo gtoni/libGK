@@ -21,6 +21,7 @@
 
 #include "gkConfig.h"
 #include "gkImageInternal.h"
+#include "gkStream.h"
 #include <stdio.h>
 
 static gkImageData* gkDecodeImageBMP(void* buffer, size_t size);
@@ -29,24 +30,24 @@ static gkImageData* gkDecodeImagePNG(void* buffer, size_t size);
 
 gkImageData* gkDecodeImage(char* filename)
 {
-	FILE* f = fopen(filename, "rb");
+	gkStream* f = gkOpenFile(filename, "rb");
 	char* buffer;
 	size_t fileSize;
 	gkImageData* img;
 
 	if (!f) 
 		return 0;
-	fseek(f, 0, SEEK_END);
-	fileSize = ftell(f);
-	fseek(f, 0, SEEK_SET);
+	gkStreamSeek(f, 0, GK_SEEK_END);
+	fileSize = gkStreamTell(f);
+	gkStreamSeek(f, 0, GK_SEEK_SET);
 	
 	buffer = (char*)malloc(fileSize);
-	fread(buffer, fileSize, sizeof(char), f);
+	gkStreamRead(f, buffer, fileSize * sizeof(char));
 
 	img = gkDecodeImageMem(buffer, fileSize);
 
 	free(buffer);
-	fclose(f);
+	gkStreamClose(f);
 
 	return img;
 }

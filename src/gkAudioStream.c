@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "gkStream.h"
 #include "gkConfig.h"
 #include "gkAudioInternal.h"
 
@@ -70,7 +71,7 @@ struct wavHeader{
 typedef struct _gkWavAudioStream gkWavAudioStream;
 struct _gkWavAudioStream{
     gkAudioStream base;
-    FILE* handle;
+    gkStream* handle;
     size_t startOffset;
     gkAudioStreamInfo info;
 };
@@ -85,11 +86,11 @@ static gkAudioStream* createWavAudioStream(char* location)
 {
     gkWavAudioStream* stream = (gkWavAudioStream*)malloc(sizeof(gkWavAudioStream));
     struct wavHeader header;
-    stream->handle = fopen(location, "rb");
+    stream->handle = gkOpenFile(location, "rb");
     if(stream->handle)
     {
-        fread(&header, sizeof(header), 1, stream->handle);
-        stream->startOffset = ftell(stream->handle);
+	gkStreamRead(stream->handle, &header, sizeof(header));
+	stream->startOffset = gkStreamTell(stream->handle);
         if(header.audioFormat == 1)
         {
             stream->info.sampleRate = header.sampleRate;
@@ -105,7 +106,7 @@ static gkAudioStream* createWavAudioStream(char* location)
             stream->base.destroy = destroyWavAudioStream;
             return (gkAudioStream*)stream;
         }
-        fclose(stream->handle);
+	gkStreamClose(stream->handle);
     }
     free(stream);
     return 0;
@@ -114,7 +115,7 @@ static gkAudioStream* createWavAudioStream(char* location)
 static void destroyWavAudioStream(gkAudioStream* s)
 {
     gkWavAudioStream* stream = (gkWavAudioStream*)s;
-    fclose(stream->handle);
+    gkStreamClose(stream->handle);
     free(stream);
 }
 
@@ -126,26 +127,24 @@ static void getWavStreamInfo(gkAudioStream* s, gkAudioStreamInfo* info)
 static int readWavStream(gkAudioStream* s, void* buffer, size_t bytes)
 {
     gkWavAudioStream* stream = (gkWavAudioStream*)s;
-    return fread(buffer, sizeof(char), bytes, stream->handle);
+    return gkStreamRead(stream->handle, buffer, sizeof(char) * bytes);
 }
 
 static int seekWavStream(gkAudioStream* s, size_t sampleOffset, int origin)
 {
     gkWavAudioStream* stream = (gkWavAudioStream*)s;
     sampleOffset *= (stream->info.bitsPerSample/8)*stream->info.channels;
-    if(origin == SEEK_SET)
+    if(origin == GK_SEEK_SET)
     {
         sampleOffset = sampleOffset + stream->startOffset;
     }
-    return fseek(stream->handle, sampleOffset, origin);
+    return gkStreamSeek(stream->handle, sampleOffset, origin);
 }
 
 static int eofWavStream(gkAudioStream* s)
 {
     gkWavAudioStream* stream = (gkWavAudioStream*)s;
-    int eof = feof(stream->handle);
-    clearerr(stream->handle);
-    return eof;
+    return gkStreamEnd(stream->handle);
 }
 
 

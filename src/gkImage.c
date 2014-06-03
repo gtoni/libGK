@@ -56,12 +56,17 @@ gkImage* gkLoadImage(char* filename)
 	glEnable(GL_TEXTURE_2D);
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &oldTexId);
 	glBindTexture(GL_TEXTURE_2D, image->id);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 	if (imageData->pixelFormat == GK_PIXELFORMAT_RGBA) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height, 
 			0, GL_RGBA, GL_UNSIGNED_BYTE, imageData->data);
 	} else if (imageData->pixelFormat == GK_PIXELFORMAT_RGB) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height, 
+		/* 
+		On android there is a problem when the Texture internal format and
+		data format are different. 
+		*/
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB/*A*/, image->width, image->height, 
 			0, GL_RGB, GL_UNSIGNED_BYTE, imageData->data);
 	}
 

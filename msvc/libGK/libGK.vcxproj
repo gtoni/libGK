@@ -67,6 +67,10 @@
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
+    <CustomBuildStep>
+      <Command>
+      </Command>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -108,6 +112,7 @@
     <ClInclude Include="..\..\src\gkGL.h" />
     <ClInclude Include="..\..\src\gkImageInternal.h" />
     <ClInclude Include="..\..\src\gkPlatform.h" />
+    <ClInclude Include="..\..\src\gkStream.h" />
     <ClInclude Include="..\..\src\gk_internal.h" />
     <ClInclude Include="..\..\src\GLee.h" />
   </ItemGroup>
@@ -122,6 +127,8 @@
     <ClCompile Include="..\..\src\gkAudioSystemDSound.cpp" />
     <ClCompile Include="..\..\src\gkAudioSystemXAudio2.cpp" />
     <ClCompile Include="..\..\src\gkDrawToImage.c" />
+    <ClCompile Include="..\..\src\gkFileStream.c" />
+    <ClCompile Include="..\..\src\gkFileStreamAndroid.c" />
     <ClCompile Include="..\..\src\gkGeometry.c" />
     <ClCompile Include="..\..\src\gkImageDecoder.c" />
     <ClCompile Include="..\..\src\gkImageEncoder.c" />
@@ -131,6 +138,7 @@
     <ClCompile Include="..\..\src\gkPlatformNull.c" />
     <ClCompile Include="..\..\src\gkPlatformTizen.cpp" />
     <ClCompile Include="..\..\src\gkPlatformWin.c" />
+    <ClCompile Include="..\..\src\gkStream.c" />
     <ClCompile Include="..\..\src\GLee.c" />
     <ClCompile Include="..\..\src\gkGraphics.c" />
     <ClCompile Include="..\..\src\gkImage.c" />

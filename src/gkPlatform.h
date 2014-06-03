@@ -26,8 +26,6 @@
 #include <gkTypes.h>
 #include <gkGeometry.h>
 
-#define GK_METHOD(result, name, params) result (*name)params
-
 #define GK_MAX_APPDIR_SIZE	1024
 #define GK_MAX_TITLE_SIZE	256
 

@@ -25,6 +25,12 @@
     <Filter Include="Source Files\application">
       <UniqueIdentifier>{c0cb8bb4-9d27-46ff-a0cc-547c4c952277}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\misc">
+      <UniqueIdentifier>{d71c5ede-ef3e-406e-9aa0-51278913ffa6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\io">
+      <UniqueIdentifier>{8dd22fcb-43cf-441a-8d3b-6fcfeed66a61}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\gk.h">
@@ -78,6 +84,9 @@
     <ClInclude Include="..\..\src\gkGL.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\gkStream.h">
+      <Filter>Source Files\io</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\event.c">
@@ -114,12 +123,6 @@
       <Filter>Source Files\image</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\gkGeometry.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\gkList.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\gkUtf8.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\gkGraphics.c">
@@ -163,6 +166,21 @@
     </ClCompile>
     <ClCompile Include="..\..\src\gkPlatformAndroid.c">
       <Filter>Source Files\application</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkList.c">
+      <Filter>Source Files\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkUtf8.c">
+      <Filter>Source Files\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkStream.c">
+      <Filter>Source Files\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkFileStream.c">
+      <Filter>Source Files\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkFileStreamAndroid.c">
+      <Filter>Source Files\io</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -15,7 +15,7 @@ void cleanupAssets()
 
 char* GetRandomStaticSound()
 {
-	return "../demos/TestRun/Cat.wav";
+	return "D:\\games\\The Elder Scrolls IV Oblivion GOTY Deluxe\\Data\\sound\\fx\\Cliffworms\\SoundsOfCyrodiil\\AtmosphereOutside\\BravilDay\\SoCDogBark01.wav";
 }
 
 char* GetRandomStreamSound()

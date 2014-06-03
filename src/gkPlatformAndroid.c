@@ -36,6 +36,8 @@ struct engine {
 	
 }engine;
 
+struct android_app* gkAndroidApp;
+
 static GK_BOOL gkActive;
 
 int GLEE_EXT_framebuffer_object = 0;
@@ -179,6 +181,17 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
                 engine_init_display(engine);
             }
             break;
+	case APP_CMD_CONTENT_RECT_CHANGED:
+	case APP_CMD_WINDOW_REDRAW_NEEDED:
+	case APP_CMD_WINDOW_RESIZED:
+		{
+			ARect cr = engine->app->contentRect;
+			float w = (float)(cr.right - cr.left);
+			float h = (float)(cr.bottom - cr.top);
+			LOGI("APP_CMD_WINDOW_RESIZED");
+			onWindowSizeChanged(GK_SIZE(w, h));
+		}
+	break;
         case APP_CMD_TERM_WINDOW:
             // The window is being hidden or closed, clean it up.
 			LOGI("APP_CMD_TERM_WINDOW");
@@ -206,6 +219,8 @@ void android_main(struct android_app* state) {
     state->onAppCmd = engine_handle_cmd;
     state->onInputEvent = engine_handle_input;
     engine.app = state;
+
+    gkAndroidApp = state;
 
 	LOGI("android_main");
 			

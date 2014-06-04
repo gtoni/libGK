@@ -33,6 +33,15 @@
 
 #define GK_GLES_1
 
+#elif defined(GK_PLATFORM_WEB)
+
+#include <GL/glew.h>
+
+#define GLEE_EXT_framebuffer_object 1
+
+#define glClipPlaneVarType	double
+#define glClipPlanef	glClipPlane
+
 #else
 
 #ifdef GK_SHOW_PLATFORM_ERRORS

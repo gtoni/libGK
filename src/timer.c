@@ -39,7 +39,7 @@ uint64_t gkMilliseconds(){
 	return (count.QuadPart/(freq.QuadPart/1000)) - gkAppStartTime;
 }
 
-#elif defined(GK_PLATFORM_LINUX)
+#elif defined(GK_PLATFORM_LINUX) || defined(GK_PLATFORM_WEB)
 #include <unistd.h>
 #include <time.h>
 

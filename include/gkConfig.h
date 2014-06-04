@@ -9,6 +9,8 @@
 #define GK_PLATFORM_TIZEN
 #elif defined(ANDROID)
 #define GK_PLATFORM_ANDROID
+#elif defined(EMSCRIPTEN)
+#define GK_PLATFORM_WEB
 #endif
 
 
@@ -54,6 +56,15 @@
 #define GK_PLATFORM_TEST
 
 #elif defined(GK_PLATFORM_ANDROID)
+
+#define GK_USE_NOAUDIO
+#define GK_SHOW_PLATFORM_ERRORS
+#define GK_PLATFORM_TEST
+
+#define GK_USE_LIBJPEG
+#define GK_USE_LIBPNG
+
+#elif defined(GK_PLATFORM_WEB)
 
 #define GK_USE_NOAUDIO
 #define GK_SHOW_PLATFORM_ERRORS

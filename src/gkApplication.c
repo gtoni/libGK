@@ -463,11 +463,21 @@ void gkCleanup()
 
 #ifdef GK_PLATFORM_TEST
 
+float r = 0;
 gkImage* bg;
 gkImage* img;
+uint64_t frameTime;
 
 static void testDraw(gkPanel* p)
 {
+	uint64_t diff = gkMilliseconds() - frameTime;
+	float ts = (float)diff * 0.001f;
+	frameTime += diff;
+	
+	gkMatrix mat = gkMatrixCreateTranslation(-img->width*0.5f, -img->height*0.5f);
+	gkMatrixMult(&mat, gkMatrixCreateRotation(r));
+	gkMatrixMult(&mat, gkMatrixCreateTranslation(p->mouseX, p->mouseY));
+	
 	gkDrawImage(bg,0,0);
 
 	gkSetFillColor(1.0f,0.0f,0.0f,0.5f);
@@ -475,13 +485,24 @@ static void testDraw(gkPanel* p)
 	gkSetLineColor(1.0f,1.0f,1.0f,1.0f);
 	gkDrawCircle(p->width*0.5f, p->height*0.5f, p->width*0.5f);
 	
-	gkDrawImage(img, p->mouseX - img->width*0.5f, p->mouseY - img->height*0.5f);
+	gkPushTransform(&mat);
+	gkDrawImage(img, 0,0);
+	gkPopTransform();
+	
+	r += ts*5.0f;
 }
 
 static GK_BOOL testInit()
 {
-	bg = gkLoadImage("assets/testOut.jpg");
-	img = gkLoadImage("assets/test.png");
+	if( !(bg = gkLoadImage("assets/testOut.jpg"))) {
+		printf("Couldn't load assets/testOut.jpg\n");
+	}
+	if( !(img = gkLoadImage("assets/test.png"))) {
+		printf("Couldn't load assets/test.png\n");
+	}
+	
+	frameTime = gkMilliseconds();
+	
 	gkMainPanel->drawFunc = testDraw;
 	return GK_TRUE;
 }

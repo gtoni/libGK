@@ -157,6 +157,16 @@ static void readPngEncodedData(png_structp pread, png_bytep dst, png_size_t dstS
 	data->size -= s;
 }
 
+static void pngError(png_structp png_ptr, png_const_charp error_msg)
+{
+	printf("PNG Error: %s\n", error_msg);
+}
+
+static void pngWarning(png_structp png_ptr, png_const_charp warning_msg)
+{
+	printf("PNG Warning: %s\n", warning_msg);
+}
+
 static gkImageData* gkDecodeImagePNG(void* buffer, size_t size)
 {
 	png_structp pread;
@@ -168,12 +178,15 @@ static gkImageData* gkDecodeImagePNG(void* buffer, size_t size)
 	char* ptr;
 	size_t stride;
 
-	pread = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
-	if (!pread)
+	pread = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, pngError, pngWarning);
+	if (!pread) {
+		printf("png_create_read_struct failed!\n");
 		return 0;
+	}
 
 	pinfo = png_create_info_struct(pread);
 	if (!pinfo) {
+		printf("png_create_info_struct failed!\n");
 		png_destroy_read_struct(&pread, 0, 0);
 		return 0;
 	}
@@ -181,6 +194,7 @@ static gkImageData* gkDecodeImagePNG(void* buffer, size_t size)
 	if (setjmp(png_jmpbuf(pread))) {
 		if (img)
 			gkDestroyImageData(img);
+		printf("setjmp entered!\n");
 		png_destroy_read_struct(&pread, &pinfo, 0);
 		return 0;
 	}

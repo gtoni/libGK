@@ -101,6 +101,7 @@ void	gkListSort(gkList* list, int (*less)(void*, void*));
 
 
 #include <string.h>
+#include <wchar.h>
 
 size_t	gkUtf8Length(char* string);
 char*	gkUtf8CharCode(char* string, uint32_t* dstCharCode);

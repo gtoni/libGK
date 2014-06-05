@@ -466,10 +466,13 @@ void gkCleanup()
 float r = 0;
 gkImage* bg;
 gkImage* img;
+gkFont* font = 0;
+gkTextFormat fpsTf;
 uint64_t frameTime;
 
 static void testDraw(gkPanel* p)
 {
+	char fps[10];
 	uint64_t diff = gkMilliseconds() - frameTime;
 	float ts = (float)diff * 0.001f;
 	frameTime += diff;
@@ -490,6 +493,11 @@ static void testDraw(gkPanel* p)
 	gkPopTransform();
 	
 	r += ts*5.0f;
+
+#ifdef GK_USE_FONTS
+	sprintf(fps, "FPS: %d", gkGetFps());
+	gkDrawText(font, fps, 5, 5, &fpsTf);
+#endif
 }
 
 static GK_BOOL testInit()
@@ -501,6 +509,16 @@ static GK_BOOL testInit()
 		printf("Couldn't load assets/test.png\n");
 	}
 	
+#ifdef GK_USE_FONTS
+	gkAddFontResource("assets/chiller.TTF");
+	font = gkCreateFont("Chiller", 30, GK_FONT_NORMAL);
+	printf(font?"font created\n":"font failed\n");
+	fpsTf = gkDefaultTextFormat;
+	fpsTf.textColor = GK_COLOR(1,1,1,1);
+	fpsTf.strokeColor = GK_COLOR(0,0,0,1);
+	fpsTf.strokeSize = 6.0f;
+#endif
+
 	frameTime = gkMilliseconds();
 	
 	gkMainPanel->drawFunc = testDraw;

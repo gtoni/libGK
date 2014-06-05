@@ -155,6 +155,23 @@ void gkInitFonts()
 	gkFontResourcesTop = 0;
 }
 
+static void printFontResourceError(FT_Error error, char* filename)
+{
+	if (error == FT_Err_Unknown_File_Format) {
+		printf("GK [ERROR]: Unknown File Format %s\n", filename);
+	} else if (error == FT_Err_Cannot_Open_Resource) {
+		printf("GK [ERROR]: Cannot Open Resource %s\n", filename);
+	} else if (error == FT_Err_Invalid_File_Format) {
+		printf("GK [ERROR]: Invalid File Format %s\n", filename);
+	} else if (error == FT_Err_Unimplemented_Feature) {
+		printf("GK [ERROR]: Unimplemented Feature %s\n", filename);
+	} else if (error == FT_Err_Missing_Module) {
+		printf("GK [ERROR]: Missing Module %s\n", filename);
+	} else if (error) {
+		printf("GK [ERROR]: Could not load font resource %s\n", filename);
+	}
+}
+
 gkFontResource* gkAddFontResource(char* filename)
 {
 	FT_Face face;
@@ -166,7 +183,7 @@ gkFontResource* gkAddFontResource(char* filename)
 	do {
 		error = FT_New_Face(ftlib, filename, i, &face);
 		if (error) {
-			printf("GK [ERROR]: Could not load font resource %s\n", filename);
+			printFontResourceError(error, filename);
 			return 0;
 		}
 		if (resource == 0) {
@@ -369,14 +386,19 @@ gkGlyphSet* gkGetGlyphSet(gkGlyphCollection* collection, int index){
 	}
 	if(collection->glyphSets[setIndex] == 0){
 		int setSize = (0xFF>>(8 - collection->setBits)) + 1;
+		int w = collection->texWidth, h = collection->texHeight;
+		size_t tmpSize = (w*h)*4;
+		char* tmp = (char*)malloc(tmpSize); // nasty, can't put 0 in WebGL's glTexImage2D
+		memset(tmp, 0, tmpSize);
 		glyphSet = (gkGlyphSet*)malloc(sizeof(gkGlyphSet));
 		glGenTextures(1, &glyphSet->texId);
 		glBindTexture(GL_TEXTURE_2D, glyphSet->texId);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, collection->texWidth, collection->texHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		free(tmp);
 		glyphSet->glyphs = (gkGlyph**)calloc(setSize, sizeof(gkGlyph*));
 		memset(glyphSet->glyphs, 0, setSize*sizeof(gkGlyph*));
 		collection->glyphSets[setIndex] = glyphSet;
@@ -395,6 +417,15 @@ void gkGetCellPos(gkGlyphCollection* collection, int index, int *x, int *y){
 	*y = row*collection->cellHeight;
 }
 
+static void printGlyphError(FT_Error error)
+{
+	if (error == FT_Err_Invalid_Glyph_Index) {
+		printf("GK [ERROR]: Invalid Glyph Index\n");
+	} else if(error == FT_Err_Cannot_Render_Glyph) {
+		printf("GK [ERROR]: Cannot Render Glyph\n");
+	}
+}
+
 gkGlyph* gkMakeGlyph(FT_Face face, gkGlyphCollection* collection, gkGlyphSet* glyphSet, int index){
 	gkGlyph* glyph;
 	FT_GlyphSlot slot = face->glyph;
@@ -402,14 +433,24 @@ gkGlyph* gkMakeGlyph(FT_Face face, gkGlyphCollection* collection, gkGlyphSet* gl
 	FT_Glyph ftglyph;
 	FT_Stroker stroker;
 	FT_BitmapGlyph bglyph;
+	FT_Error error;
 	uint8_t *buf, *pbuf;
 	int r, tr, tx, ty;
 	float texWidth = (float)collection->texWidth, texHeight = (float)collection->texHeight;
 
 	if(collection->strokeSize == 0){
 
-		if(FT_Load_Glyph(face, index, FT_LOAD_DEFAULT)) return 0;
-		if(FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL)) return 0;
+		error = FT_Load_Glyph(face, index, FT_LOAD_DEFAULT);
+		if (error) {
+			printGlyphError(error);
+			return 0;
+		}
+
+		error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);;
+		if (error) {
+			printGlyphError(error);
+			return 0;
+		}
 
 		glyph = (gkGlyph*)malloc(sizeof(gkGlyph));
 

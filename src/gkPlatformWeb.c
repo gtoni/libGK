@@ -139,21 +139,11 @@ static void ProcessEventsWeb()
     int x_pos, y_pos;
     glfwGetMousePos(&x_pos, &y_pos);
 	onWindowMouseMove((float)x_pos, (float)y_pos);
-/*    const int left_mouse_button_state = glfwGetMouseButton(GLFW_MOUSE_BUTTON_1);
+	
+    const int left_mouse_button_state = glfwGetMouseButton(GLFW_MOUSE_BUTTON_1);
     if (left_mouse_button_state == GLFW_PRESS) {
-        const float normalized_x = ((float)x_pos / (float) width) * 2.f - 1.f;
-        const float normalized_y = -(((float)y_pos / (float) height) * 2.f - 1.f);
- 
-        if (is_dragging == 0) {
-            is_dragging = 1;
-            on_touch_press(normalized_x, normalized_y);
-        } else {
-            on_touch_drag(normalized_x, normalized_y);
-        }
-    } else {
-        is_dragging = 0;
-    }*/
-	//	printf("processEvents\n");
+		onWindowMouseDown((float)x_pos, (float)y_pos, 0);
+    }
 }
 
 static void SwapBuffersWeb()

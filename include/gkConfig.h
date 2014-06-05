@@ -66,7 +66,8 @@
 
 #elif defined(GK_PLATFORM_WEB)
 
-#define GK_USE_NOAUDIO
+#define GK_USE_OPENAL
+
 #define GK_SHOW_PLATFORM_ERRORS
 #define GK_PLATFORM_TEST
 

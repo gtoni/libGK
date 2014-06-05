@@ -27,7 +27,6 @@
 
 #include <AL/al.h>
 #include <AL/alc.h>
-#include <AL/efx.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,11 +49,35 @@ static float DbToVolume(float db)
 	return powf(10.0f, db/20.0f);
 }
 
+#define STR(x)	#x
+#define TOSTRING(x)	STR(x)
+#define CHECK_ERROR(fun)	checkError(STR(fun)" at "TOSTRING(__LINE__))
+
+static uint32_t checkError(char* func)
+{
+	int err; 
+	if((err = alGetError()) != AL_NO_ERROR) 
+		printf("GK [ERROR]: in %s -  AL Error: %X\n", func, err);
+	return err;
+}
+
+static uint32_t checkErrorNoArg()
+{
+	return checkError("out");
+}
+
+
 static ALCdevice* device;
 static ALCcontext* ctx;
 
 static void initOpenAL()
 {
+	int major, minor;
+	alcGetIntegerv(NULL, ALC_MAJOR_VERSION, 1, &major);
+	alcGetIntegerv(NULL, ALC_MAJOR_VERSION, 1, &minor);
+	
+	printf("GK [INFO]: ALC version: %i.%i\n", major, minor);
+
 	if (device = alcOpenDevice(0)) {
 		ctx = alcCreateContext(device, NULL);
 		if (ctx) {
@@ -76,14 +99,6 @@ static void cleanupOpenAL()
 		alcDestroyContext(ctx);
 	if (device)
 		alcCloseDevice(device);
-}
-
-static uint32_t checkError()
-{
-	int err; 
-	if((err = alGetError()) != AL_NO_ERROR) 
-		printf("GK [ERROR]: AL Error %X\n", err);
-	return err;
 }
 
 typedef struct gkAudioBufferData{
@@ -110,7 +125,7 @@ static void DestroyBuffer(gkAudioBuffer buffer)
 static uint32_t SetBufferData(gkAudioBuffer buffer, const void* data, size_t dataSize)
 {
 	alBufferData(buffer->alBuffer, buffer->format, data, dataSize, buffer->sampleRate);
-	return checkError();
+	return CHECK_ERROR(alBufferData);
 }
 
 typedef struct gkAudioPlayerData{
@@ -123,6 +138,7 @@ static gkAudioPlayer CreatePlayer()
 	alGenSources(1, &data->alSource);
 	alSourcei(data->alSource, AL_SOURCE_RELATIVE, 1);
 	alSource3f(data->alSource, AL_POSITION, 0,0,0);
+	CHECK_ERROR(CreatePlayer);
 	return data;
 }
 
@@ -145,7 +161,7 @@ static float GetPlayerPitch(gkAudioPlayer player)
 static void SetPlayerVolume(gkAudioPlayer player, int vol)
 {
 	alSourcef(player->alSource, AL_GAIN, DbToVolume(((float)vol)/100.0f));
-	checkError();
+	CHECK_ERROR(alSourcef);
 }
 static int GetPlayerVolume(gkAudioPlayer player)
 {
@@ -155,10 +171,12 @@ static int GetPlayerVolume(gkAudioPlayer player)
 }
 static void SetPlayerLooping(gkAudioPlayer player, GK_BOOL looping)
 {
-        int type;
+    int type = AL_STATIC;
+#ifndef GK_PLATFORM_WEB
 	alGetSourcei(player->alSource, AL_SOURCE_TYPE, &type);
-        alSourcei(player->alSource, AL_LOOPING, (type == AL_STATIC) && looping);
-	checkError();
+#endif
+    alSourcei(player->alSource, AL_LOOPING, (type == AL_STATIC) && looping);
+	CHECK_ERROR(alGetSourcei);
 }
 static GK_BOOL IsPlayerLooping(gkAudioPlayer player)
 {
@@ -168,12 +186,16 @@ static GK_BOOL IsPlayerLooping(gkAudioPlayer player)
 }
 static void SetPlayerOffset(gkAudioPlayer player, float sec)
 {
+#ifndef GK_PLATFORM_WEB
 	alSourcef(player->alSource, AL_SEC_OFFSET, sec);
+#endif
 }
 static float GetPlayerOffset(gkAudioPlayer player)
 {
-	float sec;
+	float sec = 0.0f;
+#ifndef GK_PLATFORM_WEB
 	alGetSourcef(player->alSource, AL_SEC_OFFSET, &sec);
+#endif
 	return sec;
 }
 static void PlayerSetBufer(gkAudioPlayer player, gkAudioBuffer buffer)
@@ -186,7 +208,7 @@ static uint32_t PlayerQueueBuffers(gkAudioPlayer player, int numBuffers, gkAudio
 	ALint srcId = player->alSource;
 	for (i = 0; i < numBuffers; i++) 
 		alSourceQueueBuffers(srcId, 1, &(buffers[i]->alBuffer));
-	return checkError();
+	return CHECK_ERROR(alSourceQueueBuffers);
 }
 
 static uint32_t PlayerUnqueueBuffers(gkAudioPlayer player, int numBuffers, gkAudioBuffer* buffers)
@@ -195,23 +217,23 @@ static uint32_t PlayerUnqueueBuffers(gkAudioPlayer player, int numBuffers, gkAud
 	ALint srcId = player->alSource;
 	for (i = 0; i < numBuffers; i++) 
 		alSourceUnqueueBuffers(srcId, 1, &(buffers[i]->alBuffer));
-	return checkError();
+	return CHECK_ERROR(alSourceUnqueueBuffers);
 }
 static uint32_t PlayerPlay(gkAudioPlayer player)
 {
 	alSourcePlay(player->alSource);
-	return checkError();
+	return CHECK_ERROR(alSourcePlay);
 }
 static uint32_t PlayerPause(gkAudioPlayer player)
 {
 	alSourcePause(player->alSource);
-	return checkError();
+	return CHECK_ERROR(alSourcePause);
 }
 static uint32_t PlayerStop(gkAudioPlayer player)
 {
 	alSourceStop(player->alSource);
 	alSourcei(player->alSource, AL_BUFFER, 0);
-	return checkError();
+	return CHECK_ERROR(alSourcei);
 }
 static gkAudioPlayerState PlayerGetState(gkAudioPlayer player)
 {
@@ -255,7 +277,7 @@ gkAudioSystem gkGetAudioSystem()
 
 	audioSys.Init = initOpenAL;
 	audioSys.Cleanup = cleanupOpenAL;
-	audioSys.CheckError = checkError;
+	audioSys.CheckError = checkErrorNoArg;
 	audioSys.CreateBuffer = CreateBuffer;
 	audioSys.DestroyBuffer = DestroyBuffer;
 	audioSys.Buffer.SetData = SetBufferData;

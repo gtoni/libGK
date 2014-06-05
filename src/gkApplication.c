@@ -469,6 +469,8 @@ gkImage* img;
 gkFont* font = 0;
 gkTextFormat fpsTf;
 uint64_t frameTime;
+gkSound* snd;
+GK_BOOL playing = 0;
 
 static void testDraw(gkPanel* p)
 {
@@ -500,6 +502,26 @@ static void testDraw(gkPanel* p)
 #endif
 }
 
+GK_BOOL onSoundStopped(gkEvent* e, void *p)
+{
+	playing = GK_FALSE;
+	return GK_TRUE;
+}
+
+void playSnd()
+{
+	if (!playing) {
+		gkSoundSource* src = gkPlaySound(snd, 0);
+		gkAddListener(src, GK_ON_SOUND_STOPPED, 0, onSoundStopped, 0);
+		playing = GK_TRUE;
+	}
+}
+
+GK_BOOL onMouseDown(gkEvent* e, void*p){
+	playSnd();
+	return GK_TRUE;
+}
+
 static GK_BOOL testInit()
 {
 	if( !(bg = gkLoadImage("assets/testOut.jpg"))) {
@@ -519,6 +541,14 @@ static GK_BOOL testInit()
 	fpsTf.strokeSize = 6.0f;
 #endif
 
+	snd = gkLoadSound("assets/music.wav", GK_SOUND_STREAM);
+	if (snd == 0) {
+		printf("Couldn't load sound assets/music.wav");
+	}
+	playSnd();
+	
+	gkAddListener(gkMouse, GK_ON_MOUSE_DOWN, 0, onMouseDown, 0);
+
 	frameTime = gkMilliseconds();
 	
 	gkMainPanel->drawFunc = testDraw;
@@ -526,6 +556,10 @@ static GK_BOOL testInit()
 }
 static void testCleanup()
 {
+	gkDestroySound(snd);
+#ifdef GK_USE_FONTS
+	gkDestroyFont(font);
+#endif
 	gkDestroyImage(img);
 	gkDestroyImage(bg);
 }

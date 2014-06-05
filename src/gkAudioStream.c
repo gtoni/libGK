@@ -89,8 +89,16 @@ static gkAudioStream* createWavAudioStream(char* location)
     stream->handle = gkOpenFile(location, "rb");
     if(stream->handle)
     {
-	gkStreamRead(stream->handle, &header, sizeof(header));
-	stream->startOffset = gkStreamTell(stream->handle);
+		gkStreamRead(stream->handle, &header, sizeof(header));
+	
+		char* subchunk = header.data;
+		while (strncmp(subchunk, "data", 4) != 0) {
+			gkStreamSeek(stream->handle, header.dataSize, GK_SEEK_CUR);
+			gkStreamRead(stream->handle, subchunk, sizeof(uint32_t)*2);
+		}
+	
+		stream->startOffset = gkStreamTell(stream->handle);
+	
         if(header.audioFormat == 1)
         {
             stream->info.sampleRate = header.sampleRate;

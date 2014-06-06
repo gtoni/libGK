@@ -182,5 +182,8 @@
     <ClCompile Include="..\..\src\gkFileStreamAndroid.c">
       <Filter>Source Files\io</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\gkAudioSystemOpenSLES.c">
+      <Filter>Source Files\audio\backends</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

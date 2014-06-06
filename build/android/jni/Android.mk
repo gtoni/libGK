@@ -23,7 +23,7 @@ LOCAL_SRC_FILES := 	src/event.c\
 					src/gkApplication.c\
 					src/gkAudio.c\
 					src/gkAudioStream.c\
-					src/gkAudioSystemNull.c\
+					src/gkAudioSystemOpenSLES.c\
 					src/gkDrawToImage.c\
 					src/gkGeometry.c\
 					src/gkGraphics.c\
@@ -48,9 +48,9 @@ LOCAL_C_INCLUDES += $(LOCAL_PATH)/external/png/include/android/
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/external/jpeg/include/android/
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/external/freetype2/include/android/
 
-LOCAL_LDLIBS := -llog -landroid -lEGL -lGLESv1_CM -lz
+LOCAL_LDLIBS := -llog -landroid -lEGL -lGLESv1_CM -lz -lOpenSLES
 
-LOCAL_EXPORT_LDLIBS := -llog -landroid -lEGL -lGLESv1_CM -lz
+LOCAL_EXPORT_LDLIBS := -llog -landroid -lEGL -lGLESv1_CM -lz -lOpenSLES
 
 LOCAL_STATIC_LIBRARIES := android_native_app_glue
 LOCAL_STATIC_LIBRARIES += JPEG

@@ -57,9 +57,9 @@
 
 #elif defined(GK_PLATFORM_ANDROID)
 
-#define GK_USE_NOAUDIO
-#define GK_SHOW_PLATFORM_ERRORS
 #define GK_PLATFORM_TEST
+
+#define GK_USE_OPENSLES
 
 #define GK_USE_LIBJPEG
 #define GK_USE_LIBPNG

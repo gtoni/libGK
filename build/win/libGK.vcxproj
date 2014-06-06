@@ -172,6 +172,7 @@
     <ClCompile Include="..\..\src\gkAudioSystemNull.c" />
     <ClCompile Include="..\..\src\gkAudioSystemOpenAL.c" />
     <ClCompile Include="..\..\src\gkAudioSystemDSound.cpp" />
+    <ClCompile Include="..\..\src\gkAudioSystemOpenSLES.c" />
     <ClCompile Include="..\..\src\gkAudioSystemXAudio2.cpp" />
     <ClCompile Include="..\..\src\gkDrawToImage.c" />
     <ClCompile Include="..\..\src\gkFileStream.c" />

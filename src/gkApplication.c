@@ -545,7 +545,7 @@ static GK_BOOL testInit()
 	fpsTf.strokeSize = 6.0f;
 #endif
 
-	snd = gkLoadSound("assets/music.wav", GK_SOUND_STREAM);
+	snd = gkLoadSound("assets/music.wav", GK_SOUND_STATIC);
 	if (snd == 0) {
 		printf("Couldn't load sound assets/music.wav");
 	}

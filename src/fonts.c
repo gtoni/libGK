@@ -112,6 +112,7 @@ struct gkGlyphCollectionStruct{
 	uint16_t cellWidth;
 	uint16_t cellHeight;
 	uint16_t glyphSetCount;
+	gkPoint spaceAdvance;
 	gkGlyphSet** glyphSets;
 	gkGlyphCollection* next;
 };
@@ -402,6 +403,13 @@ void gkInitGlyphCollection(gkGlyphCollection* collection, gkFont* font, float st
 	collection->texHeight = GK_MIN_FONT_TEX_SIZE;
 	collection->cellWidth = Gw;
 	collection->cellHeight = Gh;
+
+	FT_Load_Char(face, L' ', FT_LOAD_DEFAULT);
+	collection->spaceAdvance.x = ((float)face->glyph->advance.x)/64.0f;
+	collection->spaceAdvance.y = ((float)face->glyph->advance.y)/64.0f;
+	if(collection->spaceAdvance.y == 0)
+		collection->spaceAdvance.y = collection->spaceAdvance.x;
+
 	while(!gkTestCollection(collection, Gw, Gh)){
 		if(collection->texWidth<GK_MAX_FONT_TEX_SIZE){
 			collection->texWidth <<=1;
@@ -760,10 +768,9 @@ gkSentenceElement* gkParseSentenceElements(gkFont* font, char* text, gkTextForma
 			strokes = (gkGlyph**)calloc(totalGlyphs, sizeof(gkGlyph*));
 			strokeCollection = gkGetGlyphCollection(font, format->strokeSize);
 		}
-		FT_Load_Char(face, L' ', FT_LOAD_DEFAULT);
-		spaceAdvance.x = ((float)face->glyph->advance.x)/64.0f;
-		spaceAdvance.y = ((float)face->glyph->advance.y)/64.0f;
-		if(spaceAdvance.y == 0) spaceAdvance.y = spaceAdvance.x;
+
+		spaceAdvance.x = collection->spaceAdvance.x;
+		spaceAdvance.y = collection->spaceAdvance.y;
 
 		str = gkUtf8CharCode(text, &c);
 		lastChar = c;

@@ -1,6 +1,21 @@
 LOCAL_PATH := $(call my-dir)/../../../
 
 include $(CLEAR_VARS)
+LOCAL_MODULE            := JPEG
+LOCAL_SRC_FILES := external/jpeg/lib/android/libJPEG.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE            := PNG
+LOCAL_SRC_FILES := external/png/lib/android/libPNG.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE            := freetype2
+LOCAL_SRC_FILES := external/freetype2/lib/android/libfreetype2.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
 
 LOCAL_MODULE    := GK
 LOCAL_SRC_FILES := 	src/event.c\
@@ -29,17 +44,19 @@ LOCAL_SRC_FILES := 	src/event.c\
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/src/ 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/include/
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/external/png/include/android/
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/external/jpeg/include/android/
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/external/freetype2/include/android/
 
-LOCAL_LDLIBS := -llog -landroid -lEGL -lGLESv1_CM
+LOCAL_LDLIBS := -llog -landroid -lEGL -lGLESv1_CM -lz
 
-LOCAL_EXPORT_LDLIBS := -llog -landroid -lEGL -lGLESv1_CM
+LOCAL_EXPORT_LDLIBS := -llog -landroid -lEGL -lGLESv1_CM -lz
 
 LOCAL_STATIC_LIBRARIES := android_native_app_glue
 LOCAL_STATIC_LIBRARIES += JPEG
 LOCAL_STATIC_LIBRARIES += PNG
+LOCAL_STATIC_LIBRARIES += freetype2
 					
 include $(BUILD_SHARED_LIBRARY)
 
-$(call import-module,third_party/libpng)
-$(call import-module,third_party/libjpeg)
 $(call import-module,android/native_app_glue)

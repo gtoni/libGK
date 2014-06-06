@@ -55,9 +55,11 @@ static float DbToVolume(float db)
 
 static uint32_t checkError(char* func)
 {
-	int err; 
-	if((err = alGetError()) != AL_NO_ERROR) 
+	int err = alGetError(); 
+#ifndef GK_PLATFORM_WEB
+	if(err != AL_NO_ERROR) 
 		printf("GK [ERROR]: in %s -  AL Error: %X\n", func, err);
+#endif
 	return err;
 }
 

@@ -84,40 +84,48 @@ static void destroyWavAudioStream(gkAudioStream* stream);
 
 static gkAudioStream* createWavAudioStream(char* location)
 {
-    gkWavAudioStream* stream = (gkWavAudioStream*)malloc(sizeof(gkWavAudioStream));
-    struct wavHeader header;
-    stream->handle = gkOpenFile(location, "rb");
-    if(stream->handle)
-    {
-		gkStreamRead(stream->handle, &header, sizeof(header));
+	struct wavHeader header;
+	char* subchunk = header.data;
+	gkWavAudioStream* stream;
+	gkStream* fileStream = gkOpenFile(location, "rb");
+
+	if (!fileStream) {
+		printf("GK [ERROR] : Couldn't open file: %s\n", location);
+		return 0;
+	}
+
+	stream = (gkWavAudioStream*)malloc(sizeof(gkWavAudioStream));
+	stream->handle = fileStream;
+
+	gkStreamRead(stream->handle, &header, sizeof(header));
 	
-		char* subchunk = header.data;
-		while (strncmp(subchunk, "data", 4) != 0) {
-			gkStreamSeek(stream->handle, header.dataSize, GK_SEEK_CUR);
-			gkStreamRead(stream->handle, subchunk, sizeof(uint32_t)*2);
-		}
+	while (strncmp(subchunk, "data", 4) != 0) {
+		gkStreamSeek(stream->handle, header.dataSize, GK_SEEK_CUR);
+		gkStreamRead(stream->handle, subchunk, sizeof(uint32_t)*2);
+	}
 	
-		stream->startOffset = gkStreamTell(stream->handle);
+	stream->startOffset = gkStreamTell(stream->handle);
 	
-        if(header.audioFormat == 1)
-        {
-            stream->info.sampleRate = header.sampleRate;
-            stream->info.streamSize = header.dataSize;
-            stream->info.length = (float)header.dataSize/(float)header.byteRate;
-            stream->info.format = getAudioFormat(header.numChannels, header.bitsPerSample);
-            stream->info.channels = header.numChannels;
-            stream->info.bitsPerSample = header.bitsPerSample;
-            stream->base.read = readWavStream;
-            stream->base.seek = seekWavStream;
-            stream->base.getInfo = getWavStreamInfo;
-            stream->base.eof = eofWavStream;
-            stream->base.destroy = destroyWavAudioStream;
-            return (gkAudioStream*)stream;
-        }
+	if (header.audioFormat == 1) {
+		stream->info.sampleRate = header.sampleRate;
+		stream->info.streamSize = header.dataSize;
+		stream->info.length = (float)header.dataSize/(float)header.byteRate;
+		stream->info.format = getAudioFormat(header.numChannels, header.bitsPerSample);
+		stream->info.channels = header.numChannels;
+		stream->info.bitsPerSample = header.bitsPerSample;
+		stream->base.read = readWavStream;
+		stream->base.seek = seekWavStream;
+		stream->base.getInfo = getWavStreamInfo;
+		stream->base.eof = eofWavStream;
+		stream->base.destroy = destroyWavAudioStream;
+		return (gkAudioStream*)stream;
+	}
+
+	printf("GK [ERROR] : WAV invalid audio format: %s\n", location);
+
 	gkStreamClose(stream->handle);
-    }
-    free(stream);
-    return 0;
+	free(stream);
+	return 0;
 }
 
 static void destroyWavAudioStream(gkAudioStream* s)

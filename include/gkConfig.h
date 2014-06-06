@@ -64,6 +64,8 @@
 #define GK_USE_LIBJPEG
 #define GK_USE_LIBPNG
 
+#define GK_USE_FONTS
+
 #elif defined(GK_PLATFORM_WEB)
 
 #define GK_USE_OPENAL

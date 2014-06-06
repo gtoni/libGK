@@ -87,4 +87,18 @@ gkStream* gkOpenFileAndroid(char *filename, char *mode)
 	return (gkStream*)assetStream;
 }
 
+GK_BOOL gkReadFileAndroid(char* filename, void** outDst, size_t* outDstSize)
+{
+	AAsset* asset = AAssetManager_open(gkAndroidApp->activity->assetManager, 
+		filename, AASSET_MODE_BUFFER);
+	if (asset) {
+		*outDstSize = AAsset_getLength(asset);
+		*outDst = malloc(*outDstSize);
+		memcpy(*outDst, AAsset_getBuffer(asset), *outDstSize);
+		AAsset_close(asset);
+		return GK_TRUE;
+	}
+	return GK_FALSE;
+}
+
 #endif

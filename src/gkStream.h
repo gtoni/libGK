@@ -32,4 +32,6 @@ GK_BOOL gkIsPathRelative(char* path);
 /* File stream */
 gkStream* gkOpenFile(char* filename, char* mode);
 
+GK_BOOL gkReadFile(char* filename, void** outDst, size_t* outDstSize);
+
 #endif

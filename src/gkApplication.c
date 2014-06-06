@@ -477,12 +477,12 @@ static void testDraw(gkPanel* p)
 	char fps[10];
 	uint64_t diff = gkMilliseconds() - frameTime;
 	float ts = (float)diff * 0.001f;
-	frameTime += diff;
-	
 	gkMatrix mat = gkMatrixCreateTranslation(-img->width*0.5f, -img->height*0.5f);
 	gkMatrixMult(&mat, gkMatrixCreateRotation(r));
 	gkMatrixMult(&mat, gkMatrixCreateTranslation(p->mouseX, p->mouseY));
 	
+	frameTime += diff;
+
 	gkDrawImage(bg,0,0);
 
 	gkSetFillColor(1.0f,0.0f,0.0f,0.5f);
@@ -524,6 +524,8 @@ GK_BOOL onMouseDown(gkEvent* e, void*p){
 
 static GK_BOOL testInit()
 {
+	gkSetTargetFps(GK_VSYNC);
+
 	if( !(bg = gkLoadImage("assets/testOut.jpg"))) {
 		printf("Couldn't load assets/testOut.jpg\n");
 	}
@@ -534,6 +536,8 @@ static GK_BOOL testInit()
 #ifdef GK_USE_FONTS
 	gkAddFontResource("assets/chiller.TTF");
 	font = gkCreateFont("Chiller", 30, GK_FONT_NORMAL);
+//	gkAddFontResource("assets/meiryo.ttc");
+//	font = gkCreateFont("meiryo", 30, GK_FONT_NORMAL);
 	printf(font?"font created\n":"font failed\n");
 	fpsTf = gkDefaultTextFormat;
 	fpsTf.textColor = GK_COLOR(1,1,1,1);

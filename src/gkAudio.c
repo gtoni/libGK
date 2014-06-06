@@ -180,7 +180,7 @@ void gkInitAudio()
 	gkInitAudioStream();
 
 	updateAudioTimer = gkCreateTimer();
-	updateAudioTimer->interval = 100;
+	updateAudioTimer->interval = 50;
 	gkAddListener(updateAudioTimer, GK_ON_TIMER, 0, updateAudio, 0);
 	gkStartTimer(updateAudioTimer, 0);
 }

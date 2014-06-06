@@ -27,6 +27,7 @@
 #ifdef GK_USE_FONTS
 
 #include "gkGL.h"
+#include "gkStream.h"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -172,6 +173,57 @@ static void printFontResourceError(FT_Error error, char* filename)
 	}
 }
 
+static unsigned long readFTStream(FT_Stream ftStream, unsigned long offset, 
+				  unsigned char* buffer, unsigned long count)
+{
+	gkStream* stream = (gkStream*)ftStream->descriptor.pointer;
+	int res = gkStreamSeek(stream, offset, GK_SEEK_SET);
+	if (count>0)
+		return gkStreamRead(stream, buffer, count);
+	return res;
+}
+
+static void closeFTStream(FT_Stream ftStream)
+{
+	gkStream* stream = (gkStream*)ftStream->descriptor.pointer;
+	gkStreamClose(stream);
+	free(ftStream);
+}
+
+static FT_Stream makeFTStream(char* filename)
+{
+	gkStream* stream = gkOpenFile(filename, "rb");
+	FT_Stream ftStream;
+	if (!stream)
+		return 0;
+
+	ftStream = (FT_Stream)malloc(sizeof(FT_StreamRec));
+	memset(ftStream, 0, sizeof(FT_StreamRec));
+
+	gkStreamSeek(stream, 0, GK_SEEK_END);
+	ftStream->size = gkStreamTell(stream);
+	gkStreamSeek(stream, 0, GK_SEEK_SET);
+
+	ftStream->descriptor.pointer = stream;
+	ftStream->read = readFTStream;
+	ftStream->close = closeFTStream;
+	return ftStream;
+}
+
+static FT_Error openFace(char* filename, FT_Long index, FT_Face* aface)
+{
+	FT_Open_Args args = {
+		FT_OPEN_STREAM,
+		0,0,	/* memory_base, memory_size */
+		0,	/* filename */
+		makeFTStream(filename),	/* stream */
+		0,	/* driver */
+		0,	/* extra params */
+		0	/* params */
+	};
+	return FT_Open_Face(ftlib, &args, index, aface);
+}
+
 gkFontResource* gkAddFontResource(char* filename)
 {
 	FT_Face face;
@@ -181,7 +233,8 @@ gkFontResource* gkAddFontResource(char* filename)
 	int i = 0;
 	FT_Error error;
 	do {
-		error = FT_New_Face(ftlib, filename, i, &face);
+//		error = FT_New_Face(ftlib, filename, i, &face);
+		error = openFace(filename, i, &face);
 		if (error) {
 			printFontResourceError(error, filename);
 			return 0;

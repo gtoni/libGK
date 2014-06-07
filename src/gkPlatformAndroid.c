@@ -37,6 +37,9 @@ struct engine {
 	EGLConfig config;
 }engine;
 
+/* internalDataPath doesn't work on some (or ALL) phones */
+extern char* gkAndroidAppDir;
+
 struct android_app* gkAndroidApp;
 
 static GK_BOOL gkActive;
@@ -313,8 +316,18 @@ static void ExitAppAndroid()
 
 static void GetAppDirAndroid(char* dst, size_t dstSize)
 {
-	LOGI("getAppDir");
-	strcpy(dst, "");
+	size_t dirLen;
+	const char* dir = gkAndroidAppDir;
+	if (engine.app->activity->internalDataPath)
+		dir = engine.app->activity->internalDataPath;
+
+	dirLen = strlen(dir);
+	LOGI("AppDir is %s", dir);
+	if (dirLen > dstSize) {
+		LOGI("AppDir path is too long");
+		return;
+	}
+	strcpy(dst, dir);
 }
 
 static void SetVSyncAndroid(GK_BOOL enabled)

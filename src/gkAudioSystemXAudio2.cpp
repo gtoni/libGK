@@ -58,7 +58,7 @@ IXAudio2MasteringVoice* master;
 
 static void init()
 {
-	HRESULT hr = XAudio2Create(&engine, XAUDIO2_DEBUG_ENGINE, XAUDIO2_DEFAULT_PROCESSOR);
+	HRESULT hr = XAudio2Create(&engine, 0, XAUDIO2_DEFAULT_PROCESSOR);
 
 	if (FAILED(hr)) {
 		printf("Couldn't initialize XAudio2\n");

@@ -57,8 +57,6 @@
 
 #elif defined(GK_PLATFORM_ANDROID)
 
-#define GK_PLATFORM_TEST
-
 #define GK_USE_OPENSLES
 
 #define GK_USE_LIBJPEG

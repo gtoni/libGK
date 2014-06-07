@@ -73,10 +73,10 @@ gkStream* gkOpenFileStd(char *filename, char *mode)
 	return (gkStream*)fileStream;
 }
 
-GK_BOOL gkReadFileStd(char* filename, void** outDst, size_t* outDstSize)
+GK_BOOL gkReadFileStream(char* filename, void** outDst, size_t* outDstSize)
 {
 	size_t read;
-	gkStream* stream = gkOpenFileStd(filename, "rb");
+	gkStream* stream = gkOpenFile(filename, "rb");
 
 	gkStreamSeek(stream, 0, GK_SEEK_END);
 	*outDstSize = gkStreamTell(stream);
@@ -116,5 +116,5 @@ GK_BOOL gkReadFile(char* filename, void** outDst, size_t* outDstSize)
 	if (gkIsPathRelative(filename))
 		return gkReadFileAndroid(filename, outDst, outDstSize);
 #endif
-	return gkReadFileStd(filename, outDst, outDstSize);
+	return gkReadFileStream(filename, outDst, outDstSize);
 }

@@ -89,8 +89,9 @@ gkStream* gkOpenFileAndroid(char *filename, char *mode)
 
 GK_BOOL gkReadFileAndroid(char* filename, void** outDst, size_t* outDstSize)
 {
+	char* fn = (strncmp(filename, "assets", 6) == 0)?filename+7:filename;
 	AAsset* asset = AAssetManager_open(gkAndroidApp->activity->assetManager, 
-		filename, AASSET_MODE_BUFFER);
+		fn, AASSET_MODE_BUFFER);
 	if (asset) {
 		*outDstSize = AAsset_getLength(asset);
 		*outDst = malloc(*outDstSize);

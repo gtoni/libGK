@@ -47,7 +47,9 @@ LOCAL_C_INCLUDES += $(LOCAL_PATH)/include/
 LOCAL_C_INCLUDES += $(LIBGK_HOME)/external/png/include/android/
 LOCAL_C_INCLUDES += $(LIBGK_HOME)/external/jpeg/include/android/
 LOCAL_C_INCLUDES += $(LIBGK_HOME)/external/freetype2/include/android/
+LOCAL_C_INCLUDES += $(LIBGK_HOME)/external/libmpg123/include/android/
 
+LOCAL_C_FLAGS := -O3 -ffast-math
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include/
 
 LOCAL_EXPORT_LDLIBS := -llog -landroid -lEGL -lGLESv1_CM -lz -lOpenSLES

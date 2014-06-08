@@ -59,27 +59,29 @@ static void initDisplay(struct engine* engine)
      * component compatible with on-screen windows
      */
 	 
-    const EGLint attribs[] = {
-            EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-            EGL_BLUE_SIZE, 8,
-            EGL_GREEN_SIZE, 8,
-            EGL_RED_SIZE, 8,
-            EGL_NONE
-    };
-    EGLint w, h, dummy, format;
-    EGLint numConfigs;
-    EGLConfig config;
-    EGLSurface surface;
-    EGLContext context;
+	const EGLint attribs[] = {
+		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES_BIT,
+		EGL_BLUE_SIZE, 8,
+		EGL_GREEN_SIZE, 8,
+		EGL_RED_SIZE, 8,
+//		EGL_SAMPLE_BUFFERS, 1, EGL_SAMPLES, 2,	
+		EGL_NONE
+	};
+	EGLint w, h, dummy, format;
+	EGLint numConfigs;
+	EGLConfig config;
+	EGLSurface surface;
+	EGLContext context;
 	
-    EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
-    eglInitialize(display, 0, 0);
+	eglInitialize(display, 0, 0);
 
-    /* Here, the application chooses the configuration it desires. In this
-     * sample, we have a very simplified selection process, where we pick
-     * the first EGLConfig that matches our criteria */
-    eglChooseConfig(display, attribs, &config, 1, &numConfigs);
+	/* Here, the application chooses the configuration it desires. In this
+	* sample, we have a very simplified selection process, where we pick
+	* the first EGLConfig that matches our criteria */
+	eglChooseConfig(display, attribs, &config, 1, &numConfigs);
 	
 	engine->display = display;
 	engine->config = config;

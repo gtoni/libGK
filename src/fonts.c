@@ -352,8 +352,13 @@ void gkInitFont(gkFont* font)
 	Glyph caching
 */
 
+#ifdef GK_PLATFORM_ANDROID
+#define GK_MIN_FONT_TEX_SIZE	64
+#define GK_MAX_FONT_TEX_SIZE	512
+#else
 #define GK_MIN_FONT_TEX_SIZE	64
 #define GK_MAX_FONT_TEX_SIZE	1024
+#endif
 
 void gkInitGlyphCollection(gkGlyphCollection* collection, gkFont* font, float strokeSize);
 GK_BOOL gkTestCollection(gkGlyphCollection* collection, int glyphW, int glyphH);
@@ -430,6 +435,8 @@ GK_BOOL gkTestCollection(gkGlyphCollection* collection, int glyphW, int glyphH){
 	int glyphsPerRow = collection->texWidth / glyphW;
 	if(glyphsPerRow>0){
 		int rows = setSize / glyphsPerRow;
+		if ((setSize % glyphsPerRow) > 0)
+			rows++;
 		return rows * glyphH <= collection->texHeight;
 	}else{
 		return GK_FALSE;
@@ -448,9 +455,12 @@ gkGlyphSet* gkGetGlyphSet(gkGlyphCollection* collection, int index){
 	if(collection->glyphSets[setIndex] == 0){
 		int setSize = (0xFF>>(8 - collection->setBits)) + 1;
 		int w = collection->texWidth, h = collection->texHeight;
+		char* tmp = 0;
+#ifdef GK_PLATFORM_WEB
 		size_t tmpSize = (w*h)*4;
-		char* tmp = (char*)malloc(tmpSize); // nasty, can't put 0 in WebGL's glTexImage2D
+		tmp = (char*)malloc(tmpSize); // nasty, can't put 0 in WebGL's glTexImage2D
 		memset(tmp, 0, tmpSize);
+#endif
 		glyphSet = (gkGlyphSet*)malloc(sizeof(gkGlyphSet));
 		glGenTextures(1, &glyphSet->texId);
 		glBindTexture(GL_TEXTURE_2D, glyphSet->texId);
@@ -459,7 +469,9 @@ gkGlyphSet* gkGetGlyphSet(gkGlyphCollection* collection, int index){
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+#ifdef GK_PLATFORM_WEB
 		free(tmp);
+#endif
 		glyphSet->glyphs = (gkGlyph**)calloc(setSize, sizeof(gkGlyph*));
 		memset(glyphSet->glyphs, 0, setSize*sizeof(gkGlyph*));
 		collection->glyphSets[setIndex] = glyphSet;

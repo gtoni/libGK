@@ -185,12 +185,39 @@ static void getMp3StreamInfo(gkAudioStream* stream, gkAudioStreamInfo* info);
 static int eofMp3Stream(gkAudioStream* stream);
 static void destroyMp3AudioStream(gkAudioStream* stream);
 
+static ssize_t readMp3File(void* src, void* dst, size_t dstSize)
+{
+	gkStream* source = (gkStream*)src;
+	return gkStreamRead(source, dst, dstSize);
+}
+
+static off_t seekMp3File(void* src, off_t offset, int origin)
+{
+	gkStream* source = (gkStream*)src;
+	gkStreamSeek(source, offset, origin);
+	return gkStreamTell(source);
+}
+
+static void closeMp3File(void* src)
+{
+	gkStream* source = (gkStream*)src;
+	if(source)
+		gkStreamClose(source);
+}
+
+static void openMp3Stream(mpg123_handle* mp3Handle, char* location)
+{
+	gkStream* source = gkOpenFile(location, "rb");
+	mpg123_replace_reader_handle(mp3Handle, readMp3File, seekMp3File, closeMp3File);
+	mpg123_open_handle(mp3Handle, source);
+}
+
 static gkAudioStream* createMp3AudioStream(char* location)
 {
     gkMp3AudioStream* stream = (gkMp3AudioStream*)malloc(sizeof(gkMp3AudioStream));
     stream->handle = mpg123_new(0, 0);
     stream->eof = GK_FALSE;
-    mpg123_open(stream->handle, location);
+    openMp3Stream(stream->handle, location);
     stream->base.read = readMp3Stream;
     stream->base.seek = seekMp3Stream;
     stream->base.getInfo = getMp3StreamInfo;

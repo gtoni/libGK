@@ -82,7 +82,6 @@
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>..\..\external\jpeg\lib\win;..\..\external\png\lib\win;..\..\external\zlib\lib\win;..\..\external\libmpg123\lib\win;..\..\external\libvorbis\lib\win;..\..\external\freetype2\lib\win;..\..\external\openal\lib\win;..\..\external\win_specific\lib</AdditionalLibraryDirectories>
-      <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>

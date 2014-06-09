@@ -59,6 +59,7 @@
 
 #define GK_USE_OPENSLES
 #define GK_USE_MPG123
+#define GK_USE_OGGVORBIS
 
 #define GK_USE_LIBJPEG
 #define GK_USE_LIBPNG

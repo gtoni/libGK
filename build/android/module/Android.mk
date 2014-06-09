@@ -21,11 +21,16 @@ LOCAL_SRC_FILES := $(LIBGK_HOME)/external/libmpg123/lib/android/libMPG123.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
+LOCAL_MODULE            := OGGVORBIS
+LOCAL_SRC_FILES := $(LIBGK_HOME)/external/libvorbis/lib/android/libOGGVORBIS.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
 LOCAL_MODULE            := GK
 LOCAL_SRC_FILES := $(LIBGK_HOME)/bin/android/libGK.a
 LOCAL_EXPORT_C_INCLUDES := $(LIBGK_HOME)/include/
 LOCAL_EXPORT_LDLIBS := -llog -landroid -lEGL -lGLESv1_CM -lz -lOpenSLES
-LOCAL_WHOLE_STATIC_LIBRARIES  := android_native_app_glue JPEG PNG freetype2 MPG123
+LOCAL_WHOLE_STATIC_LIBRARIES  := android_native_app_glue JPEG PNG freetype2 MPG123 OGGVORBIS
 
 LOCAL_SHARED_LIBRARIES += MPG123
 

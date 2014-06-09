@@ -306,11 +306,56 @@ static void getOggStreamInfo(gkAudioStream* stream, gkAudioStreamInfo* info);
 static int eofOggStream(gkAudioStream* stream);
 static void destroyOggAudioStream(gkAudioStream* stream);
 
+
+static size_t readOggFile(void *ptr, size_t size, size_t nmemb, void *datasource)
+{
+	gkStream* source = (gkStream*)datasource;
+	return gkStreamRead(source, ptr, size*nmemb);
+}
+
+static int seekOggFile(void *datasource, ogg_int64_t offset, int whence)
+{
+	gkStream* source = (gkStream*)datasource;
+	return gkStreamSeek(source, offset, whence);
+}
+
+static long tellOggFile(void* datasource)
+{
+	gkStream* source = (gkStream*)datasource;
+	return gkStreamTell(source);
+}
+
+static int closeOggFile(void* datasource)
+{
+	gkStream* source = (gkStream*)datasource;
+	if(source)
+		gkStreamClose(source);
+	return 0;
+}
+
+static ov_callbacks gkOggCallbacks = {
+	readOggFile,
+	seekOggFile,
+	closeOggFile,
+	tellOggFile
+};
+
+static GK_BOOL openOggFile(char* location, OggVorbis_File* handle)
+{
+	gkStream* file = gkOpenFile(location, "rb");
+	if (file) {
+		/* ov_open_callbacks() returns 0 on success and -1 on failure */
+		if(ov_open_callbacks(file, handle, 0, 0, gkOggCallbacks) == 0)
+			return GK_TRUE;
+		gkStreamClose(file);
+	}
+	return GK_FALSE;
+}
+
 static gkAudioStream* createOggAudioStream(char* location)
 {
     gkOggAudioStream* stream = (gkOggAudioStream*)malloc(sizeof(gkOggAudioStream));
-    if(ov_fopen(location, &stream->handle) != 0)
-    {
+    if (!openOggFile(location, &stream->handle)) {
         free(stream);
         return 0;
     }

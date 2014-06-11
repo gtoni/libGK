@@ -51,10 +51,9 @@ def buildAndroidManifest(package, projName):
 def buildJavaDummy(package):
 	lines = [
 	"package "+package+";\n",
-	"public class NativeDummy extends android.app.NativeActivity{static{\n",
-		"System.loadLibrary(\"MPG123\");\n",
-	"}}"
+	"public class NativeDummy extends com.libgk.NativeBase{}"
 	]
+	os.system("xcopy /e /D /Y stub src");
 	dummy = open("src/NativeDummy.java", "w")
 	dummy.writelines(lines)
 	dummy.close()

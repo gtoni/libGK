@@ -386,15 +386,20 @@ static void PlayerGetQueueState(gkAudioPlayer player, int* processed, int* queue
 	*queued = player->queued;
 }
 
-static int masterVol;
+static int masterVol = 0;
+
+void gkAndroidSetVolume(float vol);
+float gkAndroidGetVolume();
 
 static void SetMasterVolume(int vol)
 {
 	masterVol = vol;
+	gkAndroidSetVolume(((float)vol/5000.0f));
 }
 
 static int GetMasterVolume()
 {
+	masterVol = gkAndroidGetVolume()*5000.0f;
 	return masterVol;
 }
 
@@ -406,8 +411,8 @@ extern "C"{
 	{
 		gkAudioSystem audioSys;
 
-		audioSys.minVolume = -5000.0f;
-		audioSys.maxVolume = 0.0f;
+		audioSys.minVolume = 0.0f;
+		audioSys.maxVolume = 5000.0f;
 
 		audioSys.Init = init;
 		audioSys.Cleanup = cleanup;

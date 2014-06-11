@@ -46,6 +46,52 @@ static GK_BOOL gkActive;
 
 int GLEE_EXT_framebuffer_object = 0;
 
+/* Audio Volume control */
+
+jclass activityClazz;
+
+jint JNI_OnLoad(JavaVM* vm, void* reserved){
+	JNIEnv* env;
+	if ((*vm)->GetEnv(vm, (void**) &env, JNI_VERSION_1_4) != JNI_OK)
+		return -1;
+
+	activityClazz = (*env)->NewGlobalRef(env, (*env)->FindClass(env, "com/libgk/NativeBase"));
+	return JNI_VERSION_1_4;
+}
+
+void gkAndroidSetVolume(float vol)
+{
+	JavaVM *vm = engine.app->activity->vm;
+	JNIEnv* env;
+	jmethodID func;
+
+	(*vm)->AttachCurrentThread(vm, &env, 0);
+
+	func = (*env)->GetStaticMethodID(env, activityClazz, "setVolume", "(F)V");
+	(*env)->CallStaticVoidMethod(env, activityClazz, func, vol);
+
+	(*env)->DeleteLocalRef(env, func);
+
+	(*vm)->DetachCurrentThread(vm);
+}
+
+float gkAndroidGetVolume()
+{
+	JavaVM *vm = engine.app->activity->vm;
+	JNIEnv* env;
+	jmethodID func;
+	float res;
+
+	(*vm)->AttachCurrentThread(vm, &env, 0);
+
+	func = (*env)->GetStaticMethodID(env, activityClazz, "getVolume", "()F");
+	res = (*env)->CallStaticFloatMethod(env, activityClazz, func);
+
+	(*env)->DeleteLocalRef(env, func);
+
+	(*vm)->DetachCurrentThread(vm);
+	return res;
+}
 
 /**
  * Initialize an EGL context for the current display.
@@ -249,8 +295,8 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 }
 
 void android_main(struct android_app* state) {
-    // Make sure glue isn't stripped.
-    app_dummy();
+	// Make sure glue isn't stripped.
+	app_dummy();
 
     memset(&engine, 0, sizeof(engine));
     state->userData = &engine;
@@ -300,9 +346,8 @@ static void runAndroid(onRunCallback loop, onRunCallback cleanup)
 			ProcessEventsAndroid();
 			SleepAndroid(100);
 		}
-    }
+	}
 	cleanup();
-	exit(0);
 }
 
 static void cleanupAndroid()

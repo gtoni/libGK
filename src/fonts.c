@@ -426,6 +426,7 @@ void gkInitGlyphCollection(gkGlyphCollection* collection, gkFont* font, float st
 			collection->texWidth = collection->texHeight = GK_MIN_FONT_TEX_SIZE;
 		}else{
 			printf("GK [ERROR]: font error\n");
+			break;
 		}
 	}
 }
@@ -464,6 +465,7 @@ gkGlyphSet* gkGetGlyphSet(gkGlyphCollection* collection, int index){
 		glyphSet = (gkGlyphSet*)malloc(sizeof(gkGlyphSet));
 		glGenTextures(1, &glyphSet->texId);
 		glBindTexture(GL_TEXTURE_2D, glyphSet->texId);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

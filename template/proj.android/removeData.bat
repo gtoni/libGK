@@ -6,3 +6,4 @@ rmdir libs /S /Q
 rmdir bin /S /Q
 rmdir jni /S /Q
 rmdir src /S /Q
+rmdir gen /S /Q

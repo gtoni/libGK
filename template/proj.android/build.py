@@ -48,10 +48,14 @@ def buildAndroidManifest(package, projName):
 	mf.close();
 
 # This function generates a java class which extends NativeActivity in order to load shared libraries needed by application
-def buildJavaDummy(package):
+def buildJavaDummy(package, projName):
 	lines = [
 	"package "+package+";\n",
-	"public class NativeDummy extends com.libgk.NativeBase{}"
+	"public class NativeDummy extends com.libgk.NativeBase{",
+	"static{",
+		"System.loadLibrary(\"MPG123\");",
+		"System.loadLibrary(\"" + projName + "\");",
+	"}}"
 	]
 	os.system("xcopy /e /D /Y stub src");
 	dummy = open("src/NativeDummy.java", "w")
@@ -72,7 +76,7 @@ os.system("mkdir jni");
 os.system("mkdir src");
 buildAndroidMk(pName);
 buildApplicationMk();
-buildJavaDummy(packName);
+buildJavaDummy(packName, pName);
 buildAndroidManifest(packName, pName);
 adhFile = open("AppDirHack.c","w")
 adhFile.write("char* gkAndroidAppDir = \"/data/data/" + packName+ "." + pName +"/\";");

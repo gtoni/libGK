@@ -3,10 +3,6 @@ import android.os.Bundle;
 import android.content.Context;
 import android.media.AudioManager;
 public class NativeBase extends android.app.NativeActivity{
-	static{
-		System.loadLibrary("MPG123");
-		System.loadLibrary("SoundPlayer");
-	}
 	private static AudioManager audioMgr;
 	
 	@Override

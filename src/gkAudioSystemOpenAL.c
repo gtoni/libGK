@@ -23,8 +23,6 @@
 
 #ifdef GK_USE_OPENAL
 
-#pragma comment(lib,"OpenAL32.lib")
-
 #include <AL/al.h>
 #include <AL/alc.h>
 

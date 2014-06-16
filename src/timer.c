@@ -150,9 +150,13 @@ void gkUpdateTimers(){
 			free(p);
 		}else{
 			timer = (gkTimerEx*)ref->timer;
-			if(timer->running){
-				if(	(timer->repeatsElapsed == 0 && (currentTime - timer->startTime) >= timer->delay) ||
-					(timer->repeatsElapsed > 0 && (currentTime - timer->startTime) >= timer->interval) ){
+			/*
+			When a timer is start within a GK_ON_TIMER or GK_ON_TIMER_COMPLETE
+			the timer's startTime value is greater than currentTime. 
+			*/
+			if (timer->running && currentTime > timer->startTime) {
+				if((timer->repeatsElapsed == 0 && (currentTime - timer->startTime) >= timer->delay) || 
+				   (timer->repeatsElapsed > 0 && (currentTime - timer->startTime) >= timer->interval)) {
 					gkEvent evt;
 					evt.type = GK_ON_TIMER;
 					evt.currentTarget = evt.target = timer;

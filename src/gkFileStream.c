@@ -77,6 +77,8 @@ GK_BOOL gkReadFileStream(char* filename, void** outDst, size_t* outDstSize)
 {
 	size_t read;
 	gkStream* stream = gkOpenFile(filename, "rb");
+	if (!stream)
+		return GK_FALSE;
 
 	gkStreamSeek(stream, 0, GK_SEEK_END);
 	*outDstSize = gkStreamTell(stream);

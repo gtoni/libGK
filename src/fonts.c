@@ -321,6 +321,8 @@ void gkDestroyFont(gkFont* font)
 	free(font);
 }
 
+static void cleanupBatch();
+
 void gkCleanupFonts()
 {
 	gkFontRcRef* ref = gkFontResources, *p;
@@ -341,6 +343,7 @@ void gkCleanupFonts()
 	gkFontResources = gkFontResourcesTop = 0;
 	FT_Done_FreeType(ftlib);
 	ftlib = 0;
+	cleanupBatch();
 }
 
 void gkInitFont(gkFont* font)
@@ -660,6 +663,145 @@ void gkDestroyGlyphSet(gkGlyphSet* set, int setSize){
 	Drawing and measuring
 */
 
+
+
+/*
+	Batch-rendering for fonts
+*/
+
+#define QUAD_SIZE sizeof(float)*12 /* 6 vertices x 2 floats */
+
+static float *batchVertices = 0;
+static float *batchCoords = 0;
+
+static int quadIndex = 0;
+static int totalQuads = 0;
+
+static void batchEnlarge()
+{
+	if (totalQuads == 0) {
+		totalQuads = 128;
+	}
+
+	totalQuads = totalQuads << 1;
+	batchVertices = (float*)realloc(batchVertices, QUAD_SIZE*totalQuads);
+	batchCoords = (float*)realloc(batchCoords, QUAD_SIZE*totalQuads);
+}
+
+static void batchPush(gkPoint p, gkGlyph *g)
+{
+	float v[] = {
+		p.x, p.y,
+		p.x + g->size.width, p.y,
+		p.x + g->size.width, p.y + g->size.height,
+		p.x, p.y + g->size.height
+	};
+	float c[] = {
+		g->texCoords.x, g->texCoords.y,
+		g->texCoords.x + g->texCoords.width, g->texCoords.y,
+		g->texCoords.x + g->texCoords.width, g->texCoords.y + g->texCoords.height,
+		g->texCoords.x, g->texCoords.y + g->texCoords.height,
+	};
+	float *bv;
+	float *bc;
+
+	if (quadIndex + 1 >= totalQuads)
+		batchEnlarge();
+
+	/* GL_TRIANGLES */
+/*	bv = batchVertices + quadIndex*12;
+	bc = batchCoords + quadIndex*12;
+	bv[0] = v[0]; //v 1
+	bv[1] = v[1]; //v 1
+	bv[2] = v[2]; //v 2
+	bv[3] = v[3]; //v 2
+	bv[4] = v[4]; //v 3
+	bv[5] = v[5]; //v 3
+	bv[6] = v[0]; //v 1
+	bv[7] = v[1]; //v 1
+	bv[8] = v[4]; //v 3
+	bv[9] = v[5]; //v 3
+	bv[10] = v[6]; //v 4
+	bv[11] = v[7]; //v 4
+
+	bc[0] = c[0]; //v 1
+	bc[1] = c[1]; //v 1
+	bc[2] = c[2]; //v 2
+	bc[3] = c[3]; //v 2
+	bc[4] = c[4]; //v 3
+	bc[5] = c[5]; //v 3
+	bc[6] = c[0]; //v 1
+	bc[7] = c[1]; //v 1
+	bc[8] = c[4]; //v 3
+	bc[9] = c[5]; //v 3
+	bc[10] = c[6]; //v 4
+	bc[11] = c[7]; //v 4
+	*/
+
+
+	/* GL_TRIANGLE_STRIPS */
+	if (quadIndex == 0) {
+		bv = batchVertices;
+		bc = batchCoords;
+	} else {
+		bv = batchVertices + quadIndex*12;
+		bc = batchCoords + quadIndex*12;
+	}//2 - 3 - 1 - 4 
+	bv[0] = v[2]; //v 2
+	bv[1] = v[3]; //v 2
+	bv[2] = v[4]; //v 3
+	bv[3] = v[5]; //v 3
+	bv[4] = v[0]; //v 1
+	bv[5] = v[1]; //v 1
+	bv[6] = v[6]; //v 4
+	bv[7] = v[7]; //v 4
+
+	bc[0] = c[2]; //v 2
+	bc[1] = c[3]; //v 2
+	bc[2] = c[4]; //v 3
+	bc[3] = c[5]; //v 3
+	bc[4] = c[0]; //v 1
+	bc[5] = c[1]; //v 1
+	bc[6] = c[6]; //v 4
+	bc[7] = c[7]; //v 4
+
+	if (quadIndex != 0) {
+		bv[-4] = bv[-6];
+		bv[-3] = bv[-5];
+		bv[-2] = bv[0];
+		bv[-1] = bv[1];
+
+		bc[-4] = bc[-6];
+		bc[-3] = bc[-5];
+		bc[-2] = bc[0];
+		bc[-1] = bc[1];
+	}
+
+	quadIndex++;
+}
+
+static void batchDraw()
+{
+	if (quadIndex == 0)
+		return;
+
+	glVertexPointer(2, GL_FLOAT, 0, batchVertices);
+	glTexCoordPointer(2, GL_FLOAT, 0, batchCoords);
+//	glDrawArrays(GL_TRIANGLES, 0, quadIndex*6);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4 + (quadIndex-1)*6);
+	quadIndex = 0;
+}
+
+static void cleanupBatch()
+{
+	if (totalQuads>0) {
+		free(batchVertices);
+		free(batchCoords);
+	}
+}
+
+/*********/
+
 typedef struct gkSentenceElementStruct gkSentenceElement;
 struct gkSentenceElementStruct{
 	uint8_t type;
@@ -704,6 +846,7 @@ gkSize gkMeasureText(gkFont* font, char* text, gkTextFormat* format)
         format = &gkDefaultTextFormat;
 
 	oldTextFormatWidth = format->width;
+
 	if(elements = gkParseSentenceElements(font, text, format))
     {
 		float leading = ((float)face->size->metrics.height)/64.0f + format->lineSpacing;
@@ -726,6 +869,7 @@ void gkDrawText(gkFont* font, char* text, float x, float y, gkTextFormat* format
 	float oldTextFormatWidth;
 	if(format == 0) format = &gkDefaultTextFormat;
 	oldTextFormatWidth = format->width;
+
 	if(elements = gkParseSentenceElements(font, text, format)){
 		gkPoint align;
 		float tx = x, ty = y;
@@ -1074,10 +1218,11 @@ draw:
 				p.x = b.x + g->offset.x;
 				p.y = b.y - g->offset.y;
 				if(texImage == 0 || texImage != g->texId){
+					batchDraw();
 					texImage = g->texId;
 					glBindTexture(GL_TEXTURE_2D, texImage);
 				}
-				{
+/*				{
 					float v[] = {
 						p.x, p.y,
 						p.x + g->size.width, p.y,
@@ -1093,7 +1238,9 @@ draw:
 					glVertexPointer(2, GL_FLOAT, 0, v);
 					glTexCoordPointer(2, GL_FLOAT, 0, c);
 					glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-				}
+				}*/
+				batchPush(p, g);
+
 				if(format->vertical){
 					b.y += g->advance.y;
 				}else{
@@ -1113,6 +1260,7 @@ draw:
 		if(currentElement == line->last) break;
 		currentElement = currentElement->next;
 	}
+	batchDraw();
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisable(GL_TEXTURE_2D);

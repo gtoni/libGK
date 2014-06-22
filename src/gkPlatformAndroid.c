@@ -238,18 +238,31 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) 
 		int i, c = AMotionEvent_getPointerCount(event);
 		for( i = 0; i<c; i++) {
 			int32_t action = AMotionEvent_getAction(event);
+			uint32_t id = action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 			uint32_t index = AMotionEvent_getPointerId(event, i);
 			float x = AMotionEvent_getX(event, i);
 			float y = AMotionEvent_getY(event, i);
 			action = action & AMOTION_EVENT_ACTION_MASK;
 			if (action == AMOTION_EVENT_ACTION_DOWN) {
+				/* Workaround, these are needed in order to 
+				dispatch GK_ON_MOUSE_DOWN. The problem is that
+				the library assumes that the 'mouse' is moved over
+				a panel, before it's pressed. 
+				In case of thouchscreen the 'press' event happens before 
+				the 'move' which results in wrong/invalid gkMouseTarget.
+				The mouse down event is dispatched ON the gkMouseTarget.
+				*/
+				onWindowMouseMove(x,y);	
+				gkUpdateMouseTarget(gkMainPanel);
+				gkCheckFocusedPanel();
+
 				onWindowMouseDown(x,y,index);
 			}else if (action == AMOTION_EVENT_ACTION_MOVE) {
 				onWindowMouseMove(x,y);
 			}else if (action == AMOTION_EVENT_ACTION_UP) {
 				onWindowMouseUp(x,y,index);
 			}
-			__android_log_print(ANDROID_LOG_INFO, "GK", "motion ptr: %d  x: %f y: %f", index, x, y);
+			__android_log_print(ANDROID_LOG_INFO, "GK", "action: %d index: %d  id: %d i: %d", action, index, id, i);
 		}
         return 1;
     }

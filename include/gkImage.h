@@ -41,6 +41,9 @@ typedef struct gkImage
 	uint32_t id;
 	uint16_t width;
 	uint16_t height;
+	/* temporary use these for NPOT workaround */
+	float uScale;
+	float vScale;
 }gkImage;
 
 gkImage* gkLoadImage(char* filaname);

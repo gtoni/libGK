@@ -38,6 +38,30 @@ void gkInitImages(){
 void gkCleanupImages(){
 }
 
+static GK_BOOL supportTextureNPOT()
+{
+	char* ext = (char*)glGetString(GL_EXTENSIONS);
+	return strstr(ext, "GL_ARB_texture_non_power_of_two") != 0;
+}
+
+static GK_BOOL isPOT(int v)
+{
+	/* Is this bad ? */
+	return v == 32 || v == 64 || v == 128 || v == 256 || v == 512 || v == 1024 || v == 2048;
+}
+
+static int nextPowerOfTwo(int v)
+{
+	int i = 0;
+	if (isPOT(v))
+		return v;
+	while (v>0) {
+		v = v>>1;
+		i++;
+	}
+	return 1<<i;
+}
+
 gkImage* gkLoadImage(char* filename)
 {
 	GLint oldTexId;
@@ -58,16 +82,36 @@ gkImage* gkLoadImage(char* filename)
 	glBindTexture(GL_TEXTURE_2D, image->id);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-	if (imageData->pixelFormat == GK_PIXELFORMAT_RGBA) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height, 
-			0, GL_RGBA, GL_UNSIGNED_BYTE, imageData->data);
-	} else if (imageData->pixelFormat == GK_PIXELFORMAT_RGB) {
-		/* 
-		On android there is a problem when the Texture internal format and
-		data format are different. 
-		*/
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB/*A*/, image->width, image->height, 
-			0, GL_RGB, GL_UNSIGNED_BYTE, imageData->data);
+	if (supportTextureNPOT()) {
+		if (imageData->pixelFormat == GK_PIXELFORMAT_RGBA) {
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height, 
+				0, GL_RGBA, GL_UNSIGNED_BYTE, imageData->data);
+		} else if (imageData->pixelFormat == GK_PIXELFORMAT_RGB) {
+			/* 
+			On android there is a problem when the Texture internal format and
+			data format are different. 
+			*/
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB/*A*/, image->width, image->height, 
+				0, GL_RGB, GL_UNSIGNED_BYTE, imageData->data);
+		}
+		image->uScale = 1.0f;
+		image->vScale = 1.0f;
+	} else {
+		int texWidth = nextPowerOfTwo(image->width);
+		int texHeight = nextPowerOfTwo(image->height);
+		if (imageData->pixelFormat == GK_PIXELFORMAT_RGBA) {
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texWidth, texHeight, 
+				0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image->width, image->height, 
+				GL_RGBA, GL_UNSIGNED_BYTE, imageData->data);
+		} else if (imageData->pixelFormat == GK_PIXELFORMAT_RGB) {
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 
+				0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image->width, image->height, 
+				GL_RGB, GL_UNSIGNED_BYTE, imageData->data);
+		}
+		image->uScale = (float)image->width/(float)texWidth;
+		image->vScale = (float)image->height/(float)texHeight;
 	}
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -189,9 +233,9 @@ void gkDrawImage(gkImage* image, float x, float y){
 	};
 	float c[]= {
 		0, 0,
-		1, 0,
-		1, 1,
-		0, 1
+		image->uScale, 0,
+		image->uScale, image->vScale,
+		0, image->vScale
 	};
 
 	glPushMatrix();
@@ -207,10 +251,10 @@ void gkDrawImageEx(gkImage* image, float x, float y, gkRect srcRect){
 		srcRect.width, srcRect.height,
 		0, srcRect.height
 	};
-	float left = (srcRect.x/image->width);
-	float top = (srcRect.y/image->height);
-	float right = left + (srcRect.width/image->width);
-	float bottom = top + (srcRect.height/image->height);
+	float left = (srcRect.x/image->width) * image->uScale;
+	float top = (srcRect.y/image->height) * image->vScale;
+	float right = left + (srcRect.width/image->width) * image->uScale;
+	float bottom = top + (srcRect.height/image->height) * image->vScale;
 
 	float c[]= {
 		left, top,

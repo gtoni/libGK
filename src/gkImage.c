@@ -41,7 +41,8 @@ void gkCleanupImages(){
 static GK_BOOL supportTextureNPOT()
 {
 	char* ext = (char*)glGetString(GL_EXTENSIONS);
-	return strstr(ext, "GL_ARB_texture_non_power_of_two") != 0;
+	return (strstr(ext, "GL_OES_texture_npot") != 0) 
+		|| (strstr(ext, "GL_ARB_texture_non_power_of_two") != 0);
 }
 
 static GK_BOOL isPOT(int v)

@@ -216,9 +216,13 @@ static gkListNode* mergeSort(gkListNode* c, int (*less)(void*, void*))
 
 void gkListSort(gkList* list, int (*less)(void*, void*))
 {
-	gkListNode* f;
+	gkListNode* f, *p = 0;
 	list->first = f = mergeSort(list->first, less);
-	while(f->next) 
+	while(f->next) {
+		f->prev = p;
+		p = f;
 		f = f->next;
+	}
 	list->last = f;
+	f->prev = p;
 }

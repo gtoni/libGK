@@ -75,8 +75,8 @@ void onWindowMouseWheel(int x, int y, int w);
 void onWindowMouseDown(int x, int y, int mb);
 void onWindowMouseUp(int x, int y, int mb);
 void onWindowSizeChanged(gkSize nsize);
-void onWindowKeyDown(uint16_t keyCode, uint16_t scanCode);
-void onWindowKeyUp(uint16_t keyCode, uint16_t scanCode);
+GK_BOOL onWindowKeyDown(uint16_t keyCode, uint16_t scanCode);
+GK_BOOL onWindowKeyUp(uint16_t keyCode, uint16_t scanCode);
 void onWindowCharacter(uint32_t character);
 
 #ifdef __cplusplus

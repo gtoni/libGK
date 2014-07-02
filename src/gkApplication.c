@@ -276,8 +276,9 @@ void prepareKey(gkKey* key, uint16_t keyCode, uint16_t scanCode, GK_BOOL keyDown
 	if(gkGlobalKeyboardState.keys[GK_KEY_RSHIFT])	key->modifiers |= GK_KEY_MOD_RSHIFT;
 }
 
-void onWindowKeyDown(uint16_t keyCode, uint16_t scanCode)
+GK_BOOL onWindowKeyDown(uint16_t keyCode, uint16_t scanCode)
 {
+	GK_BOOL result = GK_TRUE;
 	gkKeyboardEvent evt;
 	gkKey key;
 	prepareKey(&key, keyCode, scanCode, GK_TRUE);
@@ -289,14 +290,22 @@ void onWindowKeyDown(uint16_t keyCode, uint16_t scanCode)
 
 	evt.currentTarget = evt.target = gkKeyboard;
 	evt.key = key;
-	gkDispatch(gkKeyboard, &evt);
-	gkProcessKeyboardEvent(&evt);
+
+	if (!gkDispatch(gkKeyboard, &evt))
+		result = GK_FALSE;
+
+	if (!gkProcessKeyboardEvent(&evt)) 
+		result = GK_FALSE;
+
 	gkLastKeyCode = key.code;
 	gkLastScanCode = scanCode;
+
+	return result;
 }
 
-void onWindowKeyUp(uint16_t keyCode, uint16_t scanCode)
+GK_BOOL onWindowKeyUp(uint16_t keyCode, uint16_t scanCode)
 {
+	GK_BOOL result = GK_TRUE;
 	gkKeyboardEvent evt;
 	gkKey key;
 
@@ -305,12 +314,19 @@ void onWindowKeyUp(uint16_t keyCode, uint16_t scanCode)
 	evt.type = GK_ON_KEY_UP;
 	evt.currentTarget = evt.target = gkKeyboard;
 	evt.key = key;
-	gkDispatch(gkKeyboard, &evt);
-	gkProcessKeyboardEvent(&evt);
+
+	if (!gkDispatch(gkKeyboard, &evt))
+		result = GK_FALSE;
+
+	if (!gkProcessKeyboardEvent(&evt)) 
+		result = GK_FALSE;
+
 	if (gkLastKeyCode == key.code && gkLastScanCode == scanCode) {
 		gkLastKeyCode = 0;
 		gkLastScanCode = 0;
 	}
+
+	return result;
 }
 void onWindowCharacter(uint32_t character)
 {

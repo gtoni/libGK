@@ -479,8 +479,9 @@ gkPanel* gkGetFocus(){
 	return gkFocusPanel;
 }
 
-void gkProcessKeyboardEvent(gkKeyboardEvent* keyboardEvent){
-	if(!gkFocusPanel) return;
+GK_BOOL gkProcessKeyboardEvent(gkKeyboardEvent* keyboardEvent)
+{
+	if(!gkFocusPanel) return GK_TRUE;
 	keyboardEvent->target = keyboardEvent->currentTarget = gkFocusPanel;
-	gkDispatch(gkFocusPanel, keyboardEvent);
+	return gkDispatch(gkFocusPanel, keyboardEvent);
 }

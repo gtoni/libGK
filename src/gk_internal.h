@@ -39,7 +39,7 @@ void gkProcessDrawPanel(gkPanel* panel);
 void gkCheckFocusedPanel();
 void gkUpdateMouseTarget(gkPanel* mainPanel);
 void gkProcessMouseEvent(gkMouseEvent* mouseEvent);
-void gkProcessKeyboardEvent(gkKeyboardEvent* keyboardEvent);
+GK_BOOL gkProcessKeyboardEvent(gkKeyboardEvent* keyboardEvent);
 
 
 void gkResetTransform();

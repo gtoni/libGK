@@ -234,41 +234,69 @@ static void engine_term_display(struct engine* engine) {
 /**
  * Process the next input event.
  */
-static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) {
-    struct engine* engine = (struct engine*)app->userData;
-    if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
-		int i, c = AMotionEvent_getPointerCount(event);
-		for( i = 0; i<c; i++) {
-			int32_t action = AMotionEvent_getAction(event);
-			uint32_t id = action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-			uint32_t index = AMotionEvent_getPointerId(event, i);
-			float x = AMotionEvent_getX(event, i);
-			float y = AMotionEvent_getY(event, i);
-			action = action & AMOTION_EVENT_ACTION_MASK;
-			if (action == AMOTION_EVENT_ACTION_DOWN) {
-				/* Workaround, these are needed in order to 
-				dispatch GK_ON_MOUSE_DOWN. The problem is that
-				the library assumes that the 'mouse' is moved over
-				a panel, before it's pressed. 
-				In case of thouchscreen the 'press' event happens before 
-				the 'move' which results in wrong/invalid gkMouseTarget.
-				The mouse down event is dispatched ON the gkMouseTarget.
-				*/
-				onWindowMouseMove(x,y);	
-				gkUpdateMouseTarget(gkMainPanel);
-				gkCheckFocusedPanel();
+static int32_t handle_motion_event(struct android_app* app, AInputEvent* event)
+{
+	struct engine* engine = (struct engine*)app->userData;
+	int i, c = AMotionEvent_getPointerCount(event);
+	for( i = 0; i<c; i++) {
+		int32_t action = AMotionEvent_getAction(event);
+		uint32_t id = action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+		uint32_t index = AMotionEvent_getPointerId(event, i);
+		float x = AMotionEvent_getX(event, i);
+		float y = AMotionEvent_getY(event, i);
+		action = action & AMOTION_EVENT_ACTION_MASK;
+		if (action == AMOTION_EVENT_ACTION_DOWN) {
+			/* Workaround, these are needed in order to 
+			dispatch GK_ON_MOUSE_DOWN. The problem is that
+			the library assumes that the 'mouse' is moved over
+			a panel, before it's pressed. 
+			In case of thouchscreen the 'press' event happens before 
+			the 'move' which results in wrong/invalid gkMouseTarget.
+			The mouse down event is dispatched ON the gkMouseTarget.
+			*/
+			onWindowMouseMove(x,y);	
+			gkUpdateMouseTarget(gkMainPanel);
+			gkCheckFocusedPanel();
 
-				onWindowMouseDown(x,y,index);
-			}else if (action == AMOTION_EVENT_ACTION_MOVE) {
-				onWindowMouseMove(x,y);
-			}else if (action == AMOTION_EVENT_ACTION_UP) {
-				onWindowMouseUp(x,y,index);
-			}
-			__android_log_print(ANDROID_LOG_INFO, "GK", "action: %d index: %d  id: %d i: %d", action, index, id, i);
+			onWindowMouseDown(x,y,index);
+		}else if (action == AMOTION_EVENT_ACTION_MOVE) {
+			onWindowMouseMove(x,y);
+		}else if (action == AMOTION_EVENT_ACTION_UP) {
+			onWindowMouseUp(x,y,index);
 		}
+		__android_log_print(ANDROID_LOG_INFO, "GK", "action: %d index: %d  id: %d i: %d", action, index, id, i);
+	}
         return 1;
-    }
-    return 0;
+}
+
+static int32_t handle_key_event(struct android_app* app, AInputEvent* event)
+{
+	struct engine* engine = (struct engine*)app->userData;
+	int32_t action = AKeyEvent_getAction(event);
+	int32_t keyCode = AKeyEvent_getKeyCode(event);
+	int32_t scanCode = AKeyEvent_getScanCode(event);
+	int32_t flags = AKeyEvent_getFlags(event);
+
+	if (action == AKEY_EVENT_ACTION_DOWN) {
+		return onWindowKeyDown(keyCode, scanCode) ? 0 : 1;
+	} else if (action == AKEY_EVENT_ACTION_UP) {
+		if ((flags & AKEY_EVENT_FLAG_CANCELED) == 0) {
+			return onWindowKeyUp(keyCode, scanCode) ? 0 : 1;
+		}
+	} else if (action == AKEY_EVENT_ACTION_MULTIPLE) {
+		LOGI("AKEY_EVENT_ACTION_MULTIPLE received");
+	}
+	return 0;
+}
+
+static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
+{
+	int32_t eventType = AInputEvent_getType(event);
+	if (eventType == AINPUT_EVENT_TYPE_MOTION)
+		return handle_motion_event(app, event);
+	else if(eventType == AINPUT_EVENT_TYPE_KEY)
+		return handle_key_event(app, event);
+	return 0;
 }
 
 /**

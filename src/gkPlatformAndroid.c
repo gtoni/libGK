@@ -396,6 +396,7 @@ static void runAndroid(onRunCallback loop, onRunCallback cleanup)
 static void cleanupAndroid()
 {
 	engine_term_display(&engine);
+	exit(0);	// May be better to call some special Java exit method
 }
 
 static void ExitAppAndroid()

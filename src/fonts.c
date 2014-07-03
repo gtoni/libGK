@@ -355,6 +355,10 @@ void gkInitFont(gkFont* font)
 	Glyph caching
 */
 
+/* 
+	This is BAD!
+	Should detect MIN & MAX texture size on the actual device.
+*/
 #ifdef GK_PLATFORM_ANDROID
 #define GK_MIN_FONT_TEX_SIZE	64
 #define GK_MAX_FONT_TEX_SIZE	512
@@ -419,12 +423,12 @@ void gkInitGlyphCollection(gkGlyphCollection* collection, gkFont* font, float st
 		collection->spaceAdvance.y = collection->spaceAdvance.x;
 
 	while(!gkTestCollection(collection, Gw, Gh)){
-		if(collection->texWidth<GK_MAX_FONT_TEX_SIZE){
+		if (collection->texWidth < GK_MAX_FONT_TEX_SIZE) {
 			collection->texWidth <<=1;
-		}else if(collection->texHeight<GK_MAX_FONT_TEX_SIZE){
+		}else if (collection->texHeight < GK_MAX_FONT_TEX_SIZE) {
 			collection->texWidth = GK_MIN_FONT_TEX_SIZE;
 			collection->texHeight <<=1;
-		}else if(collection->setBits>1){
+		}else if (collection->setBits > 0) {
 			collection->setBits--;
 			collection->texWidth = collection->texHeight = GK_MIN_FONT_TEX_SIZE;
 		}else{
@@ -432,10 +436,14 @@ void gkInitGlyphCollection(gkGlyphCollection* collection, gkFont* font, float st
 			break;
 		}
 	}
+/*	printf("GK [VERBOSE]: new collection W: %d H: %d Set: %d \ngw: %d gh: %d\n", 
+		collection->texWidth, collection->texHeight, 
+		((0xFF>>(8 - collection->setBits)) + 1),
+		Gw, Gh);*/
 }
 
 GK_BOOL gkTestCollection(gkGlyphCollection* collection, int glyphW, int glyphH){
-	int setSize = 0xFF>>(8 - collection->setBits);
+	int setSize = (0xFF>>(8 - collection->setBits)) + 1;
 	int glyphsPerRow = collection->texWidth / glyphW;
 	if(glyphsPerRow>0){
 		int rows = setSize / glyphsPerRow;

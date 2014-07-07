@@ -100,19 +100,27 @@ gkImage* gkLoadImage(char* filename)
 	} else {
 		int texWidth = nextPowerOfTwo(image->width);
 		int texHeight = nextPowerOfTwo(image->height);
+
+		size_t zeroBufferSize = texWidth*texHeight*4;
+		char* zeroBuffer = (char*)malloc(zeroBufferSize);
+		memset(zeroBuffer, 0, zeroBufferSize);
+
 		if (imageData->pixelFormat == GK_PIXELFORMAT_RGBA) {
+
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texWidth, texHeight, 
-				0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+				0, GL_RGBA, GL_UNSIGNED_BYTE, zeroBuffer);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image->width, image->height, 
 				GL_RGBA, GL_UNSIGNED_BYTE, imageData->data);
 		} else if (imageData->pixelFormat == GK_PIXELFORMAT_RGB) {
+
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 
-				0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+				0, GL_RGB, GL_UNSIGNED_BYTE, zeroBuffer);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image->width, image->height, 
 				GL_RGB, GL_UNSIGNED_BYTE, imageData->data);
 		}
 		image->uScale = (float)image->width/(float)texWidth;
 		image->vScale = (float)image->height/(float)texHeight;
+		free(zeroBuffer);
 	}
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

@@ -610,6 +610,8 @@ gkGlyph* gkMakeGlyph(FT_Face face, gkGlyphCollection* collection, gkGlyphSet* gl
 			}
 		}
 
+		FT_Stroker_Done(stroker);
+
 		glyph->size.width = (float)bglyph->bitmap.width;
 		glyph->size.height = (float)bglyph->bitmap.rows;
 

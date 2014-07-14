@@ -468,11 +468,11 @@ gkGlyphSet* gkGetGlyphSet(gkGlyphCollection* collection, int index){
 		int setSize = (0xFF>>(8 - collection->setBits)) + 1;
 		int w = collection->texWidth, h = collection->texHeight;
 		char* tmp = 0;
-#ifdef GK_PLATFORM_WEB
+//#ifdef GK_PLATFORM_WEB
 		size_t tmpSize = (w*h)*4;
 		tmp = (char*)malloc(tmpSize); // nasty, can't put 0 in WebGL's glTexImage2D
 		memset(tmp, 0, tmpSize);
-#endif
+//#endif
 		glyphSet = (gkGlyphSet*)malloc(sizeof(gkGlyphSet));
 		glGenTextures(1, &glyphSet->texId);
 		glBindTexture(GL_TEXTURE_2D, glyphSet->texId);
@@ -483,9 +483,10 @@ gkGlyphSet* gkGetGlyphSet(gkGlyphCollection* collection, int index){
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
-#ifdef GK_PLATFORM_WEB
-		free(tmp);
-#endif
+
+		if (tmp)
+			free(tmp);
+
 		glyphSet->glyphs = (gkGlyph**)calloc(setSize, sizeof(gkGlyph*));
 		memset(glyphSet->glyphs, 0, setSize*sizeof(gkGlyph*));
 		collection->glyphSets[setIndex] = glyphSet;

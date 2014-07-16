@@ -829,6 +829,15 @@ static void cleanupBatch()
 
 /*********/
 
+static float gkRound(float r)
+{
+	float s = (r<0.0f?-1.0f:1.0f);
+	int a = (int)(r + s*0.5f);
+	return (float)a;
+}
+
+/**/
+
 typedef struct gkSentenceElementStruct gkSentenceElement;
 struct gkSentenceElementStruct{
 	uint8_t type;
@@ -900,7 +909,7 @@ void gkDrawText(gkFont* font, char* text, float x, float y, gkTextFormat* format
 	if(elements = gkParseSentenceElements(font, text, format)){
 		gkPoint align;
 		float tx = x, ty = y;
-		float leading = ((float)face->size->metrics.height)/64.0f + format->lineSpacing;
+		float leading = gkRound(((float)face->size->metrics.height)/64.0f + format->lineSpacing);
 		gkBBox textBBox;
 		currentLine = lines = gkParseSentenceLines(elements, format);
 		textBBox = gkGetTextBBox(lines, format, leading);
@@ -1183,6 +1192,8 @@ gkPoint gkAlignLine(gkSentenceLine* line, gkTextFormat* format, gkBBox* textBBox
 			result.y = (height - (textBBox->maxY - textBBox->minY)) - textBBox->minY;
 		}
 	}
+	result.x = gkRound(result.x);
+	result.y = gkRound(result.y);
 	return result;
 }
 

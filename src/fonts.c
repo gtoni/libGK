@@ -191,9 +191,24 @@ static void closeFTStream(FT_Stream ftStream)
 	free(ftStream);
 }
 
+static gkStream* openStream(char* filename)
+{
+#if defined(GK_PLATFORM_ANDROID)
+	void *dat;
+	size_t datSize;
+
+	if (gkReadFile(filename, &dat, &datSize))
+		return gkOpenMemory(dat, datSize, GK_TRUE);
+	
+	return 0;
+#else
+	return gkOpenFile(filename, "rb");
+#endif
+}
+
 static FT_Stream makeFTStream(char* filename)
 {
-	gkStream* stream = gkOpenFile(filename, "rb");
+	gkStream* stream = openStream(filename);
 	FT_Stream ftStream;
 	if (!stream)
 		return 0;

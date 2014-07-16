@@ -34,4 +34,7 @@ gkStream* gkOpenFile(char* filename, char* mode);
 
 GK_BOOL gkReadFile(char* filename, void** outDst, size_t* outDstSize);
 
+/* Memory stream */
+gkStream* gkOpenMemory(void* mem, size_t memSize, GK_BOOL freeOnClose);
+
 #endif

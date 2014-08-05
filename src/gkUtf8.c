@@ -115,14 +115,14 @@ char* gkUtf8Char(char* dst, uint32_t c, size_t dstSize)
 
 size_t	gkWcsToUtf8(char* dst, wchar_t* src, size_t dstSize)
 {
-	size_t pos, dstLeft = dstSize;
+	size_t pos, dstLen = 0;
 	char* d = dst;
 	wchar_t* s = src;
 
 	if (d) {
 		for (pos = 0; d && pos<dstSize; pos++, s++) {
-			d = gkUtf8Char(d, *s, dstLeft);
-			dstLeft = d - dst;
+			d = gkUtf8Char(d, *s, dstSize - dstLen);
+			dstLen = d - dst;
 			if (!*s) break;
 		}
 	} else {

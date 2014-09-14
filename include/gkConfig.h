@@ -19,7 +19,7 @@
 	Choose XAudio2 or OpenAL
 */
 #if !defined(GK_USE_XAUDIO2) && !defined(GK_USE_OPENAL)
-#define GK_USE_XAUDIO2
+#define GK_USE_OPENAL
 #endif
 
 /*

@@ -114,6 +114,11 @@ static void initDisplay(struct engine* engine)
 //		EGL_RED_SIZE, 8,
 /*************************************************************/
 //		EGL_SAMPLE_BUFFERS, 1, EGL_SAMPLES, 2,	
+		EGL_RED_SIZE, 5,
+		EGL_GREEN_SIZE, 6,
+		EGL_BLUE_SIZE, 5,
+		//
+		EGL_DEPTH_SIZE, 16,
 		EGL_NONE
 	};
 	EGLint w, h, dummy, format;

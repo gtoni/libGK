@@ -43,9 +43,11 @@ void gkGetMouseState(gkMouseState* mouseState){
 
 void gkSetMousePosition(float x, float y){
 #ifdef GK_PLATFORM_WIN
-	RECT rect;
-	GetWindowRect(gkWindow, &rect);
-	SetCursorPos((int)(rect.left + x),(int)(rect.top + y));
+	POINT mp;
+	mp.x = x;
+	mp.y = y;
+	ClientToScreen(gkWindow, &mp);
+	SetCursorPos(mp.x, mp.y);
 #elif GK_PLATFORM_LINUX
 	XWarpPointer(display, None, gkWindow, 0,0,0,0, (int)x, (int)y);
 #endif

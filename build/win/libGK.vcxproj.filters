@@ -185,5 +185,8 @@
     <ClCompile Include="..\..\src\gkAudioSystemOpenSLES.c">
       <Filter>Source Files\audio\backends</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\gkMemoryStream.c">
+      <Filter>Source Files\io</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

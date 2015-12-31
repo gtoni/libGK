@@ -256,9 +256,9 @@ gkPanel* gkGetFocus();
 #define	GK_TEXT_ALIGN_CENTER	1
 #define	GK_TEXT_ALIGN_RIGHT		2
 #define	GK_TEXT_ALIGN_JUSTIFY	4
-#define	GK_TEXT_VALIGN_TOP		0
-#define	GK_TEXT_VALIGN_MIDDLE	1
-#define	GK_TEXT_VALIGN_BOTTOM	2
+#define	GK_TEXT_VALIGN_TOP		1
+#define	GK_TEXT_VALIGN_MIDDLE	2
+#define	GK_TEXT_VALIGN_BOTTOM	4
 #define	GK_FONT_NORMAL		0
 #define	GK_FONT_ITALIC		1
 #define	GK_FONT_BOLD		2
@@ -296,6 +296,7 @@ typedef struct gkTextFormat
 	gkColor textColor;
 	gkColor strokeColor;
 	GK_BOOL vertical;
+	GK_BOOL keepBaseline;
 }gkTextFormat;
 
 extern gkTextFormat gkDefaultTextFormat;

@@ -52,7 +52,8 @@ gkTextFormat gkDefaultTextFormat = {
 	0,				/*	line spacing */
 	{1,1,1,1},			/*	text color	*/
 	{0,0,0,1},			/*	stroke color */
-	GK_FALSE			/*	vertical */
+	GK_FALSE,			/*	vertical */
+	GK_TRUE				/*  keep baseline */
 };
 
 typedef struct gkBBoxStruct gkBBox;
@@ -867,7 +868,7 @@ void gkFreeSentenceElements(gkSentenceElement* elements);
 gkSentenceLine* gkParseSentenceLines(gkSentenceElement* elements, gkTextFormat* format);
 void gkFreeSentenceLines(gkSentenceLine* lines);
 gkBBox gkGetTextBBox(gkSentenceLine* lines, gkTextFormat* format, float leading);
-gkPoint gkAlignLine(gkSentenceLine* line, gkTextFormat* format, gkBBox* textBBox);
+gkPoint gkAlignLine(gkSentenceLine* line, gkTextFormat* format, gkBBox* textBBox, float ascender, float descender);
 gkPoint gkDrawSentenceLine(FT_Face face, gkSentenceLine* line, gkTextFormat* format);
 
 gkSize gkMeasureText(gkFont* font, char* text, gkTextFormat* format)
@@ -911,11 +912,13 @@ void gkDrawText(gkFont* font, char* text, float x, float y, gkTextFormat* format
 		float tx = x, ty = y;
 		float leading = gkRound(((float)face->size->metrics.height)/64.0f + format->lineSpacing);
 		gkBBox textBBox;
+		float ascender = FT_MulFix(face->ascender, face->size->metrics.y_scale)/64;
+		float descender = FT_MulFix(face->descender, face->size->metrics.y_scale)/64;
 		currentLine = lines = gkParseSentenceLines(elements, format);
 		textBBox = gkGetTextBBox(lines, format, leading);
 		while(currentLine){
 			glPushMatrix();
-			align = gkAlignLine(currentLine, format, &textBBox);
+			align = gkAlignLine(currentLine, format, &textBBox, ascender, descender);
 			glTranslatef(tx + align.x,ty + align.y,0);
 			gkDrawSentenceLine(face, currentLine, format);
 			glPopMatrix();
@@ -951,16 +954,20 @@ gkSentenceElement* gkParseSentenceElements(gkFont* font, char* text, gkTextForma
 		str = gkUtf8CharCode(str, &c);
 	}
 
-	if(totalGlyphs > 0){
+	{
 		int index, prevIndex = 0;
 		gkPoint spaceAdvance;
 		gkGlyph* glyph = 0;
-		glyphs = (gkGlyph**)calloc(totalGlyphs, sizeof(gkGlyph*));
+
 		FT_Set_Char_Size(face, 0, font->size*64, 0, 96);
 		collection = gkGetGlyphCollection(font, 0);
-		if(format->strokeSize>0.0f){
-			strokes = (gkGlyph**)calloc(totalGlyphs, sizeof(gkGlyph*));
-			strokeCollection = gkGetGlyphCollection(font, format->strokeSize);
+
+		if (totalGlyphs > 0) {
+			glyphs = (gkGlyph**)calloc(totalGlyphs, sizeof(gkGlyph*));
+			if(format->strokeSize>0.0f){
+				strokes = (gkGlyph**)calloc(totalGlyphs, sizeof(gkGlyph*));
+				strokeCollection = gkGetGlyphCollection(font, format->strokeSize);
+			}
 		}
 
 		spaceAdvance.x = collection->spaceAdvance.x;
@@ -1067,9 +1074,14 @@ gkSentenceElement* gkParseSentenceElements(gkFont* font, char* text, gkTextForma
 
 void gkFreeSentenceElements(gkSentenceElement* elements){
 	gkSentenceElement* p = elements, *r;
-	free(p->strokeStart);
-	free(p->glyphStart);
+	GK_BOOL glyphsFreed = GK_FALSE;
 	while(p){
+		if (!glyphsFreed && p->type == GK_SE_WORD)
+		{
+			free(p->strokeStart);
+			free(p->glyphStart);
+			glyphsFreed = GK_TRUE;
+		}
 		p = (r = p)->next;
 		free(r);
 	}
@@ -1147,7 +1159,7 @@ gkBBox gkGetTextBBox(gkSentenceLine* lines, gkTextFormat* format, float leading)
 	}
 	return res;
 }
-gkPoint gkAlignLine(gkSentenceLine* line, gkTextFormat* format, gkBBox* textBBox){
+gkPoint gkAlignLine(gkSentenceLine* line, gkTextFormat* format, gkBBox* textBBox, float ascender, float descender){
 	gkPoint result = {0,0};
 	float width;
 	float height;
@@ -1177,6 +1189,15 @@ gkPoint gkAlignLine(gkSentenceLine* line, gkTextFormat* format, gkBBox* textBBox
 			result.y = (height - (line->bbox.maxY - line->bbox.minY)) - line->bbox.minY;
 		}
 	}else{
+		float ascendY;
+		float heightY;
+		if (format->keepBaseline) {
+			ascendY = -ascender;
+			heightY = ascender - descender;
+		}else{
+			ascendY = textBBox->minY;
+			heightY = textBBox->maxY - textBBox->minY;
+		}
 		if(format->align == GK_TEXT_ALIGN_LEFT){
 			result.x = -line->bbox.minX;
 		}else if(format->align == GK_TEXT_ALIGN_CENTER){
@@ -1185,11 +1206,11 @@ gkPoint gkAlignLine(gkSentenceLine* line, gkTextFormat* format, gkBBox* textBBox
 			result.x = (width - (line->bbox.maxX - line->bbox.minX)) - line->bbox.minX;
 		}
 		if(format->valign == GK_TEXT_VALIGN_TOP){
-			result.y = -textBBox->minY;
+			result.y = -ascendY;
 		}else if(format->valign == GK_TEXT_VALIGN_MIDDLE){
-			result.y = (height - (textBBox->maxY - textBBox->minY))/2 - textBBox->minY;
+			result.y = (height - heightY)/2 - ascendY;
 		}else if(format->valign == GK_TEXT_VALIGN_BOTTOM){
-			result.y = (height - (textBBox->maxY - textBBox->minY)) - textBBox->minY;
+			result.y = (height - heightY) - ascendY;
 		}
 	}
 	result.x = gkRound(result.x);

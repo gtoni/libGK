@@ -78,7 +78,7 @@
       <AdditionalDependencies>OpenGL32.lib;DevIL.lib;freetype2411MT.lib;libmpg123.lib;libvorbisfile.lib;OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <AdditionalDependencies>OpenGL32.lib;freetype2411MT.lib;libpng16.lib;zlib.lib;jpeg.lib;dinput8.lib;libmpg123.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpenGL32.lib;freetype2411MT.lib;libpng16.lib;zlib.lib;jpeg.lib;dinput8.lib;libmpg123.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>..\..\external\jpeg\lib\win;..\..\external\png\lib\win;..\..\external\zlib\lib\win;..\..\external\libmpg123\lib\win;..\..\external\libvorbis\lib\win;..\..\external\freetype2\lib\win;..\..\external\openal\lib\win;..\..\external\win_specific\lib</AdditionalLibraryDirectories>
@@ -101,7 +101,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\..\external\jpeg\lib\win;..\..\external\png\lib\win;..\..\external\zlib\lib\win;..\..\external\libmpg123\lib\win;..\..\external\libvorbis\lib\win;..\..\external\freetype2\lib\win;..\..\external\openal\lib\win;..\..\external\win_specific\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>OpenGL32.lib;freetype2411MT.lib;libpng16.lib;zlib.lib;jpeg.lib;dinput8.lib;libmpg123.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpenGL32.lib;freetype2411MT.lib;libpng16.lib;zlib.lib;jpeg.lib;dinput8.lib;libmpg123.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
     </Link>

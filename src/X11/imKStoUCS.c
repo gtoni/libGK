@@ -23,7 +23,7 @@ ings in this Software without prior written authorization from the XFree86
 Project.
 */
 
-#ifdef GK_LINUX
+#ifdef GK_PLATFORM_LINUX
 
 #include <X11/X.h>
 

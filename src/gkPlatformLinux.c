@@ -3,9 +3,11 @@
 #ifdef GK_PLATFORM_LINUX
 
 #include <gk.h>
+#include "gk_internal.h"
 
 #include <X11/Xlib.h>
 #include <X11/extensions/xf86vmode.h>
+#include <stdio.h>
 #include <unistd.h>
 #include <libgen.h>
 #include <locale.h>
@@ -34,7 +36,7 @@ static GK_BOOL gkActive;
 
 static GK_BOOL initLinux(onInitCallback onInit)
 {
-    int glAttribs[] = { GLX_RGBA, GLX_DEPTH_SIZE, 16, GLX_DOUBLEBUFFER, GLX_ALPHA_SIZE, 8, GLX_SAMPLE_BUFFERS, 1, GLX_SAMPLES, 2, None };
+    int glAttribs[] = { GLX_RGBA, GLX_RED_SIZE, 1, GLX_GREEN_SIZE, 1, GLX_BLUE_SIZE, 1, GLX_DOUBLEBUFFER, GLX_DEPTH_SIZE, 1, None };
     XSetWindowAttributes winAttribs;
     Colormap cmap;
     Window root;
@@ -133,7 +135,7 @@ static void SetVSyncLinux(GK_BOOL enabled)
 static void ResizeScreen(gkSize size)
 {
 	XSizeHints sizeHints;
-	if (!gkWindowResizable) {
+	if (!gkIsWindowResizable()) {
 		sizeHints.flags = PMinSize|PMaxSize;
 		sizeHints.max_width = sizeHints.min_width = size.width;
 		sizeHints.max_height = sizeHints.min_height = size.height;

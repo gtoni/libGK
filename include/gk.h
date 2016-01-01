@@ -252,13 +252,14 @@ gkPanel* gkGetFocus();
 	Types and functions for fonts.
 */
 
-#define	GK_TEXT_ALIGN_LEFT		0
-#define	GK_TEXT_ALIGN_CENTER	1
-#define	GK_TEXT_ALIGN_RIGHT		2
-#define	GK_TEXT_ALIGN_JUSTIFY	4
-#define	GK_TEXT_VALIGN_TOP		1
-#define	GK_TEXT_VALIGN_MIDDLE	2
-#define	GK_TEXT_VALIGN_BOTTOM	4
+#define	GK_TEXT_ALIGN_LEFT		0x01
+#define	GK_TEXT_ALIGN_CENTER	0x02
+#define	GK_TEXT_ALIGN_RIGHT		0x03
+#define	GK_TEXT_ALIGN_JUSTIFY	0x04
+#define	GK_TEXT_VALIGN_TOP		0x10
+#define	GK_TEXT_VALIGN_MIDDLE	0x20
+#define	GK_TEXT_VALIGN_BOTTOM	0x30
+
 #define	GK_FONT_NORMAL		0
 #define	GK_FONT_ITALIC		1
 #define	GK_FONT_BOLD		2

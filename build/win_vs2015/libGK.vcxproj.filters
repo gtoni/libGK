@@ -1,0 +1,192 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\image">
+      <UniqueIdentifier>{3ba7a076-ed94-4fdc-98c1-85ad29c2bc93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\audio">
+      <UniqueIdentifier>{c9de1827-30c6-43f4-8421-e9b34bebd808}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\audio\backends">
+      <UniqueIdentifier>{8052f14c-971d-4015-b611-d85e31695d8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\application">
+      <UniqueIdentifier>{c0cb8bb4-9d27-46ff-a0cc-547c4c952277}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\misc">
+      <UniqueIdentifier>{d71c5ede-ef3e-406e-9aa0-51278913ffa6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\io">
+      <UniqueIdentifier>{8dd22fcb-43cf-441a-8d3b-6fcfeed66a61}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\gk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GLee.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\gkkeydefs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\gkTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\gkGeometry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\gkImage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gkImageInternal.h">
+      <Filter>Source Files\image</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gk_internal.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\gkGraphics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gkAudioInternal.h">
+      <Filter>Source Files\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\gkAudio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\gkEvent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gkAudioSystem.h">
+      <Filter>Source Files\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\gkApplication.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gkPlatform.h">
+      <Filter>Source Files\application</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\gkConfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gkGL.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gkStream.h">
+      <Filter>Source Files\io</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\event.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\fonts.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GLee.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\input.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\panel.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\timer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\tween.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkImageDecoder.c">
+      <Filter>Source Files\image</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkImageEncoder.c">
+      <Filter>Source Files\image</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkImageType.c">
+      <Filter>Source Files\image</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkImage.c">
+      <Filter>Source Files\image</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkGeometry.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkGraphics.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkDrawToImage.c">
+      <Filter>Source Files\image</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkAudioStream.c">
+      <Filter>Source Files\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkAudio.c">
+      <Filter>Source Files\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkAudioSystemDSound.cpp">
+      <Filter>Source Files\audio\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkAudioSystemNull.c">
+      <Filter>Source Files\audio\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkAudioSystemOpenAL.c">
+      <Filter>Source Files\audio\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkAudioSystemXAudio2.cpp">
+      <Filter>Source Files\audio\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkApplication.c">
+      <Filter>Source Files\application</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkPlatformWin.c">
+      <Filter>Source Files\application</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkPlatformLinux.c">
+      <Filter>Source Files\application</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkPlatformNull.c">
+      <Filter>Source Files\application</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkPlatformTizen.cpp">
+      <Filter>Source Files\application</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkPlatformAndroid.c">
+      <Filter>Source Files\application</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkList.c">
+      <Filter>Source Files\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkUtf8.c">
+      <Filter>Source Files\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkStream.c">
+      <Filter>Source Files\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkFileStream.c">
+      <Filter>Source Files\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkFileStreamAndroid.c">
+      <Filter>Source Files\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkAudioSystemOpenSLES.c">
+      <Filter>Source Files\audio\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gkMemoryStream.c">
+      <Filter>Source Files\io</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

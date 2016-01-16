@@ -204,7 +204,9 @@ struct gkPanel
 	void* data;
 	gkPanelLayoutFunc layoutFunc;
 	gkPanelUpdateFunc updateFunc;
+	gkPanelUpdateFunc postUpdateFunc;
 	gkPanelDrawFunc drawFunc;
+	gkPanelDrawFunc postDrawFunc;
 
 GK_READONLY GK_BOOL mouseOver;
 GK_READONLY float mouseX, mouseY;

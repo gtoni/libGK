@@ -54,7 +54,9 @@ gkPanel* gkCreatePanelEx(size_t panelSize){
 	panel->data = 0;
 	panel->layoutFunc = 0;
 	panel->updateFunc = 0;
+	panel->postUpdateFunc = 0;
 	panel->drawFunc = 0;
+	panel->postDrawFunc = 0;
 	panel->parent = 0;
 	panel->numChildren = 0;
 	panel->mouseOver = GK_FALSE;
@@ -267,6 +269,9 @@ void gkProcessUpdatePanel(gkPanel* panel){
 		panel->mNextChild = p->mNext;
 		gkProcessUpdatePanel(p);
 	}
+	if (panel->postUpdateFunc) {
+		panel->postUpdateFunc(panel);
+	}
 	gkUnguardDestroy(panel);
 }
 
@@ -284,6 +289,7 @@ void gkProcessDrawPanel(gkPanel* panel)
 	gkPushTransform(&t2);
 	if(panel->mViewport)
     {
+		/* This is useless */
 		gkMatrix m = gkLocalToGlobal(panel);
 		gkPoint topLeft = gkTransformPoint(GK_POINT(0,0), &m);
 		gkPoint bottomRight = gkTransformPoint(GK_POINT(panel->width, panel->height), &m);
@@ -313,6 +319,9 @@ void gkProcessDrawPanel(gkPanel* panel)
 		for(p = panel->mChildren.first; p; p = panel->mNextChild){
 			panel->mNextChild = p->mNext;
 			gkProcessDrawPanel(p);
+		}
+		if (panel->postDrawFunc) {
+			panel->postDrawFunc(panel);
 		}
 	}
 	gkPopTransform();

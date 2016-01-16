@@ -402,11 +402,11 @@ uint64_t gkFpsFrames = 0;
 uint64_t gkFpsFreq = 250;
 uint64_t gkFpsAccum = 0;
 
-void drawFrame()
+uint64_t beginFrame()
 {
 	uint64_t td;
 
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	gkResetTransform();
 	gkResetColorFilter();
 
@@ -414,14 +414,15 @@ void drawFrame()
 	td = (gkMilliseconds() - gkTimeSinceLastFrame);
 	gkTimeSinceLastFrame = gkMilliseconds();
 
-	gkProcessLayoutMainPanel(gkMainPanel, gkScreenSize.width, gkScreenSize.height);
-	gkProcessUpdatePanel(gkMainPanel);
-	gkProcessDrawPanel(gkMainPanel);
+	return td;
+}
 
-	gkFpsAccum += td;
+void endFrame(uint64_t deltaTime)
+{
+	gkFpsAccum += deltaTime;
 	gkFpsFrames++;
 	if (gkFpsAccum >= gkFpsFreq) {
-		gkFps = (int)(1000.0f/((float)gkFpsAccum/(float)gkFpsFrames));
+		gkFps = (int)(1000.0f / ((float)gkFpsAccum / (float)gkFpsFrames));
 		gkFpsAccum = 0;
 		gkFpsFrames = 0;
 	}
@@ -434,12 +435,21 @@ void loop()
 {
 	uint64_t sleepTime = gkTargetFps?(1000/gkTargetFps):0;
 	uint64_t elapsedTime = gkMilliseconds();
+	uint64_t deltaTime;
 	int rest;
+
+	deltaTime = beginFrame();
+
+	gkProcessLayoutMainPanel(gkMainPanel, gkScreenSize.width, gkScreenSize.height);
+	gkProcessUpdatePanel(gkMainPanel);
 
 	gkUpdateTweens();
 	gkUpdateTimers();
 	processEvents();
-	drawFrame();
+
+	gkProcessDrawPanel(gkMainPanel);
+
+	endFrame(deltaTime);
 
 	if (gkUpdateSize)
 		gkSetScreenSize(gkScreenSize);
